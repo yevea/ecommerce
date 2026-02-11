@@ -1,0 +1,114 @@
+{% extends "Master/MenuTemplate.html.twig" %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">
+        <i class="fa-solid fa-shopping-cart"></i> {{ trans('shopping-cart') }}
+    </h1>
+
+    {% if fsc.cartItems is not empty %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{ trans('product') }}</th>
+                            <th class="text-center">{{ trans('price') }}</th>
+                            <th class="text-center" style="width: 150px;">{{ trans('quantity') }}</th>
+                            <th class="text-end">{{ trans('subtotal') }}</th>
+                            <th class="text-center" style="width: 80px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in fsc.cartItems %}
+                        <tr>
+                            <td>{{ item.product_name }}</td>
+                            <td class="text-center">{{ fsc.formatMoney(item.product_price) }}</td>
+                            <td class="text-center">
+                                <form method="post" action="{{ asset('ShoppingCartView') }}" class="d-inline">
+                                    <input type="hidden" name="action" value="update-quantity">
+                                    <input type="hidden" name="cart_item_id" value="{{ item.id }}">
+                                    <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="999" class="form-control text-center">
+                                        <button type="submit" class="btn btn-outline-primary btn-sm">
+                                            <i class="fa-solid fa-sync"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </td>
+                            <td class="text-end">{{ fsc.formatMoney(item.product_price * item.quantity) }}</td>
+                            <td class="text-center">
+                                <form method="post" action="{{ asset('ShoppingCartView') }}" class="d-inline">
+                                    <input type="hidden" name="action" value="remove-item">
+                                    <input type="hidden" name="cart_item_id" value="{{ item.id }}">
+                                    <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-active">
+                            <td colspan="3" class="text-end fw-bold">{{ trans('total') }}:</td>
+                            <td class="text-end fw-bold h5 mb-0">{{ fsc.formatMoney(fsc.cartTotal) }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{{ trans('checkout') }}</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ asset('ShoppingCartView') }}">
+                <input type="hidden" name="action" value="place-order">
+                <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="customer_name" class="form-label">{{ trans('customer-name') }} *</label>
+                        <input type="text" name="customer_name" id="customer_name" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="customer_email" class="form-label">{{ trans('customer-email') }}</label>
+                        <input type="email" name="customer_email" id="customer_email" class="form-control">
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label for="address" class="form-label">{{ trans('address') }}</label>
+                        <textarea name="address" id="address" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label for="notes" class="form-label">{{ trans('notes') }}</label>
+                        <textarea name="notes" id="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ asset('StoreFront') }}" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-arrow-left"></i> {{ trans('continue-shopping') }}
+                    </a>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fa-solid fa-check"></i> {{ trans('place-order') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fa-solid fa-info-circle"></i> {{ trans('cart-empty') }}
+    </div>
+    <a href="{{ asset('StoreFront') }}" class="btn btn-primary">
+        <i class="fa-solid fa-store"></i> {{ trans('go-to-store') }}
+    </a>
+    {% endif %}
+</div>
+{% endblock %}

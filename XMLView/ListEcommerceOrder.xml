@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="id" display="center" order="100">
+            <widget type="text" fieldname="id" />
+        </column>
+        <column name="code" display="center" order="110">
+            <widget type="text" fieldname="code" />
+        </column>
+        <column name="customer-name" display="left" order="120">
+            <widget type="text" fieldname="customer_name" />
+        </column>
+        <column name="customer-email" display="left" order="130">
+            <widget type="text" fieldname="customer_email" />
+        </column>
+        <column name="status" display="center" order="140">
+            <widget type="select" translate="true" fieldname="status">
+                <option color="warning">pending</option>
+                <option color="info">processing</option>
+                <option color="success">completed</option>
+                <option color="danger">cancelled</option>
+
+                <values title="pending">pending</values>
+                <values title="processing">processing</values>
+                <values title="completed">completed</values>
+                <values title="cancelled">cancelled</values>
+            </widget>
+        </column>
+        <column name="total" display="right" order="150">
+            <widget type="money" fieldname="total" />
+        </column>
+        <column name="creation-date" display="center" order="160">
+            <widget type="timestamp" fieldname="creation_date" />
+        </column>
+    </columns>
+    <rows>
+        <row type="status">
+            <option color="warning" fieldname="status">pending</option>
+            <option color="info" fieldname="status">processing</option>
+            <option color="success" fieldname="status">completed</option>
+            <option color="danger" fieldname="status">cancelled</option>
+        </row>
+    </rows>
+</view>
