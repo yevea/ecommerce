@@ -92,11 +92,21 @@ class ShoppingCartView extends Controller
         }
 
         $order = new EcommerceOrder();
-        $order->customer_name = $this->request->request->get('customer_name', '');
-        $order->customer_email = $this->request->request->get('customer_email', '');
-        $order->address = $this->request->request->get('address', '');
-        $order->notes = $this->request->request->get('notes', '');
+        $order->customer_name = trim($this->request->request->get('customer_name', ''));
+        $order->customer_email = trim($this->request->request->get('customer_email', ''));
+        $order->address = trim($this->request->request->get('address', ''));
+        $order->notes = trim($this->request->request->get('notes', ''));
         $order->status = 'pending';
+
+        if (empty($order->customer_name)) {
+            $this->toolBox()->i18nLog()->warning('customer-name-required');
+            return;
+        }
+
+        if (!empty($order->customer_email) && false === filter_var($order->customer_email, FILTER_VALIDATE_EMAIL)) {
+            $this->toolBox()->i18nLog()->warning('invalid-email');
+            return;
+        }
 
         $total = 0;
         $orderLines = [];

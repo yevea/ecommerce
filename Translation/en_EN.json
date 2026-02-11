@@ -43,5 +43,7 @@
     "product-added-to-cart": "Product added to cart.",
     "order-placed-successfully": "Your order has been placed successfully!",
     "order-placement-failed": "There was an error placing your order.",
-    "no-products-available": "No products available at the moment."
+    "no-products-available": "No products available at the moment.",
+    "customer-name-required": "Customer name is required.",
+    "invalid-email": "Please enter a valid email address."
 }

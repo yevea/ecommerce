@@ -59,7 +59,7 @@ class EcommerceOrder extends ModelClass
     public function saveInsert(array $values = []): bool
     {
         if (empty($this->code)) {
-            $this->code = 'ORD-' . strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 8));
+            $this->code = 'ORD-' . strtoupper(bin2hex(random_bytes(4)));
         }
         $this->creation_date = Tools::dateTime();
         $this->modification_date = Tools::dateTime();
