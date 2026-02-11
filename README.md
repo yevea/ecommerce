@@ -1,4 +1,6 @@
-# ecommerce
-Ecommerce plugin for FacturaScripts.
+# ecommerce plugin for FacturaScripts.
+Minimal version of FacturaScripts: 2025.71
+Licencia: LGPL v3
+Web: facturascripts.com
 
-https://www.facturascripts.com/plugins/ecommerce
+simple shopping cart plugin
