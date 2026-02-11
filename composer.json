@@ -1,0 +1,14 @@
+{
+    "name": "vendor/ecommerce",
+    "description": "Description of project ecommerce.",
+    "authors": [
+        {
+            "name": "Carlos Garcia Gomez",
+            "email": "carlos@facturascripts.com"
+        }
+    ],
+    "require": {
+        "stripe/stripe-php": "v7.*",
+        "paypal/paypal-checkout-sdk": "1.*"
+    }
+}
