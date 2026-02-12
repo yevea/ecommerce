@@ -22,6 +22,12 @@
                     <values source="ecommerce_categories" fieldcode="id" fieldtitle="name" />
                 </widget>
             </column>
+            <column name="visibility" numcolumns="3">
+                <widget type="select" fieldname="visibility" required="true" translate="true">
+                    <values title="public">public</values>
+                    <values title="private">private</values>
+                </widget>
+            </column>
             <column name="image" numcolumns="6">
                 <widget type="text" fieldname="image" />
             </column>

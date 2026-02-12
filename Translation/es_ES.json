@@ -45,5 +45,22 @@
     "order-placement-failed": "Hubo un error al realizar tu pedido.",
     "no-products-available": "No hay productos disponibles en este momento.",
     "customer-name-required": "El nombre del cliente es obligatorio.",
-    "invalid-email": "Por favor, introduce una dirección de email válida."
+    "invalid-email": "Por favor, introduce una dirección de email válida.",
+    "visibility": "Visibilidad",
+    "public": "Pública",
+    "private": "Privada",
+    "import-products": "Importar Productos",
+    "import-products-help": "Seleccione productos del almacén (Almacén > Productos) para importarlos a la tienda online. Después de importar, puede configurar la categoría y visibilidad de cada producto.",
+    "import": "Importar",
+    "imported": "Importado",
+    "not-imported": "No importado",
+    "product-already-imported": "Este producto ya ha sido importado.",
+    "product-imported-successfully": "Producto importado correctamente.",
+    "product-import-failed": "Error al importar el producto.",
+    "no-warehouse-products": "No se encontraron productos en el almacén.",
+    "back-to-products": "Volver a Productos",
+    "se-vende": "Se vende",
+    "se-compra": "Se compra",
+    "search": "Buscar",
+    "edit": "Editar"
 }

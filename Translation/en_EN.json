@@ -45,5 +45,22 @@
     "order-placement-failed": "There was an error placing your order.",
     "no-products-available": "No products available at the moment.",
     "customer-name-required": "Customer name is required.",
-    "invalid-email": "Please enter a valid email address."
+    "invalid-email": "Please enter a valid email address.",
+    "visibility": "Visibility",
+    "public": "Public",
+    "private": "Private",
+    "import-products": "Import Products",
+    "import-products-help": "Select products from the warehouse (Almacén > Productos) to import them into the online store. After import, you can set the category and visibility for each product.",
+    "import": "Import",
+    "imported": "Imported",
+    "not-imported": "Not imported",
+    "product-already-imported": "This product has already been imported.",
+    "product-imported-successfully": "Product imported successfully.",
+    "product-import-failed": "Failed to import product.",
+    "no-warehouse-products": "No warehouse products found.",
+    "back-to-products": "Back to Products",
+    "se-vende": "For Sale",
+    "se-compra": "For Purchase",
+    "search": "Search",
+    "edit": "Edit"
 }

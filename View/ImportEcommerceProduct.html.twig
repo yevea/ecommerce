@@ -1,0 +1,115 @@
+{% extends "Master/MenuTemplate.html.twig" %}
+
+{% block body %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-3">
+                <i class="fa-solid fa-download"></i> {{ trans('import-products') }}
+            </h1>
+            <p class="text-muted">{{ trans('import-products-help') }}</p>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <form method="get" action="{{ asset('ImportEcommerceProduct') }}">
+                <div class="input-group">
+                    <input type="text" name="query" class="form-control" placeholder="{{ trans('search') }}..." value="{{ fsc.query }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-search"></i>
+                    </button>
+                    {% if fsc.query %}
+                    <a href="{{ asset('ImportEcommerceProduct') }}" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-times"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{{ asset('ListEcommerceProduct') }}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left"></i> {{ trans('back-to-products') }}
+            </a>
+        </div>
+    </div>
+
+    {% if fsc.warehouseProducts is empty %}
+    <div class="alert alert-info">
+        <i class="fa-solid fa-info-circle"></i> {{ trans('no-warehouse-products') }}
+    </div>
+    {% else %}
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ trans('reference') }}</th>
+                        <th>{{ trans('description') }}</th>
+                        <th class="text-end">{{ trans('price') }}</th>
+                        <th class="text-center">{{ trans('stock') }}</th>
+                        <th class="text-center">{{ trans('se-vende') }}</th>
+                        <th class="text-center">{{ trans('se-compra') }}</th>
+                        <th class="text-center">{{ trans('status') }}</th>
+                        <th class="text-end"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in fsc.warehouseProducts %}
+                    <tr class="{{ product.imported ? 'table-light' : '' }}">
+                        <td><strong>{{ product.referencia }}</strong></td>
+                        <td>{{ product.descripcion | slice(0, 80) }}{% if product.descripcion | length > 80 %}...{% endif %}</td>
+                        <td class="text-end">{{ fsc.formatMoney(product.precio) }}</td>
+                        <td class="text-center">
+                            {% if product.stockfis > 0 %}
+                            <span class="text-success">{{ product.stockfis }}</span>
+                            {% else %}
+                            <span class="text-danger">{{ product.stockfis }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if product.sevende %}
+                            <i class="fa-solid fa-check text-success"></i>
+                            {% else %}
+                            <i class="fa-solid fa-times text-danger"></i>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if product.secompra %}
+                            <i class="fa-solid fa-check text-success"></i>
+                            {% else %}
+                            <i class="fa-solid fa-times text-danger"></i>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if product.imported %}
+                            <span class="badge bg-success">{{ trans('imported') }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ trans('not-imported') }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if product.imported %}
+                            <a href="{{ asset('EditEcommerceProduct') }}?code={{ product.ecommerce_id }}" class="btn btn-outline-info btn-sm">
+                                <i class="fa-solid fa-edit"></i> {{ trans('edit') }}
+                            </a>
+                            {% else %}
+                            <form method="post" action="{{ asset('ImportEcommerceProduct') }}" class="d-inline">
+                                <input type="hidden" name="action" value="import">
+                                <input type="hidden" name="idproducto" value="{{ product.idproducto }}">
+                                <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fa-solid fa-download"></i> {{ trans('import') }}
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

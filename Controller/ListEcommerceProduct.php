@@ -20,6 +20,7 @@ class ListEcommerceProduct extends ListController
             ->addSearchFields(['name', 'reference', 'description'])
             ->addFilterCheckbox('active', 'active', 'active', '=', true)
             ->addFilterSelect('category_id', 'category', 'category_id')
+            ->addFilterSelect('visibility', 'visibility', 'visibility')
             ->addOrderBy(['name'], 'name')
             ->addOrderBy(['price'], 'price')
             ->addOrderBy(['stock'], 'stock')

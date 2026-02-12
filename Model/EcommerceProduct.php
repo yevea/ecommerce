@@ -12,6 +12,9 @@ class EcommerceProduct extends ModelClass
     /** @var int */
     public $id;
 
+    /** @var int|null */
+    public $idproducto;
+
     /** @var string */
     public $reference;
 
@@ -32,6 +35,9 @@ class EcommerceProduct extends ModelClass
 
     /** @var bool */
     public $active;
+
+    /** @var string */
+    public $visibility;
 
     /** @var string */
     public $image;
@@ -58,6 +64,7 @@ class EcommerceProduct extends ModelClass
         $this->price = 0;
         $this->stock = 0;
         $this->active = true;
+        $this->visibility = 'public';
     }
 
     protected function saveInsert(): bool

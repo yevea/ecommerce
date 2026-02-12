@@ -101,7 +101,10 @@ class StoreFront extends Controller
     private function loadProducts(): void
     {
         $product = new EcommerceProduct();
-        $where = [Where::eq('active', true)];
+        $where = [
+            Where::eq('active', true),
+            Where::eq('visibility', 'public'),
+        ];
 
         $categoryId = $this->request->query->get('category', null);
         if ($categoryId !== null) {
