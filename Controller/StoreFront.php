@@ -34,7 +34,7 @@ class StoreFront extends Controller
     {
         parent::run();
 
-        $action = $this->request->request->get('action', '');
+        $action = $this->request()->request->get('action', '');
         if ($action === 'add-to-cart') {
             $this->addToCart();
         }
@@ -51,7 +51,7 @@ class StoreFront extends Controller
 
     private function addToCart(): void
     {
-        $productId = (int) $this->request->request->get('product_id', 0);
+        $productId = (int) $this->request()->request->get('product_id', 0);
         if ($productId <= 0) {
             return;
         }
@@ -90,7 +90,7 @@ class StoreFront extends Controller
         $product = new EcommerceProduct();
         $where = [new \FacturaScripts\Core\Where('active', '=', true)];
 
-        $categoryId = $this->request->query->get('category', null);
+        $categoryId = $this->request()->query->get('category', null);
         if ($categoryId !== null) {
             $this->selectedCategory = (int) $categoryId;
             $where[] = new \FacturaScripts\Core\Where('category_id', '=', $this->selectedCategory);
