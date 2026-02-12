@@ -18,6 +18,7 @@
  */
 namespace FacturaScripts\Plugins\ecommerce;
 
+use FacturaScripts\Core\Cache;
 use FacturaScripts\Core\Template\InitClass;
 
 class Init extends InitClass
@@ -28,6 +29,8 @@ class Init extends InitClass
 
     public function update(): void
     {
+        // clear menu page cache so new pages are discovered
+        Cache::clear('model-Page-Show-Menu');
     }
 
     public function uninstall(): void

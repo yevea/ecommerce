@@ -40,9 +40,9 @@ class EcommerceCategory extends ModelClass
         $this->active = true;
     }
 
-    public function saveInsert(array $values = []): bool
+    protected function saveInsert(): bool
     {
         $this->creation_date = Tools::dateTime();
-        return parent::saveInsert($values);
+        return parent::saveInsert();
     }
 }

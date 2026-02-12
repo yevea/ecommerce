@@ -60,16 +60,16 @@ class EcommerceProduct extends ModelClass
         $this->active = true;
     }
 
-    public function saveInsert(array $values = []): bool
+    protected function saveInsert(): bool
     {
         $this->creation_date = Tools::dateTime();
         $this->modification_date = Tools::dateTime();
-        return parent::saveInsert($values);
+        return parent::saveInsert();
     }
 
-    public function saveUpdate(array $values = []): bool
+    protected function saveUpdate(): bool
     {
         $this->modification_date = Tools::dateTime();
-        return parent::saveUpdate($values);
+        return parent::saveUpdate();
     }
 }
