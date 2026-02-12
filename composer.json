@@ -1,14 +1,9 @@
 {
-    "name": "vendor/ecommerce",
-    "description": "Description of project ecommerce.",
-    "authors": [
-        {
-            "name": "Carlos Garcia Gomez",
-            "email": "carlos@facturascripts.com"
-        }
-    ],
+    "name": "facturascripts/ecommerce",
+    "description": "Simple ecommerce / shopping cart plugin for FacturaScripts",
+    "type": "facturascripts-plugin",
+    "license": "LGPL-3.0-or-later",
     "require": {
-        "stripe/stripe-php": "v7.*",
-        "paypal/paypal-checkout-sdk": "1.*"
+        "php": ">=8.1"
     }
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  * This file is part of ecommerce plugin for FacturaScripts.
- * Copyright (C) 2018-2019 Carlos Garcia Gomez <carlos@facturascripts.com>
+ * Copyright (C) 2024 FacturaScripts Community
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -18,25 +18,19 @@
  */
 namespace FacturaScripts\Plugins\ecommerce;
 
-require_once __DIR__ . '/vendor/autoload.php';
+use FacturaScripts\Core\Template\InitClass;
 
-use FacturaScripts\Core\Base\InitClass;
-
-/**
- * Description of Init
- *
- * @author Carlos García Gómez
- */
 class Init extends InitClass
 {
-
-    public function init()
+    public function init(): void
     {
-        /// do not remove this file, autoloader is necessary
     }
 
-    public function update()
+    public function update(): void
     {
-        /// do not remove this file, autoloader is necessary
+    }
+
+    public function uninstall(): void
+    {
     }
 }
