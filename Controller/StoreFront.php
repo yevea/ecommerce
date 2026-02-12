@@ -3,6 +3,7 @@ namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Base\Controller;
 use FacturaScripts\Core\Tools;
+use FacturaScripts\Core\Where;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCategory;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceProduct;
@@ -72,8 +73,8 @@ class StoreFront extends Controller
 
         $cartItem = new EcommerceCartItem();
         $where = [
-            new \FacturaScripts\Core\Where('session_id', '=', $sessionId),
-            new \FacturaScripts\Core\Where('product_id', '=', $productId),
+            Where::eq('session_id', $sessionId),
+            Where::eq('product_id', $productId),
         ];
 
         $existing = $cartItem->all($where);
@@ -93,19 +94,19 @@ class StoreFront extends Controller
     private function loadCategories(): void
     {
         $category = new EcommerceCategory();
-        $where = [new \FacturaScripts\Core\Where('active', '=', true)];
+        $where = [Where::eq('active', true)];
         $this->categories = $category->all($where, ['name' => 'ASC']);
     }
 
     private function loadProducts(): void
     {
         $product = new EcommerceProduct();
-        $where = [new \FacturaScripts\Core\Where('active', '=', true)];
+        $where = [Where::eq('active', true)];
 
         $categoryId = $this->request->query->get('category', null);
         if ($categoryId !== null) {
             $this->selectedCategory = (int) $categoryId;
-            $where[] = new \FacturaScripts\Core\Where('category_id', '=', $this->selectedCategory);
+            $where[] = Where::eq('category_id', $this->selectedCategory);
         }
 
         $this->products = $product->all($where, ['name' => 'ASC']);
@@ -114,7 +115,7 @@ class StoreFront extends Controller
     private function loadCartItemCount(): void
     {
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', '=', $this->getSessionId())];
+        $where = [Where::eq('session_id', $this->getSessionId())];
         $items = $cartItem->all($where);
         $this->cartItemCount = 0;
         foreach ($items as $item) {

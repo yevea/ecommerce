@@ -3,6 +3,7 @@ namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Base\Controller;
 use FacturaScripts\Core\Tools;
+use FacturaScripts\Core\Where;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrder;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrderLine;
@@ -95,7 +96,7 @@ class ShoppingCartView extends Controller
         $sessionId = $this->getSessionId();
 
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', '=', $sessionId)];
+        $where = [Where::eq('session_id', $sessionId)];
         $items = $cartItem->all($where);
 
         if (empty($items)) {
@@ -165,7 +166,7 @@ class ShoppingCartView extends Controller
         $this->cartTotal = 0;
 
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', '=', $sessionId)];
+        $where = [Where::eq('session_id', $sessionId)];
         $items = $cartItem->all($where);
 
         foreach ($items as $item) {

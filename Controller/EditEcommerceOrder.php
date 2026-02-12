@@ -2,6 +2,7 @@
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Lib\ExtendedController\EditController;
+use FacturaScripts\Core\Where;
 
 class EditEcommerceOrder extends EditController
 {
@@ -30,7 +31,7 @@ class EditEcommerceOrder extends EditController
         switch ($viewName) {
             case 'EditEcommerceOrderLine':
                 $order_id = $this->getViewModelValue('EditEcommerceOrder', 'id');
-                $where = [new \FacturaScripts\Core\Where('order_id', '=', $order_id)];
+                $where = [Where::eq('order_id', $order_id)];
                 $view->loadData('', $where);
                 break;
 
