@@ -29,7 +29,23 @@ class ShoppingCartView extends Controller
     public function privateCore(&$response, $user, $permissions)
     {
         parent::privateCore($response, $user, $permissions);
+        $this->loadShoppingCartData();
+    }
 
+    public function publicCore(&$response)
+    {
+        parent::publicCore($response);
+        $this->setTemplate('ShoppingCartView');
+        $this->loadShoppingCartData();
+    }
+
+    public function formatMoney(float $amount): string
+    {
+        return number_format($amount, 2, ',', '.') . ' €';
+    }
+
+    private function loadShoppingCartData(): void
+    {
         $action = $this->request->request->get('action', '');
         switch ($action) {
             case 'update-quantity':
@@ -46,11 +62,6 @@ class ShoppingCartView extends Controller
         }
 
         $this->loadCartItems();
-    }
-
-    public function formatMoney(float $amount): string
-    {
-        return number_format($amount, 2, ',', '.') . ' €';
     }
 
     private function updateQuantity(): void

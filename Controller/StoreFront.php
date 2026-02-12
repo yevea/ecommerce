@@ -34,7 +34,23 @@ class StoreFront extends Controller
     public function privateCore(&$response, $user, $permissions)
     {
         parent::privateCore($response, $user, $permissions);
+        $this->loadStoreFrontData();
+    }
 
+    public function publicCore(&$response)
+    {
+        parent::publicCore($response);
+        $this->setTemplate('StoreFront');
+        $this->loadStoreFrontData();
+    }
+
+    public function formatMoney(float $amount): string
+    {
+        return number_format($amount, 2, ',', '.') . ' €';
+    }
+
+    private function loadStoreFrontData(): void
+    {
         $action = $this->request->request->get('action', '');
         if ($action === 'add-to-cart') {
             $this->addToCart();
@@ -43,11 +59,6 @@ class StoreFront extends Controller
         $this->loadCategories();
         $this->loadProducts();
         $this->loadCartItemCount();
-    }
-
-    public function formatMoney(float $amount): string
-    {
-        return number_format($amount, 2, ',', '.') . ' €';
     }
 
     private function addToCart(): void
