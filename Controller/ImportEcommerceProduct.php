@@ -8,6 +8,8 @@ use FacturaScripts\Plugins\ecommerce\Model\EcommerceProduct;
 
 class ImportEcommerceProduct extends Controller
 {
+    private const PRODUCTO_CLASS = '\\FacturaScripts\\Dinamic\\Model\\Producto';
+
     /** @var array */
     public $warehouseProducts = [];
 
@@ -49,7 +51,7 @@ class ImportEcommerceProduct extends Controller
             return;
         }
 
-        $productoClass = '\\FacturaScripts\\Dinamic\\Model\\Producto';
+        $productoClass = self::PRODUCTO_CLASS;
         if (!class_exists($productoClass)) {
             Tools::log()->error('warehouse-model-not-found');
             return;
@@ -81,7 +83,7 @@ class ImportEcommerceProduct extends Controller
 
     private function loadWarehouseProducts(): void
     {
-        $productoClass = '\\FacturaScripts\\Dinamic\\Model\\Producto';
+        $productoClass = self::PRODUCTO_CLASS;
         if (!class_exists($productoClass)) {
             return;
         }

@@ -50,7 +50,7 @@
     "public": "Public",
     "private": "Private",
     "import-products": "Import Products",
-    "import-products-help": "Select products from the warehouse (Almacén > Productos) to import them into the online store. After import, you can set the category and visibility for each product.",
+    "import-products-help": "Select products from the warehouse (Warehouse > Products) to import them into the online store. After import, you can set the category and visibility for each product.",
     "import": "Import",
     "imported": "Imported",
     "not-imported": "Not imported",

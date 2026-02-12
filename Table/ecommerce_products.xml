@@ -45,7 +45,7 @@
     <column>
         <name>visibility</name>
         <type>character varying(10)</type>
-        <default>public</default>
+        <default>'public'</default>
     </column>
     <column>
         <name>image</name>
