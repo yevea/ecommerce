@@ -19,7 +19,7 @@ class ListEcommerceProduct extends ListController
         $this->addView($viewName, 'EcommerceProduct', 'products', 'fa-solid fa-box')
             ->addSearchFields(['name', 'reference', 'description'])
             ->addFilterCheckbox('active', 'active', 'active', '=', true)
-            ->addFilterSelect('category_id', 'category', 'category_id', 'ecommerce_categories', 'id', 'name')
+            ->addFilterSelect('category_id', 'category', 'category_id')
             ->addOrderBy(['name'], 'name')
             ->addOrderBy(['price'], 'price')
             ->addOrderBy(['stock'], 'stock')

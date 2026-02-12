@@ -1,7 +1,8 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
-use FacturaScripts\Core\Template\Controller;
+use FacturaScripts\Core\Base\Controller;
+use FacturaScripts\Core\Tools;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrder;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrderLine;
@@ -25,11 +26,11 @@ class ShoppingCartView extends Controller
         return $pageData;
     }
 
-    public function run(): void
+    public function privateCore(&$response, $user, $permissions)
     {
-        parent::run();
+        parent::privateCore($response, $user, $permissions);
 
-        $action = $this->request()->request->get('action', '');
+        $action = $this->request->request->get('action', '');
         switch ($action) {
             case 'update-quantity':
                 $this->updateQuantity();
@@ -54,8 +55,8 @@ class ShoppingCartView extends Controller
 
     private function updateQuantity(): void
     {
-        $cartItemId = (int) $this->request()->request->get('cart_item_id', 0);
-        $quantity = (int) $this->request()->request->get('quantity', 1);
+        $cartItemId = (int) $this->request->request->get('cart_item_id', 0);
+        $quantity = (int) $this->request->request->get('quantity', 1);
 
         $cartItem = new EcommerceCartItem();
         if ($cartItem->loadFromCode($cartItemId)) {
@@ -68,7 +69,7 @@ class ShoppingCartView extends Controller
 
     private function removeItem(): void
     {
-        $cartItemId = (int) $this->request()->request->get('cart_item_id', 0);
+        $cartItemId = (int) $this->request->request->get('cart_item_id', 0);
 
         $cartItem = new EcommerceCartItem();
         if ($cartItem->loadFromCode($cartItemId)) {
@@ -87,24 +88,24 @@ class ShoppingCartView extends Controller
         $items = $cartItem->all($where);
 
         if (empty($items)) {
-            $this->toolBox()->i18nLog()->warning('cart-empty');
+            Tools::log()->warning('cart-empty');
             return;
         }
 
         $order = new EcommerceOrder();
-        $order->customer_name = trim($this->request()->request->get('customer_name', ''));
-        $order->customer_email = trim($this->request()->request->get('customer_email', ''));
-        $order->address = trim($this->request()->request->get('address', ''));
-        $order->notes = trim($this->request()->request->get('notes', ''));
+        $order->customer_name = trim($this->request->request->get('customer_name', ''));
+        $order->customer_email = trim($this->request->request->get('customer_email', ''));
+        $order->address = trim($this->request->request->get('address', ''));
+        $order->notes = trim($this->request->request->get('notes', ''));
         $order->status = 'pending';
 
         if (empty($order->customer_name)) {
-            $this->toolBox()->i18nLog()->warning('customer-name-required');
+            Tools::log()->warning('customer-name-required');
             return;
         }
 
         if (!empty($order->customer_email) && false === filter_var($order->customer_email, FILTER_VALIDATE_EMAIL)) {
-            $this->toolBox()->i18nLog()->warning('invalid-email');
+            Tools::log()->warning('invalid-email');
             return;
         }
 
@@ -139,10 +140,10 @@ class ShoppingCartView extends Controller
                 $item->delete();
             }
 
-            $this->toolBox()->i18nLog()->notice('order-placed-successfully');
+            Tools::log()->notice('order-placed-successfully');
             $this->redirect('EditEcommerceOrder?code=' . $order->id);
         } else {
-            $this->toolBox()->i18nLog()->error('order-placement-failed');
+            Tools::log()->error('order-placement-failed');
         }
     }
 

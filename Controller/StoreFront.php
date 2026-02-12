@@ -1,7 +1,8 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
-use FacturaScripts\Core\Template\Controller;
+use FacturaScripts\Core\Base\Controller;
+use FacturaScripts\Core\Tools;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCategory;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceProduct;
@@ -30,11 +31,11 @@ class StoreFront extends Controller
         return $pageData;
     }
 
-    public function run(): void
+    public function privateCore(&$response, $user, $permissions)
     {
-        parent::run();
+        parent::privateCore($response, $user, $permissions);
 
-        $action = $this->request()->request->get('action', '');
+        $action = $this->request->request->get('action', '');
         if ($action === 'add-to-cart') {
             $this->addToCart();
         }
@@ -51,7 +52,7 @@ class StoreFront extends Controller
 
     private function addToCart(): void
     {
-        $productId = (int) $this->request()->request->get('product_id', 0);
+        $productId = (int) $this->request->request->get('product_id', 0);
         if ($productId <= 0) {
             return;
         }
@@ -75,7 +76,7 @@ class StoreFront extends Controller
             $cartItem->save();
         }
 
-        $this->toolBox()->i18nLog()->notice('product-added-to-cart');
+        Tools::log()->notice('product-added-to-cart');
     }
 
     private function loadCategories(): void
@@ -90,7 +91,7 @@ class StoreFront extends Controller
         $product = new EcommerceProduct();
         $where = [new \FacturaScripts\Core\Where('active', '=', true)];
 
-        $categoryId = $this->request()->query->get('category', null);
+        $categoryId = $this->request->query->get('category', null);
         if ($categoryId !== null) {
             $this->selectedCategory = (int) $categoryId;
             $where[] = new \FacturaScripts\Core\Where('category_id', '=', $this->selectedCategory);
