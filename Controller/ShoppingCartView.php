@@ -29,7 +29,7 @@ class ShoppingCartView extends Controller
     {
         parent::run();
 
-        $action = $this->request->request->get('action', '');
+        $action = $this->request()->request->get('action', '');
         switch ($action) {
             case 'update-quantity':
                 $this->updateQuantity();
@@ -54,8 +54,8 @@ class ShoppingCartView extends Controller
 
     private function updateQuantity(): void
     {
-        $cartItemId = (int) $this->request->request->get('cart_item_id', 0);
-        $quantity = (int) $this->request->request->get('quantity', 1);
+        $cartItemId = (int) $this->request()->request->get('cart_item_id', 0);
+        $quantity = (int) $this->request()->request->get('quantity', 1);
 
         $cartItem = new EcommerceCartItem();
         if ($cartItem->loadFromCode($cartItemId)) {
@@ -68,7 +68,7 @@ class ShoppingCartView extends Controller
 
     private function removeItem(): void
     {
-        $cartItemId = (int) $this->request->request->get('cart_item_id', 0);
+        $cartItemId = (int) $this->request()->request->get('cart_item_id', 0);
 
         $cartItem = new EcommerceCartItem();
         if ($cartItem->loadFromCode($cartItemId)) {
@@ -92,10 +92,10 @@ class ShoppingCartView extends Controller
         }
 
         $order = new EcommerceOrder();
-        $order->customer_name = trim($this->request->request->get('customer_name', ''));
-        $order->customer_email = trim($this->request->request->get('customer_email', ''));
-        $order->address = trim($this->request->request->get('address', ''));
-        $order->notes = trim($this->request->request->get('notes', ''));
+        $order->customer_name = trim($this->request()->request->get('customer_name', ''));
+        $order->customer_email = trim($this->request()->request->get('customer_email', ''));
+        $order->address = trim($this->request()->request->get('address', ''));
+        $order->notes = trim($this->request()->request->get('notes', ''));
         $order->status = 'pending';
 
         if (empty($order->customer_name)) {
