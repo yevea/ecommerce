@@ -107,8 +107,8 @@ class ShoppingCartView extends Controller
 
         // create a native FS PedidoCliente
         $pedido = new PedidoCliente();
-        $pedido->codalmacen = Tools::settings('default', 'codalmacen');
-        $pedido->codserie = Tools::settings('default', 'codserie');
+        $pedido->codalmacen = Tools::settings('default', 'codalmacen', '');
+        $pedido->codserie = Tools::settings('default', 'codserie', '');
         $pedido->idempresa = (int) Tools::settings('default', 'idempresa', 1);
         $pedido->observaciones = $notes;
 
@@ -118,16 +118,23 @@ class ShoppingCartView extends Controller
         }
 
         // add lines from cart
+        $lineFailed = false;
         foreach ($items as $item) {
             $producto = new Producto();
             if ($producto->loadFromCode($item->idproducto)) {
                 $newLine = $pedido->getNewProductLine($producto->referencia);
                 $newLine->cantidad = $item->quantity;
                 if (false === $newLine->save()) {
-                    Tools::log()->error('order-placement-failed');
-                    return;
+                    $lineFailed = true;
+                    break;
                 }
             }
+        }
+
+        if ($lineFailed) {
+            $pedido->delete();
+            Tools::log()->error('order-placement-failed');
+            return;
         }
 
         // clear cart

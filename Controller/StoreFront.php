@@ -11,6 +11,8 @@ use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 
 class StoreFront extends Controller
 {
+    const MAX_PRODUCTS = 50;
+
     /** @var array */
     public $families = [];
 
@@ -113,7 +115,7 @@ class StoreFront extends Controller
             $where[] = new DataBaseWhere('codfamilia', $codfamilia);
         }
 
-        $this->products = $producto->all($where, ['descripcion' => 'ASC'], 0, 50);
+        $this->products = $producto->all($where, ['descripcion' => 'ASC'], 0, self::MAX_PRODUCTS);
     }
 
     private function loadCartItemCount(): void
