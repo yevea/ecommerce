@@ -31,7 +31,7 @@ class StoreFront extends Controller
         $pageData['menu'] = 'ecommerce';
         $pageData['title'] = 'storefront';
         $pageData['icon'] = 'fa-solid fa-store';
-        $pageData['showonmenu'] = false;
+        $pageData['showonmenu'] = true;
         return $pageData;
     }
 

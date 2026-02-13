@@ -104,12 +104,26 @@ class ShoppingCartView extends Controller
         }
 
         $notes = trim($this->request->request->get('notes', ''));
+        $customerName = trim($this->request->request->get('nombrecliente', ''));
+        $cifnif = trim($this->request->request->get('cifnif', ''));
+
+        if (empty($customerName)) {
+            Tools::log()->warning('customer-name-required');
+            return;
+        }
+
+        if (empty($cifnif)) {
+            Tools::log()->warning('cifnif-required');
+            return;
+        }
 
         // create a native FS PedidoCliente
         $pedido = new PedidoCliente();
+        $pedido->cifnif = $cifnif;
         $pedido->codalmacen = Tools::settings('default', 'codalmacen', '');
         $pedido->codserie = Tools::settings('default', 'codserie', '');
         $pedido->idempresa = (int) Tools::settings('default', 'idempresa', 1);
+        $pedido->nombrecliente = $customerName;
         $pedido->observaciones = $notes;
 
         if (false === $pedido->save()) {

@@ -75,6 +75,14 @@
                 <input type="hidden" name="action" value="place-order">
                 <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
                 <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="nombrecliente" class="form-label">{{ trans('customer-name') }} *</label>
+                        <input type="text" name="nombrecliente" id="nombrecliente" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="cifnif" class="form-label">{{ trans('cifnif') }} *</label>
+                        <input type="text" name="cifnif" id="cifnif" class="form-control" required>
+                    </div>
                     <div class="col-12 mb-3">
                         <label for="notes" class="form-label">{{ trans('notes') }}</label>
                         <textarea name="notes" id="notes" class="form-control" rows="2"></textarea>

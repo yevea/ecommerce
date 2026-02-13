@@ -21,5 +21,9 @@
     "product-added-to-cart": "Producto añadido al carrito.",
     "order-placed-successfully": "¡Tu pedido ha sido realizado con éxito!",
     "order-placement-failed": "Hubo un error al realizar tu pedido.",
-    "no-products-available": "No hay productos disponibles en este momento."
+    "no-products-available": "No hay productos disponibles en este momento.",
+    "customer-name": "Nombre del Cliente",
+    "customer-name-required": "El nombre del cliente es obligatorio.",
+    "cifnif": "CIF/NIF",
+    "cifnif-required": "El CIF/NIF es obligatorio."
 }
