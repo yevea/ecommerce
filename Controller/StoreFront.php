@@ -7,6 +7,7 @@ use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
 use FacturaScripts\Dinamic\Model\Familia;
 use FacturaScripts\Dinamic\Model\Producto;
+use FacturaScripts\Dinamic\Model\ProductoImagen;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 
 class StoreFront extends Controller
@@ -24,6 +25,9 @@ class StoreFront extends Controller
 
     /** @var int */
     public $cartItemCount = 0;
+
+    /** @var array */
+    public $productImages = [];
 
     public function getPageData(): array
     {
@@ -62,6 +66,7 @@ class StoreFront extends Controller
 
         $this->loadFamilies();
         $this->loadProducts();
+        $this->loadProductImages();
         $this->loadCartItemCount();
     }
 
@@ -116,6 +121,22 @@ class StoreFront extends Controller
         }
 
         $this->products = $producto->all($where, ['descripcion' => 'ASC'], 0, self::MAX_PRODUCTS);
+    }
+
+    private function loadProductImages(): void
+    {
+        $this->productImages = [];
+        $imagen = new ProductoImagen();
+        foreach ($this->products as $product) {
+            $where = [new DataBaseWhere('idproducto', $product->idproducto)];
+            $images = $imagen->all($where, ['orden' => 'ASC'], 0, 1);
+            if (!empty($images)) {
+                $thumb = $images[0]->getThumbnail(300, 300, true);
+                if (!empty($thumb)) {
+                    $this->productImages[$product->idproducto] = $thumb;
+                }
+            }
+        }
     }
 
     private function loadCartItemCount(): void
