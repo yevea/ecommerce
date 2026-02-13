@@ -16,6 +16,12 @@ class ShoppingCartView extends Controller
     /** @var float */
     public $cartTotal = 0;
 
+    /** @var bool */
+    public $orderPlaced = false;
+
+    /** @var string */
+    public $orderCode = '';
+
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
@@ -61,7 +67,9 @@ class ShoppingCartView extends Controller
                 break;
         }
 
-        $this->loadCartItems();
+        if (false === $this->orderPlaced) {
+            $this->loadCartItems();
+        }
     }
 
     private function updateQuantity(): void
@@ -157,7 +165,8 @@ class ShoppingCartView extends Controller
         }
 
         Tools::log()->notice('order-placed-successfully');
-        $this->redirect('EditPedidoCliente?code=' . $pedido->idpedido);
+        $this->orderPlaced = true;
+        $this->orderCode = $pedido->codigo;
     }
 
     private function loadCartItems(): void

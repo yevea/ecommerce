@@ -25,5 +25,7 @@
     "customer-name": "Nombre del Cliente",
     "customer-name-required": "El nombre del cliente es obligatorio.",
     "cifnif": "CIF/NIF",
-    "cifnif-required": "El CIF/NIF es obligatorio."
+    "cifnif-required": "El CIF/NIF es obligatorio.",
+    "order-code": "Código de pedido",
+    "order-confirmation-message": "Gracias por su compra. Nos pondremos en contacto con usted para confirmar los detalles del pedido."
 }
