@@ -2,8 +2,10 @@
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Base\Controller;
+use FacturaScripts\Core\Base\DataBase\DataBaseWhere;
 use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
+use FacturaScripts\Dinamic\Model\Cliente;
 use FacturaScripts\Dinamic\Model\Producto;
 use FacturaScripts\Dinamic\Model\PedidoCliente;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
@@ -114,6 +116,7 @@ class ShoppingCartView extends Controller
         $notes = trim($this->request->request->get('notes', ''));
         $customerName = trim($this->request->request->get('nombrecliente', ''));
         $cifnif = trim($this->request->request->get('cifnif', ''));
+        $email = trim($this->request->request->get('email', ''));
 
         if (empty($customerName)) {
             Tools::log()->warning('customer-name-required');
@@ -125,13 +128,23 @@ class ShoppingCartView extends Controller
             return;
         }
 
+        // find existing customer by cifnif or create a new one
+        $cliente = new Cliente();
+        $where = [new DataBaseWhere('cifnif', $cifnif)];
+        if (false === $cliente->loadWhere($where)) {
+            $cliente->cifnif = $cifnif;
+            $cliente->nombre = $customerName;
+            $cliente->razonsocial = $customerName;
+            $cliente->email = $email;
+            if (false === $cliente->save()) {
+                Tools::log()->error('order-placement-failed');
+                return;
+            }
+        }
+
         // create a native FS PedidoCliente
         $pedido = new PedidoCliente();
-        $pedido->cifnif = $cifnif;
-        $pedido->codalmacen = Tools::settings('default', 'codalmacen', '');
-        $pedido->codserie = Tools::settings('default', 'codserie', '');
-        $pedido->idempresa = (int) Tools::settings('default', 'idempresa', 1);
-        $pedido->nombrecliente = $customerName;
+        $pedido->setSubject($cliente);
         $pedido->observaciones = $notes;
 
         if (false === $pedido->save()) {

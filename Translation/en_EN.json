@@ -26,6 +26,7 @@
     "customer-name-required": "Customer name is required.",
     "cifnif": "Tax ID",
     "cifnif-required": "Tax ID is required.",
+    "email": "Email",
     "order-code": "Order code",
     "order-confirmation-message": "Thank you for your purchase. We will contact you to confirm the order details."
 }
