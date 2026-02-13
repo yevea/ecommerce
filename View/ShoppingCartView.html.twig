@@ -13,7 +13,8 @@
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>{{ trans('product') }}</th>
+                            <th>{{ trans('reference') }}</th>
+                            <th>{{ trans('description') }}</th>
                             <th class="text-center">{{ trans('price') }}</th>
                             <th class="text-center" style="width: 150px;">{{ trans('quantity') }}</th>
                             <th class="text-end">{{ trans('subtotal') }}</th>
@@ -23,8 +24,9 @@
                     <tbody>
                         {% for item in fsc.cartItems %}
                         <tr>
-                            <td>{{ item.product_name }}</td>
-                            <td class="text-center">{{ fsc.formatMoney(item.product_price) }}</td>
+                            <td><strong>{{ item.referencia }}</strong></td>
+                            <td>{{ item.descripcion | slice(0, 60) }}{% if item.descripcion | length > 60 %}...{% endif %}</td>
+                            <td class="text-center">{{ fsc.formatMoney(item.precio) }}</td>
                             <td class="text-center">
                                 <form method="post" action="{{ asset('ShoppingCartView') }}" class="d-inline">
                                     <input type="hidden" name="action" value="update-quantity">
@@ -38,7 +40,7 @@
                                     </div>
                                 </form>
                             </td>
-                            <td class="text-end">{{ fsc.formatMoney(item.product_price * item.quantity) }}</td>
+                            <td class="text-end">{{ fsc.formatMoney(item.precio * item.quantity) }}</td>
                             <td class="text-center">
                                 <form method="post" action="{{ asset('ShoppingCartView') }}" class="d-inline">
                                     <input type="hidden" name="action" value="remove-item">
@@ -54,7 +56,7 @@
                     </tbody>
                     <tfoot>
                         <tr class="table-active">
-                            <td colspan="3" class="text-end fw-bold">{{ trans('total') }}:</td>
+                            <td colspan="4" class="text-end fw-bold">{{ trans('total') }}:</td>
                             <td class="text-end fw-bold h5 mb-0">{{ fsc.formatMoney(fsc.cartTotal) }}</td>
                             <td></td>
                         </tr>
@@ -73,18 +75,6 @@
                 <input type="hidden" name="action" value="place-order">
                 <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
                 <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="customer_name" class="form-label">{{ trans('customer-name') }} *</label>
-                        <input type="text" name="customer_name" id="customer_name" class="form-control" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="customer_email" class="form-label">{{ trans('customer-email') }}</label>
-                        <input type="email" name="customer_email" id="customer_email" class="form-control">
-                    </div>
-                    <div class="col-12 mb-3">
-                        <label for="address" class="form-label">{{ trans('address') }}</label>
-                        <textarea name="address" id="address" class="form-control" rows="2"></textarea>
-                    </div>
                     <div class="col-12 mb-3">
                         <label for="notes" class="form-label">{{ trans('notes') }}</label>
                         <textarea name="notes" id="notes" class="form-control" rows="2"></textarea>

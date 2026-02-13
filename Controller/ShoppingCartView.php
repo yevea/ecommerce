@@ -4,10 +4,9 @@ namespace FacturaScripts\Plugins\ecommerce\Controller;
 use FacturaScripts\Core\Base\Controller;
 use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
+use FacturaScripts\Dinamic\Model\Producto;
+use FacturaScripts\Dinamic\Model\PedidoCliente;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrder;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrderLine;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceProduct;
 
 class ShoppingCartView extends Controller
 {
@@ -42,7 +41,7 @@ class ShoppingCartView extends Controller
 
     public function formatMoney(float $amount): string
     {
-        return number_format($amount, 2, ',', '.') . ' €';
+        return Tools::money($amount);
     }
 
     private function loadShoppingCartData(): void
@@ -104,59 +103,40 @@ class ShoppingCartView extends Controller
             return;
         }
 
-        $order = new EcommerceOrder();
-        $order->customer_name = trim($this->request->request->get('customer_name', ''));
-        $order->customer_email = trim($this->request->request->get('customer_email', ''));
-        $order->address = trim($this->request->request->get('address', ''));
-        $order->notes = trim($this->request->request->get('notes', ''));
-        $order->status = 'pending';
+        $notes = trim($this->request->request->get('notes', ''));
 
-        if (empty($order->customer_name)) {
-            Tools::log()->warning('customer-name-required');
-            return;
-        }
+        // create a native FS PedidoCliente
+        $pedido = new PedidoCliente();
+        $pedido->codalmacen = Tools::settings('default', 'codalmacen');
+        $pedido->codserie = Tools::settings('default', 'codserie');
+        $pedido->idempresa = (int) Tools::settings('default', 'idempresa', 1);
+        $pedido->observaciones = $notes;
 
-        if (!empty($order->customer_email) && false === filter_var($order->customer_email, FILTER_VALIDATE_EMAIL)) {
-            Tools::log()->warning('invalid-email');
-            return;
-        }
-
-        $total = 0;
-        $orderLines = [];
-
-        foreach ($items as $item) {
-            $product = new EcommerceProduct();
-            if ($product->loadFromCode($item->product_id)) {
-                $subtotal = $product->price * $item->quantity;
-                $total += $subtotal;
-
-                $line = new EcommerceOrderLine();
-                $line->product_id = $product->id;
-                $line->product_name = $product->name;
-                $line->quantity = $item->quantity;
-                $line->price = $product->price;
-                $line->subtotal = $subtotal;
-                $orderLines[] = $line;
-            }
-        }
-
-        $order->total = $total;
-
-        if ($order->save()) {
-            foreach ($orderLines as $line) {
-                $line->order_id = $order->id;
-                $line->save();
-            }
-
-            foreach ($items as $item) {
-                $item->delete();
-            }
-
-            Tools::log()->notice('order-placed-successfully');
-            $this->redirect('EditEcommerceOrder?code=' . $order->id);
-        } else {
+        if (false === $pedido->save()) {
             Tools::log()->error('order-placement-failed');
+            return;
         }
+
+        // add lines from cart
+        foreach ($items as $item) {
+            $producto = new Producto();
+            if ($producto->loadFromCode($item->idproducto)) {
+                $newLine = $pedido->getNewProductLine($producto->referencia);
+                $newLine->cantidad = $item->quantity;
+                if (false === $newLine->save()) {
+                    Tools::log()->error('order-placement-failed');
+                    return;
+                }
+            }
+        }
+
+        // clear cart
+        foreach ($items as $item) {
+            $item->delete();
+        }
+
+        Tools::log()->notice('order-placed-successfully');
+        $this->redirect('EditPedidoCliente?code=' . $pedido->idpedido);
     }
 
     private function loadCartItems(): void
@@ -170,15 +150,16 @@ class ShoppingCartView extends Controller
         $items = $cartItem->all($where);
 
         foreach ($items as $item) {
-            $product = new EcommerceProduct();
-            if ($product->loadFromCode($item->product_id)) {
+            $producto = new Producto();
+            if ($producto->loadFromCode($item->idproducto)) {
                 $this->cartItems[] = (object) [
                     'id' => $item->id,
-                    'product_name' => $product->name,
-                    'product_price' => $product->price,
+                    'referencia' => $producto->referencia,
+                    'descripcion' => $producto->descripcion,
+                    'precio' => $producto->precio,
                     'quantity' => $item->quantity,
                 ];
-                $this->cartTotal += $product->price * $item->quantity;
+                $this->cartTotal += $producto->precio * $item->quantity;
             }
         }
     }

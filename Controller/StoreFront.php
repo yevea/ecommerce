@@ -2,22 +2,23 @@
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Base\Controller;
+use FacturaScripts\Core\Base\DataBase\DataBaseWhere;
 use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceCategory;
+use FacturaScripts\Dinamic\Model\Familia;
+use FacturaScripts\Dinamic\Model\Producto;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceProduct;
 
 class StoreFront extends Controller
 {
-    /** @var EcommerceCategory[] */
-    public $categories = [];
+    /** @var array */
+    public $families = [];
 
-    /** @var EcommerceProduct[] */
+    /** @var array */
     public $products = [];
 
-    /** @var int|null */
-    public $selectedCategory = null;
+    /** @var string|null */
+    public $selectedFamily = null;
 
     /** @var int */
     public $cartItemCount = 0;
@@ -47,7 +48,7 @@ class StoreFront extends Controller
 
     public function formatMoney(float $amount): string
     {
-        return number_format($amount, 2, ',', '.') . ' €';
+        return Tools::money($amount);
     }
 
     private function loadStoreFrontData(): void
@@ -57,15 +58,15 @@ class StoreFront extends Controller
             $this->addToCart();
         }
 
-        $this->loadCategories();
+        $this->loadFamilies();
         $this->loadProducts();
         $this->loadCartItemCount();
     }
 
     private function addToCart(): void
     {
-        $productId = (int) $this->request->request->get('product_id', 0);
-        if ($productId <= 0) {
+        $idproducto = (int) $this->request->request->get('idproducto', 0);
+        if ($idproducto <= 0) {
             return;
         }
 
@@ -74,7 +75,7 @@ class StoreFront extends Controller
         $cartItem = new EcommerceCartItem();
         $where = [
             Where::eq('session_id', $sessionId),
-            Where::eq('product_id', $productId),
+            Where::eq('idproducto', $idproducto),
         ];
 
         $existing = $cartItem->all($where);
@@ -83,7 +84,7 @@ class StoreFront extends Controller
             $existing[0]->save();
         } else {
             $cartItem->session_id = $sessionId;
-            $cartItem->product_id = $productId;
+            $cartItem->idproducto = $idproducto;
             $cartItem->quantity = 1;
             $cartItem->save();
         }
@@ -91,28 +92,28 @@ class StoreFront extends Controller
         Tools::log()->notice('product-added-to-cart');
     }
 
-    private function loadCategories(): void
+    private function loadFamilies(): void
     {
-        $category = new EcommerceCategory();
-        $where = [Where::eq('active', true)];
-        $this->categories = $category->all($where, ['name' => 'ASC']);
+        $familia = new Familia();
+        $this->families = $familia->all([], ['descripcion' => 'ASC'], 0, 0);
     }
 
     private function loadProducts(): void
     {
-        $product = new EcommerceProduct();
+        $producto = new Producto();
         $where = [
-            Where::eq('active', true),
-            Where::eq('visibility', 'public'),
+            new DataBaseWhere('publico', true),
+            new DataBaseWhere('sevende', true),
+            new DataBaseWhere('bloqueado', false),
         ];
 
-        $categoryId = $this->request->query->get('category', null);
-        if ($categoryId !== null) {
-            $this->selectedCategory = (int) $categoryId;
-            $where[] = Where::eq('category_id', $this->selectedCategory);
+        $codfamilia = $this->request->query->get('family', null);
+        if (!empty($codfamilia)) {
+            $this->selectedFamily = $codfamilia;
+            $where[] = new DataBaseWhere('codfamilia', $codfamilia);
         }
 
-        $this->products = $product->all($where, ['name' => 'ASC']);
+        $this->products = $producto->all($where, ['descripcion' => 'ASC'], 0, 50);
     }
 
     private function loadCartItemCount(): void

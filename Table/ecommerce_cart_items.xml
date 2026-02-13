@@ -11,7 +11,7 @@
         <null>NO</null>
     </column>
     <column>
-        <name>product_id</name>
+        <name>idproducto</name>
         <type>integer</type>
         <null>NO</null>
     </column>
@@ -29,7 +29,7 @@
         <type>PRIMARY KEY (id)</type>
     </constraint>
     <constraint>
-        <name>fk_ecommerce_cart_items_product</name>
-        <type>FOREIGN KEY (product_id) REFERENCES ecommerce_products (id) ON DELETE CASCADE ON UPDATE CASCADE</type>
+        <name>fk_ecommerce_cart_items_producto</name>
+        <type>FOREIGN KEY (idproducto) REFERENCES productos (idproducto) ON DELETE CASCADE ON UPDATE CASCADE</type>
     </constraint>
 </table>

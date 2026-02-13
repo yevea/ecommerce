@@ -6,16 +6,16 @@
         <i class="fa-solid fa-store"></i> {{ trans('storefront') }}
     </h1>
 
-    {% if fsc.categories is not empty %}
+    {% if fsc.families is not empty %}
     <div class="row mb-3">
         <div class="col-12">
-            <div class="btn-group" role="group">
-                <a href="{{ asset('StoreFront') }}" class="btn btn-outline-primary {% if fsc.selectedCategory is null %}active{% endif %}">
+            <div class="btn-group flex-wrap" role="group">
+                <a href="{{ asset('StoreFront') }}" class="btn btn-outline-primary {% if fsc.selectedFamily is null %}active{% endif %}">
                     {{ trans('all') }}
                 </a>
-                {% for cat in fsc.categories %}
-                <a href="{{ asset('StoreFront') }}?category={{ cat.id }}" class="btn btn-outline-primary {% if fsc.selectedCategory == cat.id %}active{% endif %}">
-                    {{ cat.name }}
+                {% for fam in fsc.families %}
+                <a href="{{ asset('StoreFront') }}?family={{ fam.codfamilia }}" class="btn btn-outline-primary {% if fsc.selectedFamily == fam.codfamilia %}active{% endif %}">
+                    {{ fam.descripcion }}
                 </a>
                 {% endfor %}
             </div>
@@ -27,21 +27,17 @@
         {% for product in fsc.products %}
         <div class="col-md-4 col-lg-3 mb-4">
             <div class="card h-100 shadow-sm">
-                {% if product.image %}
-                <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
-                {% else %}
                 <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                    <i class="fa-solid fa-image fa-3x text-muted"></i>
+                    <i class="fa-solid fa-box fa-3x text-muted"></i>
                 </div>
-                {% endif %}
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ product.name }}</h5>
+                    <h5 class="card-title">{{ product.referencia }}</h5>
                     <p class="card-text text-muted small flex-grow-1">
-                        {{ product.description | slice(0, 100) }}{% if product.description | length > 100 %}...{% endif %}
+                        {{ product.descripcion | slice(0, 100) }}{% if product.descripcion | length > 100 %}...{% endif %}
                     </p>
                     <div class="d-flex justify-content-between align-items-center mt-2">
-                        <span class="h5 mb-0 text-primary">{{ fsc.formatMoney(product.price) }}</span>
-                        {% if product.stock > 0 %}
+                        <span class="h5 mb-0 text-primary">{{ fsc.formatMoney(product.precio) }}</span>
+                        {% if product.stockfis > 0 or product.ventasinstock %}
                         <span class="badge bg-success">{{ trans('in-stock') }}</span>
                         {% else %}
                         <span class="badge bg-danger">{{ trans('out-of-stock') }}</span>
@@ -49,10 +45,10 @@
                     </div>
                 </div>
                 <div class="card-footer bg-white">
-                    {% if product.stock > 0 %}
+                    {% if product.stockfis > 0 or product.ventasinstock %}
                     <form method="post" action="{{ asset('StoreFront') }}">
                         <input type="hidden" name="action" value="add-to-cart">
-                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        <input type="hidden" name="idproducto" value="{{ product.idproducto }}">
                         <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="fa-solid fa-cart-plus"></i> {{ trans('add-to-cart') }}
