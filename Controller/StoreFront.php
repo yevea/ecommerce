@@ -101,8 +101,21 @@ class StoreFront extends Controller
 
     private function loadFamilies(): void
     {
+        $db = new \FacturaScripts\Core\Base\DataBase();
+        $sql = 'SELECT DISTINCT codfamilia FROM productos'
+            . ' WHERE publico = TRUE AND sevende = TRUE AND bloqueado = FALSE'
+            . ' AND codfamilia IS NOT NULL';
+        $rows = $db->select($sql);
+
+        if (empty($rows)) {
+            $this->families = [];
+            return;
+        }
+
+        $usedFamilies = array_column($rows, 'codfamilia');
         $familia = new Familia();
-        $this->families = $familia->all([], ['descripcion' => 'ASC'], 0, 0);
+        $where = [new DataBaseWhere('codfamilia', implode(',', $usedFamilies), 'IN')];
+        $this->families = $familia->all($where, ['descripcion' => 'ASC'], 0, 0);
     }
 
     private function loadProducts(): void
@@ -131,7 +144,7 @@ class StoreFront extends Controller
             $where = [new DataBaseWhere('idproducto', $product->idproducto)];
             $images = $imagen->all($where, ['orden' => 'ASC'], 0, 1);
             if (!empty($images)) {
-                $thumb = $images[0]->getThumbnail(300, 300, true);
+                $thumb = $images[0]->getThumbnail(300, 300, true, true);
                 if (!empty($thumb)) {
                     $this->productImages[$product->idproducto] = $thumb;
                 }
