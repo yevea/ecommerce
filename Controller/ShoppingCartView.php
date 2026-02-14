@@ -1,11 +1,14 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
-use FacturaScripts\Core\Template\Controller;
+use FacturaScripts\Core\Base\Controller;
+use FacturaScripts\Core\Base\DataBase\DataBaseWhere;
+use FacturaScripts\Core\Tools;
+use FacturaScripts\Core\Where;
+use FacturaScripts\Dinamic\Model\Cliente;
+use FacturaScripts\Dinamic\Model\Producto;
+use FacturaScripts\Dinamic\Model\PedidoCliente;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrder;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrderLine;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceProduct;
 
 class ShoppingCartView extends Controller
 {
@@ -14,6 +17,12 @@ class ShoppingCartView extends Controller
 
     /** @var float */
     public $cartTotal = 0;
+
+    /** @var bool */
+    public $orderPlaced = false;
+
+    /** @var string */
+    public $orderCode = '';
 
     public function getPageData(): array
     {
@@ -25,11 +34,27 @@ class ShoppingCartView extends Controller
         return $pageData;
     }
 
-    public function run(): void
+    public function privateCore(&$response, $user, $permissions)
     {
-        parent::run();
+        parent::privateCore($response, $user, $permissions);
+        $this->loadShoppingCartData();
+    }
 
-        $action = $this->request()->request->get('action', '');
+    public function publicCore(&$response)
+    {
+        parent::publicCore($response);
+        $this->setTemplate('ShoppingCartView');
+        $this->loadShoppingCartData();
+    }
+
+    public function formatMoney(float $amount): string
+    {
+        return Tools::money($amount);
+    }
+
+    private function loadShoppingCartData(): void
+    {
+        $action = $this->request->request->get('action', '');
         switch ($action) {
             case 'update-quantity':
                 $this->updateQuantity();
@@ -44,18 +69,15 @@ class ShoppingCartView extends Controller
                 break;
         }
 
-        $this->loadCartItems();
-    }
-
-    public function formatMoney(float $amount): string
-    {
-        return number_format($amount, 2, ',', '.') . ' €';
+        if (false === $this->orderPlaced) {
+            $this->loadCartItems();
+        }
     }
 
     private function updateQuantity(): void
     {
-        $cartItemId = (int) $this->request()->request->get('cart_item_id', 0);
-        $quantity = (int) $this->request()->request->get('quantity', 1);
+        $cartItemId = (int) $this->request->request->get('cart_item_id', 0);
+        $quantity = (int) $this->request->request->get('quantity', 1);
 
         $cartItem = new EcommerceCartItem();
         if ($cartItem->loadFromCode($cartItemId)) {
@@ -68,7 +90,7 @@ class ShoppingCartView extends Controller
 
     private function removeItem(): void
     {
-        $cartItemId = (int) $this->request()->request->get('cart_item_id', 0);
+        $cartItemId = (int) $this->request->request->get('cart_item_id', 0);
 
         $cartItem = new EcommerceCartItem();
         if ($cartItem->loadFromCode($cartItemId)) {
@@ -83,67 +105,81 @@ class ShoppingCartView extends Controller
         $sessionId = $this->getSessionId();
 
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', '=', $sessionId)];
+        $where = [Where::eq('session_id', $sessionId)];
         $items = $cartItem->all($where);
 
         if (empty($items)) {
-            $this->toolBox()->i18nLog()->warning('cart-empty');
+            Tools::log()->warning('cart-empty');
             return;
         }
 
-        $order = new EcommerceOrder();
-        $order->customer_name = trim($this->request()->request->get('customer_name', ''));
-        $order->customer_email = trim($this->request()->request->get('customer_email', ''));
-        $order->address = trim($this->request()->request->get('address', ''));
-        $order->notes = trim($this->request()->request->get('notes', ''));
-        $order->status = 'pending';
+        $notes = trim($this->request->request->get('notes', ''));
+        $customerName = trim($this->request->request->get('nombrecliente', ''));
+        $cifnif = trim($this->request->request->get('cifnif', ''));
+        $email = trim($this->request->request->get('email', ''));
 
-        if (empty($order->customer_name)) {
-            $this->toolBox()->i18nLog()->warning('customer-name-required');
+        if (empty($customerName)) {
+            Tools::log()->warning('customer-name-required');
             return;
         }
 
-        if (!empty($order->customer_email) && false === filter_var($order->customer_email, FILTER_VALIDATE_EMAIL)) {
-            $this->toolBox()->i18nLog()->warning('invalid-email');
+        if (empty($cifnif)) {
+            Tools::log()->warning('cifnif-required');
             return;
         }
 
-        $total = 0;
-        $orderLines = [];
+        // find existing customer by cifnif or create a new one
+        $cliente = new Cliente();
+        $where = [new DataBaseWhere('cifnif', $cifnif)];
+        if (false === $cliente->loadWhere($where)) {
+            $cliente->cifnif = $cifnif;
+            $cliente->nombre = $customerName;
+            $cliente->razonsocial = $customerName;
+            $cliente->email = $email;
+            if (false === $cliente->save()) {
+                Tools::log()->error('order-placement-failed');
+                return;
+            }
+        }
 
+        // create a native FS PedidoCliente
+        $pedido = new PedidoCliente();
+        $pedido->setSubject($cliente);
+        $pedido->observaciones = $notes;
+
+        if (false === $pedido->save()) {
+            Tools::log()->error('order-placement-failed');
+            return;
+        }
+
+        // add lines from cart
+        $lineFailed = false;
         foreach ($items as $item) {
-            $product = new EcommerceProduct();
-            if ($product->loadFromCode($item->product_id)) {
-                $subtotal = $product->price * $item->quantity;
-                $total += $subtotal;
-
-                $line = new EcommerceOrderLine();
-                $line->product_id = $product->id;
-                $line->product_name = $product->name;
-                $line->quantity = $item->quantity;
-                $line->price = $product->price;
-                $line->subtotal = $subtotal;
-                $orderLines[] = $line;
+            $producto = new Producto();
+            if ($producto->loadFromCode($item->idproducto)) {
+                $newLine = $pedido->getNewProductLine($producto->referencia);
+                $newLine->cantidad = $item->quantity;
+                if (false === $newLine->save()) {
+                    $lineFailed = true;
+                    break;
+                }
             }
         }
 
-        $order->total = $total;
-
-        if ($order->save()) {
-            foreach ($orderLines as $line) {
-                $line->order_id = $order->id;
-                $line->save();
-            }
-
-            foreach ($items as $item) {
-                $item->delete();
-            }
-
-            $this->toolBox()->i18nLog()->notice('order-placed-successfully');
-            $this->redirect('EditEcommerceOrder?code=' . $order->id);
-        } else {
-            $this->toolBox()->i18nLog()->error('order-placement-failed');
+        if ($lineFailed) {
+            $pedido->delete();
+            Tools::log()->error('order-placement-failed');
+            return;
         }
+
+        // clear cart
+        foreach ($items as $item) {
+            $item->delete();
+        }
+
+        Tools::log()->notice('order-placed-successfully');
+        $this->orderPlaced = true;
+        $this->orderCode = $pedido->codigo;
     }
 
     private function loadCartItems(): void
@@ -153,19 +189,20 @@ class ShoppingCartView extends Controller
         $this->cartTotal = 0;
 
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', '=', $sessionId)];
+        $where = [Where::eq('session_id', $sessionId)];
         $items = $cartItem->all($where);
 
         foreach ($items as $item) {
-            $product = new EcommerceProduct();
-            if ($product->loadFromCode($item->product_id)) {
+            $producto = new Producto();
+            if ($producto->loadFromCode($item->idproducto)) {
                 $this->cartItems[] = (object) [
                     'id' => $item->id,
-                    'product_name' => $product->name,
-                    'product_price' => $product->price,
+                    'referencia' => $producto->referencia,
+                    'descripcion' => $producto->descripcion,
+                    'precio' => $producto->precio,
                     'quantity' => $item->quantity,
                 ];
-                $this->cartTotal += $product->price * $item->quantity;
+                $this->cartTotal += $producto->precio * $item->quantity;
             }
         }
     }

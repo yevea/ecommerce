@@ -16,7 +16,7 @@ class EcommerceCartItem extends ModelClass
     public $session_id;
 
     /** @var int */
-    public $product_id;
+    public $idproducto;
 
     /** @var int */
     public $quantity;
@@ -40,9 +40,9 @@ class EcommerceCartItem extends ModelClass
         $this->quantity = 1;
     }
 
-    public function saveInsert(array $values = []): bool
+    protected function saveInsert(): bool
     {
         $this->creation_date = Tools::dateTime();
-        return parent::saveInsert($values);
+        return parent::saveInsert();
     }
 }
