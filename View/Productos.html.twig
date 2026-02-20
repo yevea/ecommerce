@@ -3,18 +3,18 @@
 {% block body %}
 <div class="container mt-4">
     <h1 class="mb-4">
-        <i class="fa-solid fa-store"></i> {{ trans('storefront') }}
+        <i class="fa-solid fa-store"></i> {{ trans('products') }}
     </h1>
 
     {% if fsc.categories is not empty %}
     <div class="row mb-3">
         <div class="col-12">
             <div class="btn-group" role="group">
-                <a href="{{ asset('StoreFront') }}" class="btn btn-outline-primary {% if fsc.selectedCategory is null %}active{% endif %}">
+                <a href="{{ asset('Productos') }}" class="btn btn-outline-primary {% if fsc.selectedCategory is null %}active{% endif %}">
                     {{ trans('all') }}
                 </a>
                 {% for cat in fsc.categories %}
-                <a href="{{ asset('StoreFront') }}?category={{ cat.id }}" class="btn btn-outline-primary {% if fsc.selectedCategory == cat.id %}active{% endif %}">
+                <a href="{{ asset('Productos') }}?category={{ cat.id }}" class="btn btn-outline-primary {% if fsc.selectedCategory == cat.id %}active{% endif %}">
                     {{ cat.name }}
                 </a>
                 {% endfor %}
@@ -50,12 +50,20 @@
                 </div>
                 <div class="card-footer bg-white">
                     {% if product.stock > 0 %}
-                    <form method="post" action="{{ asset('StoreFront') }}">
+                    <form method="post" action="{{ asset('Productos') }}">
                         <input type="hidden" name="action" value="add-to-cart">
                         <input type="hidden" name="product_id" value="{{ product.id }}">
                         <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="fa-solid fa-cart-plus"></i> {{ trans('add-to-cart') }}
+                        </button>
+                    </form>
+                    <form method="post" action="{{ asset('Productos') }}">
+                        <input type="hidden" name="action" value="stripe-checkout">
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
+                        <button type="submit" class="btn btn-dark w-100 mt-2">
+                            <i class="fa-brands fa-stripe"></i> {{ trans('buy-with-stripe') }}
                         </button>
                     </form>
                     {% else %}
