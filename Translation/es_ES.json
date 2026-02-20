@@ -45,5 +45,9 @@
     "order-placement-failed": "Hubo un error al realizar tu pedido.",
     "no-products-available": "No hay productos disponibles en este momento.",
     "customer-name-required": "El nombre del cliente es obligatorio.",
-    "invalid-email": "Por favor, introduce una dirección de email válida."
+    "invalid-email": "Por favor, introduce una dirección de email válida.",
+    "buy-with-stripe": "Pagar con Stripe",
+    "product-not-found": "Producto no encontrado.",
+    "stripe-not-configured": "La pasarela de pago Stripe no está configurada.",
+    "stripe-session-failed": "No se pudo iniciar el pago con Stripe."
 }
