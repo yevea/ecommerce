@@ -2,11 +2,12 @@
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Template\Controller;
+use FacturaScripts\Core\Tools;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCategory;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceProduct;
 
-class StoreFront extends Controller
+class Productos extends Controller
 {
     /** @var EcommerceCategory[] */
     public $categories = [];
@@ -24,7 +25,7 @@ class StoreFront extends Controller
     {
         $pageData = parent::getPageData();
         $pageData['menu'] = 'ecommerce';
-        $pageData['title'] = 'storefront';
+        $pageData['title'] = 'products';
         $pageData['icon'] = 'fa-solid fa-store';
         $pageData['showonmenu'] = false;
         return $pageData;
@@ -34,9 +35,11 @@ class StoreFront extends Controller
     {
         parent::run();
 
-        $action = $this->request()->request->get('action', '');
+        $action = $this->request()->request->get('action', $this->request()->query->get('action', ''));
         if ($action === 'add-to-cart') {
             $this->addToCart();
+        } elseif ($action === 'stripe-checkout') {
+            $this->stripeCheckout();
         }
 
         $this->loadCategories();
@@ -76,6 +79,78 @@ class StoreFront extends Controller
         }
 
         $this->toolBox()->i18nLog()->notice('product-added-to-cart');
+    }
+
+    private function stripeCheckout(): void
+    {
+        $productId = (int) $this->request()->request->get('product_id', 0);
+        if ($productId <= 0) {
+            return;
+        }
+
+        $product = new EcommerceProduct();
+        if (!$product->loadFromCode($productId)) {
+            $this->toolBox()->i18nLog()->error('product-not-found');
+            return;
+        }
+
+        $secretKey = Tools::settings('ecommerce', 'stripe_secret_key', '');
+        if (empty($secretKey)) {
+            $this->toolBox()->i18nLog()->error('stripe-not-configured');
+            return;
+        }
+
+        $checkoutUrl = $this->createStripeCheckoutSession($product, $secretKey);
+        if ($checkoutUrl) {
+            header('Location: ' . $checkoutUrl, true, 302);
+            exit;
+        }
+
+        $this->toolBox()->i18nLog()->error('stripe-session-failed');
+    }
+
+    private function createStripeCheckoutSession(EcommerceProduct $product, string $secretKey): ?string
+    {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['SERVER_NAME'] ?? 'localhost';
+        $port = (int) ($_SERVER['SERVER_PORT'] ?? 80);
+        $defaultPort = ($scheme === 'https') ? 443 : 80;
+        $hostWithPort = ($port !== $defaultPort) ? $host . ':' . $port : $host;
+        $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
+        $baseUrl = $scheme . '://' . $hostWithPort . $scriptDir;
+
+        $params = [
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => 'eur',
+                    'product_data' => ['name' => $product->name],
+                    'unit_amount' => (int) round($product->price * 100),
+                ],
+                'quantity' => 1,
+            ]],
+            'mode' => 'payment',
+            'success_url' => $baseUrl . '/Productos?stripe=success',
+            'cancel_url' => $baseUrl . '/Productos?stripe=cancel',
+        ];
+
+        $ch = curl_init('https://api.stripe.com/v1/checkout/sessions');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ':');
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if (!$response || $httpCode !== 200) {
+            return null;
+        }
+
+        $data = json_decode($response, true);
+        return $data['url'] ?? null;
     }
 
     private function loadCategories(): void
