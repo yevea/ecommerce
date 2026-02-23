@@ -14,8 +14,8 @@
                     {{ trans('all') }}
                 </a>
                 {% for cat in fsc.categories %}
-                <a href="{{ asset('StoreFront') }}?category={{ cat.id }}" class="btn btn-outline-primary {% if fsc.selectedCategory == cat.id %}active{% endif %}">
-                    {{ cat.name }}
+                <a href="{{ asset('StoreFront') }}?category={{ cat.codfamilia }}" class="btn btn-outline-primary {% if fsc.selectedCategory == cat.codfamilia %}active{% endif %}">
+                    {{ cat.descripcion }}
                 </a>
                 {% endfor %}
             </div>

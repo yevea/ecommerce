@@ -11,6 +11,7 @@ class ListEcommerceOrder extends ListController
         $pageData['menu'] = 'ecommerce';
         $pageData['title'] = 'orders';
         $pageData['icon'] = 'fa-solid fa-shopping-bag';
+        $pageData['showonmenu'] = false;
         return $pageData;
     }
 

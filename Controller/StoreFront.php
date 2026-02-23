@@ -1,21 +1,21 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
+use FacturaScripts\Core\Model\Familia;
 use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceCategory;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 
 class StoreFront extends Controller
 {
-    /** @var EcommerceCategory[] */
+    /** @var Familia[] */
     public $categories = [];
 
     /** @var object[] */
     public $products = [];
 
-    /** @var int|null */
+    /** @var string|null */
     public $selectedCategory = null;
 
     /** @var int */
@@ -42,6 +42,7 @@ class StoreFront extends Controller
             $this->stripeCheckout();
         }
 
+        $this->selectedCategory = $this->request()->query->get('category', null) ?: null;
         $this->loadCategories();
         $this->loadProducts();
         $this->loadCartItemCount();
@@ -168,15 +169,19 @@ class StoreFront extends Controller
 
     protected function loadCategories(): void
     {
-        $category = new EcommerceCategory();
-        $where = [new \FacturaScripts\Core\Where('active', '=', true)];
-        $this->categories = $category->all($where, ['name' => 'ASC']);
+        $familia = new Familia();
+        $where = [new \FacturaScripts\Core\Where('publica', '=', true)];
+        $this->categories = $familia->all($where, ['descripcion' => 'ASC']);
     }
 
     protected function loadProducts(): void
     {
         $product = new Producto();
         $where = [new \FacturaScripts\Core\Where('publico', '=', true)];
+
+        if ($this->selectedCategory !== null) {
+            $where[] = new \FacturaScripts\Core\Where('codfamilia', '=', $this->selectedCategory);
+        }
 
         $nativeProducts = $product->all($where, ['descripcion' => 'ASC']);
 
