@@ -52,7 +52,7 @@ class StoreFront extends Controller
         return number_format($amount, 2, ',', '.') . ' €';
     }
 
-    private function addToCart(): void
+    protected function addToCart(): void
     {
         $productId = (int) $this->request()->request->get('product_id', 0);
         if ($productId <= 0) {
@@ -81,7 +81,7 @@ class StoreFront extends Controller
         $this->toolBox()->i18nLog()->notice('product-added-to-cart');
     }
 
-    private function stripeCheckout(): void
+    protected function stripeCheckout(): void
     {
         $productId = (int) $this->request()->request->get('product_id', 0);
         if ($productId <= 0) {
@@ -109,7 +109,12 @@ class StoreFront extends Controller
         $this->toolBox()->i18nLog()->error('stripe-session-failed');
     }
 
-    private function createStripeCheckoutSession(EcommerceProduct $product, string $secretKey): ?string
+    protected function controllerName(): string
+    {
+        return basename(str_replace('\\', '/', static::class));
+    }
+
+    protected function createStripeCheckoutSession(EcommerceProduct $product, string $secretKey): ?string
     {
         $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host = preg_replace('/[^a-zA-Z0-9.\-]/', '', $_SERVER['SERVER_NAME'] ?? 'localhost');
@@ -118,6 +123,7 @@ class StoreFront extends Controller
         $hostWithPort = ($port !== $defaultPort) ? $host . ':' . $port : $host;
         $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
         $baseUrl = $scheme . '://' . $hostWithPort . $scriptDir;
+        $ctrl = $this->controllerName();
 
         $params = [
             'payment_method_types' => ['card'],
@@ -130,8 +136,8 @@ class StoreFront extends Controller
                 'quantity' => 1,
             ]],
             'mode' => 'payment',
-            'success_url' => $baseUrl . '/StoreFront?stripe=success',
-            'cancel_url' => $baseUrl . '/StoreFront?stripe=cancel',
+            'success_url' => $baseUrl . '/' . $ctrl . '?stripe=success',
+            'cancel_url' => $baseUrl . '/' . $ctrl . '?stripe=cancel',
         ];
 
         $ch = curl_init('https://api.stripe.com/v1/checkout/sessions');
@@ -153,14 +159,14 @@ class StoreFront extends Controller
         return $data['url'] ?? null;
     }
 
-    private function loadCategories(): void
+    protected function loadCategories(): void
     {
         $category = new EcommerceCategory();
         $where = [new \FacturaScripts\Core\Where('active', '=', true)];
         $this->categories = $category->all($where, ['name' => 'ASC']);
     }
 
-    private function loadProducts(): void
+    protected function loadProducts(): void
     {
         $product = new EcommerceProduct();
         $where = [new \FacturaScripts\Core\Where('active', '=', true)];
@@ -174,7 +180,7 @@ class StoreFront extends Controller
         $this->products = $product->all($where, ['name' => 'ASC']);
     }
 
-    private function loadCartItemCount(): void
+    protected function loadCartItemCount(): void
     {
         $cartItem = new EcommerceCartItem();
         $where = [new \FacturaScripts\Core\Where('session_id', '=', $this->getSessionId())];
@@ -185,7 +191,7 @@ class StoreFront extends Controller
         }
     }
 
-    private function getSessionId(): string
+    protected function getSessionId(): string
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
