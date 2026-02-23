@@ -46,7 +46,7 @@ class ShoppingCartView extends Controller
 
         $this->loadCartItems();
 
-        $this->view('ShoppingCartView');
+        $this->view('ShoppingCartView.html.twig');
     }
 
     public function formatMoney(float $amount): string
