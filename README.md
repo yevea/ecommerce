@@ -27,8 +27,9 @@ ecommerce/
 │   ├── ListEcommerceCategory.php  # List categories (admin)
 │   ├── ListEcommerceOrder.php     # List orders (admin)
 │   ├── ListEcommerceProduct.php   # List products (admin)
+│   ├── Productos.php              # Product catalog (frontend, /Productos)
 │   ├── ShoppingCartView.php       # Shopping cart (frontend)
-│   └── StoreFront.php             # Product catalog (frontend)
+│   └── StoreFront.php             # Storefront product catalog (frontend, /StoreFront)
 ├── Model/                         # Data models
 │   ├── EcommerceCartItem.php      # Cart item model
 │   ├── EcommerceCategory.php      # Category model
@@ -45,6 +46,7 @@ ecommerce/
 │   ├── en_EN.json
 │   └── es_ES.json
 ├── View/                          # Twig templates (frontend)
+│   ├── Productos.html.twig
 │   ├── ShoppingCartView.html.twig
 │   └── StoreFront.html.twig
 ├── XMLView/                       # XML view definitions (admin)
@@ -78,7 +80,8 @@ ecommerce/
 - Orders are created automatically when customers complete the checkout process
 
 ### Storefront
-- Access the storefront at `/StoreFront`
+- Access the storefront at `/StoreFront` or `/Productos`
 - Browse products, filter by category, add items to cart
+- Use the **Pay with Stripe** button for instant single-product checkout via Stripe
 - Access the shopping cart at `/ShoppingCartView`
-- Complete checkout by entering customer details and placing the order
+- Complete checkout by entering customer name, email, delivery/invoice address, and placing the order
