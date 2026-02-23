@@ -1,11 +1,11 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
+use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrder;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrderLine;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceProduct;
 
 class ShoppingCartView extends Controller
 {
@@ -114,16 +114,16 @@ class ShoppingCartView extends Controller
         $orderLines = [];
 
         foreach ($items as $item) {
-            $product = new EcommerceProduct();
-            if ($product->loadFromCode($item->product_id)) {
-                $subtotal = $product->price * $item->quantity;
+            $product = new Producto();
+            if ($product->loadFromCode($item->product_referencia)) {
+                $subtotal = $product->precio * $item->quantity;
                 $total += $subtotal;
 
                 $line = new EcommerceOrderLine();
-                $line->product_id = $product->id;
-                $line->product_name = $product->name;
+                $line->product_referencia = $product->referencia;
+                $line->product_name = $product->descripcion;
                 $line->quantity = $item->quantity;
-                $line->price = $product->price;
+                $line->price = $product->precio;
                 $line->subtotal = $subtotal;
                 $orderLines[] = $line;
             }
@@ -159,15 +159,15 @@ class ShoppingCartView extends Controller
         $items = $cartItem->all($where);
 
         foreach ($items as $item) {
-            $product = new EcommerceProduct();
-            if ($product->loadFromCode($item->product_id)) {
+            $product = new Producto();
+            if ($product->loadFromCode($item->product_referencia)) {
                 $this->cartItems[] = (object) [
                     'id' => $item->id,
-                    'product_name' => $product->name,
-                    'product_price' => $product->price,
+                    'product_name' => $product->descripcion,
+                    'product_price' => $product->precio,
                     'quantity' => $item->quantity,
                 ];
-                $this->cartTotal += $product->price * $item->quantity;
+                $this->cartTotal += $product->precio * $item->quantity;
             }
         }
     }

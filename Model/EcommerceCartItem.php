@@ -15,8 +15,8 @@ class EcommerceCartItem extends ModelClass
     /** @var string */
     public $session_id;
 
-    /** @var int */
-    public $product_id;
+    /** @var string */
+    public $product_referencia;
 
     /** @var int */
     public $quantity;

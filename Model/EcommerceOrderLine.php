@@ -14,8 +14,8 @@ class EcommerceOrderLine extends ModelClass
     /** @var int */
     public $order_id;
 
-    /** @var int */
-    public $product_id;
+    /** @var string */
+    public $product_referencia;
 
     /** @var string */
     public $product_name;
