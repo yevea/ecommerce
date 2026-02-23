@@ -46,7 +46,7 @@ class StoreFront extends Controller
         $this->loadProducts();
         $this->loadCartItemCount();
 
-        $this->view($this->controllerName());
+        $this->view($this->controllerName() . '.html.twig');
     }
 
     public function formatMoney(float $amount): string
