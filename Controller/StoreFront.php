@@ -86,7 +86,7 @@ class StoreFront extends Controller
             $cartItem->save();
         }
 
-        $this->toolBox()->i18nLog()->notice('product-added-to-cart');
+        Tools::log()->notice('product-added-to-cart');
     }
 
     protected function stripeCheckout(): void
@@ -98,13 +98,13 @@ class StoreFront extends Controller
 
         $product = new Producto();
         if (!$product->loadFromCode($productReferencia)) {
-            $this->toolBox()->i18nLog()->error('product-not-found');
+            Tools::log()->error('product-not-found');
             return;
         }
 
         $secretKey = Tools::settings('ecommerce', 'stripe_secret_key', '');
         if (empty($secretKey)) {
-            $this->toolBox()->i18nLog()->error('stripe-not-configured');
+            Tools::log()->error('stripe-not-configured');
             return;
         }
 
@@ -114,7 +114,7 @@ class StoreFront extends Controller
             exit;
         }
 
-        $this->toolBox()->i18nLog()->error('stripe-session-failed');
+        Tools::log()->error('stripe-session-failed');
     }
 
     protected function controllerName(): string

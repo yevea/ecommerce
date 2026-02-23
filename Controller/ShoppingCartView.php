@@ -3,6 +3,7 @@ namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
+use FacturaScripts\Core\Tools;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrder;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrderLine;
@@ -89,7 +90,7 @@ class ShoppingCartView extends Controller
         $items = $cartItem->all($where);
 
         if (empty($items)) {
-            $this->toolBox()->i18nLog()->warning('cart-empty');
+            Tools::log()->warning('cart-empty');
             return;
         }
 
@@ -101,12 +102,12 @@ class ShoppingCartView extends Controller
         $order->status = 'pending';
 
         if (empty($order->customer_name)) {
-            $this->toolBox()->i18nLog()->warning('customer-name-required');
+            Tools::log()->warning('customer-name-required');
             return;
         }
 
         if (!empty($order->customer_email) && false === filter_var($order->customer_email, FILTER_VALIDATE_EMAIL)) {
-            $this->toolBox()->i18nLog()->warning('invalid-email');
+            Tools::log()->warning('invalid-email');
             return;
         }
 
@@ -141,10 +142,10 @@ class ShoppingCartView extends Controller
                 $item->delete();
             }
 
-            $this->toolBox()->i18nLog()->notice('order-placed-successfully');
+            Tools::log()->notice('order-placed-successfully');
             $this->redirect('EditEcommerceOrder?code=' . $order->id);
         } else {
-            $this->toolBox()->i18nLog()->error('order-placement-failed');
+            Tools::log()->error('order-placement-failed');
         }
     }
 
