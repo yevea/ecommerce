@@ -11,6 +11,7 @@ class ListEcommerceCategory extends ListController
         $pageData['menu'] = 'ecommerce';
         $pageData['title'] = 'categories';
         $pageData['icon'] = 'fa-solid fa-tags';
+        $pageData['showonmenu'] = false;
         return $pageData;
     }
 
