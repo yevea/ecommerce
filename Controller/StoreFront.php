@@ -7,7 +7,7 @@ use FacturaScripts\Plugins\ecommerce\Model\EcommerceCategory;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceProduct;
 
-class Productos extends Controller
+class StoreFront extends Controller
 {
     /** @var EcommerceCategory[] */
     public $categories = [];
@@ -25,7 +25,7 @@ class Productos extends Controller
     {
         $pageData = parent::getPageData();
         $pageData['menu'] = 'ecommerce';
-        $pageData['title'] = 'products';
+        $pageData['title'] = 'storefront';
         $pageData['icon'] = 'fa-solid fa-store';
         $pageData['showonmenu'] = false;
         return $pageData;
@@ -130,8 +130,8 @@ class Productos extends Controller
                 'quantity' => 1,
             ]],
             'mode' => 'payment',
-            'success_url' => $baseUrl . '/Productos?stripe=success',
-            'cancel_url' => $baseUrl . '/Productos?stripe=cancel',
+            'success_url' => $baseUrl . '/StoreFront?stripe=success',
+            'cancel_url' => $baseUrl . '/StoreFront?stripe=cancel',
         ];
 
         $ch = curl_init('https://api.stripe.com/v1/checkout/sessions');
