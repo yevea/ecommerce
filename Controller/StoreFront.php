@@ -1,18 +1,18 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
+use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCategory;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceProduct;
 
 class StoreFront extends Controller
 {
     /** @var EcommerceCategory[] */
     public $categories = [];
 
-    /** @var EcommerceProduct[] */
+    /** @var object[] */
     public $products = [];
 
     /** @var int|null */
@@ -56,8 +56,13 @@ class StoreFront extends Controller
 
     protected function addToCart(): void
     {
-        $productId = (int) $this->request()->request->get('product_id', 0);
-        if ($productId <= 0) {
+        $productReferencia = $this->request()->request->get('product_referencia', '');
+        if (empty($productReferencia)) {
+            return;
+        }
+
+        $product = new Producto();
+        if (!$product->loadFromCode($productReferencia) || !$product->publico) {
             return;
         }
 
@@ -66,7 +71,7 @@ class StoreFront extends Controller
         $cartItem = new EcommerceCartItem();
         $where = [
             new \FacturaScripts\Core\Where('session_id', '=', $sessionId),
-            new \FacturaScripts\Core\Where('product_id', '=', $productId),
+            new \FacturaScripts\Core\Where('product_referencia', '=', $productReferencia),
         ];
 
         $existing = $cartItem->all($where);
@@ -75,7 +80,7 @@ class StoreFront extends Controller
             $existing[0]->save();
         } else {
             $cartItem->session_id = $sessionId;
-            $cartItem->product_id = $productId;
+            $cartItem->product_referencia = $productReferencia;
             $cartItem->quantity = 1;
             $cartItem->save();
         }
@@ -85,13 +90,13 @@ class StoreFront extends Controller
 
     protected function stripeCheckout(): void
     {
-        $productId = (int) $this->request()->request->get('product_id', 0);
-        if ($productId <= 0) {
+        $productReferencia = $this->request()->request->get('product_referencia', '');
+        if (empty($productReferencia)) {
             return;
         }
 
-        $product = new EcommerceProduct();
-        if (!$product->loadFromCode($productId)) {
+        $product = new Producto();
+        if (!$product->loadFromCode($productReferencia)) {
             $this->toolBox()->i18nLog()->error('product-not-found');
             return;
         }
@@ -116,7 +121,7 @@ class StoreFront extends Controller
         return basename(str_replace('\\', '/', static::class));
     }
 
-    protected function createStripeCheckoutSession(EcommerceProduct $product, string $secretKey): ?string
+    protected function createStripeCheckoutSession(Producto $product, string $secretKey): ?string
     {
         $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host = preg_replace('/[^a-zA-Z0-9.\-]/', '', $_SERVER['SERVER_NAME'] ?? 'localhost');
@@ -132,8 +137,8 @@ class StoreFront extends Controller
             'line_items' => [[
                 'price_data' => [
                     'currency' => 'eur',
-                    'product_data' => ['name' => $product->name],
-                    'unit_amount' => (int) round($product->price * 100),
+                    'product_data' => ['name' => $product->descripcion],
+                    'unit_amount' => (int) round($product->precio * 100),
                 ],
                 'quantity' => 1,
             ]],
@@ -170,16 +175,22 @@ class StoreFront extends Controller
 
     protected function loadProducts(): void
     {
-        $product = new EcommerceProduct();
-        $where = [new \FacturaScripts\Core\Where('active', '=', true)];
+        $product = new Producto();
+        $where = [new \FacturaScripts\Core\Where('publico', '=', true)];
 
-        $categoryId = $this->request()->query->get('category', null);
-        if ($categoryId !== null) {
-            $this->selectedCategory = (int) $categoryId;
-            $where[] = new \FacturaScripts\Core\Where('category_id', '=', $this->selectedCategory);
+        $nativeProducts = $product->all($where, ['descripcion' => 'ASC']);
+
+        $this->products = [];
+        foreach ($nativeProducts as $p) {
+            $this->products[] = (object) [
+                'referencia' => $p->referencia,
+                'name' => $p->descripcion,
+                'description' => $p->observaciones ?? '',
+                'price' => $p->precio,
+                'stock' => $p->stockfis,
+                'image' => property_exists($p, 'imagen') ? $p->imagen : null,
+            ];
         }
-
-        $this->products = $product->all($where, ['name' => 'ASC']);
     }
 
     protected function loadCartItemCount(): void

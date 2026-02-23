@@ -2,6 +2,7 @@
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Lib\ExtendedController\ListController;
+use FacturaScripts\Core\Model\CodeModel;
 
 class ListEcommerceProduct extends ListController
 {
@@ -19,7 +20,7 @@ class ListEcommerceProduct extends ListController
         $this->addView($viewName, 'EcommerceProduct', 'products', 'fa-solid fa-box')
             ->addSearchFields(['name', 'reference', 'description'])
             ->addFilterCheckbox('active', 'active', 'active', '=', true)
-            ->addFilterSelect('category_id', 'category', 'category_id', 'ecommerce_categories', 'id', 'name')
+            ->addFilterSelect('category_id', 'category', 'category_id', CodeModel::all('ecommerce_categories', 'id', 'name', true))
             ->addOrderBy(['name'], 'name')
             ->addOrderBy(['price'], 'price')
             ->addOrderBy(['stock'], 'stock')
