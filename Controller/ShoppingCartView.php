@@ -45,6 +45,8 @@ class ShoppingCartView extends Controller
         }
 
         $this->loadCartItems();
+
+        $this->view('ShoppingCartView');
     }
 
     public function formatMoney(float $amount): string

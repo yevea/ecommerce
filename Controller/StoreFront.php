@@ -45,6 +45,8 @@ class StoreFront extends Controller
         $this->loadCategories();
         $this->loadProducts();
         $this->loadCartItemCount();
+
+        $this->view($this->controllerName());
     }
 
     public function formatMoney(float $amount): string
