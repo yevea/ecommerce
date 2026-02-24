@@ -71,8 +71,8 @@ class StoreFront extends Controller
 
         $cartItem = new EcommerceCartItem();
         $where = [
-            new \FacturaScripts\Core\Where('session_id', '=', $sessionId),
-            new \FacturaScripts\Core\Where('product_referencia', '=', $productReferencia),
+            new \FacturaScripts\Core\Where('session_id', $sessionId),
+            new \FacturaScripts\Core\Where('product_referencia', $productReferencia),
         ];
 
         $existing = $cartItem->all($where);
@@ -170,17 +170,17 @@ class StoreFront extends Controller
     protected function loadCategories(): void
     {
         $familia = new Familia();
-        $where = [new \FacturaScripts\Core\Where('publica', '=', true)];
+        $where = [new \FacturaScripts\Core\Where('publica', true)];
         $this->categories = $familia->all($where, ['descripcion' => 'ASC']);
     }
 
     protected function loadProducts(): void
     {
         $product = new Producto();
-        $where = [new \FacturaScripts\Core\Where('publico', '=', true)];
+        $where = [new \FacturaScripts\Core\Where('publico', true)];
 
         if ($this->selectedCategory !== null) {
-            $where[] = new \FacturaScripts\Core\Where('codfamilia', '=', $this->selectedCategory);
+            $where[] = new \FacturaScripts\Core\Where('codfamilia', $this->selectedCategory);
         }
 
         $nativeProducts = $product->all($where, ['descripcion' => 'ASC']);
@@ -201,7 +201,7 @@ class StoreFront extends Controller
     protected function loadCartItemCount(): void
     {
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', '=', $this->getSessionId())];
+        $where = [new \FacturaScripts\Core\Where('session_id', $this->getSessionId())];
         $items = $cartItem->all($where);
         $this->cartItemCount = 0;
         foreach ($items as $item) {
