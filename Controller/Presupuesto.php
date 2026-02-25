@@ -10,6 +10,8 @@ use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrderLine;
 
 class Presupuesto extends Controller
 {
+    protected $requiresAuth = false;
+
     /** @var array */
     public $cartItems = [];
 
@@ -86,7 +88,7 @@ class Presupuesto extends Controller
         $sessionId = $this->getSessionId();
 
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', '=', $sessionId)];
+        $where = [new \FacturaScripts\Core\Where('session_id', $sessionId)];
         $items = $cartItem->all($where);
 
         if (empty($items)) {
@@ -159,7 +161,7 @@ class Presupuesto extends Controller
         $this->cartTotal = 0;
 
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', '=', $sessionId)];
+        $where = [new \FacturaScripts\Core\Where('session_id', $sessionId)];
         $items = $cartItem->all($where);
 
         foreach ($items as $item) {
