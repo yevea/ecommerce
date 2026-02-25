@@ -56,11 +56,16 @@ class EcommerceOrder extends ModelClass
         $this->total = 0;
     }
 
-    public function saveInsert(array $values = []): bool
+    public function test(): bool
     {
         if (empty($this->code)) {
             $this->code = 'ORD-' . strtoupper(bin2hex(random_bytes(4)));
         }
+        return parent::test();
+    }
+
+    public function saveInsert(array $values = []): bool
+    {
         $this->creation_date = Tools::dateTime();
         $this->modification_date = Tools::dateTime();
         return parent::saveInsert($values);
