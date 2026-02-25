@@ -37,7 +37,8 @@ class ProductoDetalle extends StoreFront
     private function loadProduct(string $referencia): void
     {
         $p = new Producto();
-        if (!$p->loadFromCode($referencia) || !$p->publico) {
+        $where = [new \FacturaScripts\Core\Where('referencia', $referencia)];
+        if (!$p->loadWhere($where) || !$p->publico) {
             return;
         }
 
@@ -66,7 +67,7 @@ class ProductoDetalle extends StoreFront
             $images = $imgModel->all($where, ['orden' => 'ASC']);
             foreach ($images as $img) {
                 $this->productImages[] = (object) [
-                    'url' => $img->imagen ?? null,
+                    'url' => $img->url('download-permanent'),
                     'alt' => $p->descripcion,
                 ];
             }

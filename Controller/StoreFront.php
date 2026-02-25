@@ -65,7 +65,8 @@ class StoreFront extends Controller
         }
 
         $product = new Producto();
-        if (!$product->loadFromCode($productReferencia) || !$product->publico) {
+        $where = [new \FacturaScripts\Core\Where('referencia', $productReferencia)];
+        if (!$product->loadWhere($where) || !$product->publico) {
             return;
         }
 
@@ -100,7 +101,8 @@ class StoreFront extends Controller
         }
 
         $product = new Producto();
-        if (!$product->loadFromCode($productReferencia)) {
+        $where = [new \FacturaScripts\Core\Where('referencia', $productReferencia)];
+        if (!$product->loadWhere($where)) {
             Tools::log()->error('product-not-found');
             return;
         }
@@ -207,14 +209,23 @@ class StoreFront extends Controller
         $nativeProducts = $product->all($where, ['descripcion' => 'ASC']);
 
         $this->products = [];
+        $imgModelClass = '\FacturaScripts\Core\Model\ProductoImagen';
         foreach ($nativeProducts as $p) {
+            $imageUrl = null;
+            if (class_exists($imgModelClass)) {
+                $imgWhere = [new \FacturaScripts\Core\Where('referencia', $p->referencia)];
+                $images = $imgModelClass::all($imgWhere, ['orden' => 'ASC'], 0, 1);
+                if (!empty($images)) {
+                    $imageUrl = $images[0]->url('download-permanent');
+                }
+            }
             $this->products[] = (object) [
                 'referencia' => $p->referencia,
                 'name' => $p->descripcion,
                 'description' => $p->observaciones ?? '',
                 'price' => $p->precio,
                 'stock' => $p->stockfis,
-                'image' => $p->imagen ?? null,
+                'image' => $imageUrl,
             ];
         }
     }
