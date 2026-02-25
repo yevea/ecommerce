@@ -191,7 +191,7 @@ class StoreFront extends Controller
         }
 
         $familia = new Familia();
-        $where = [new \FacturaScripts\Core\Where('codfamilia', 'IN', $familyCodes)];
+        $where = [new \FacturaScripts\Core\Where('codfamilia', $familyCodes, 'IN')];
         $this->categories = $familia->all($where, ['descripcion' => 'ASC']);
     }
 
