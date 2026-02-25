@@ -219,9 +219,9 @@ class StoreFront extends Controller
             $imageUrl = null;
             if (class_exists($imgModelClass)) {
                 $imgWhere = [new \FacturaScripts\Core\Where('referencia', $p->referencia)];
-                $images = $imgModelClass::all($imgWhere, ['orden' => 'ASC'], 0, 1);
+                $images = (new $imgModelClass())->all($imgWhere, ['orden' => 'ASC'], 0, 1);
                 if (!empty($images)) {
-                    $imageUrl = $images[0]->getThumbnail(200, 200, true, true);
+                    $imageUrl = $images[0]->url('download-permanent');
                 }
             }
             $this->products[] = (object) [
