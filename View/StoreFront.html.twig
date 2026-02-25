@@ -41,7 +41,7 @@
                             {{ product.description | slice(0, 100) }}{% if product.description | length > 100 %}...{% endif %}
                         </p>
                         <div class="d-flex justify-content-between align-items-center mt-2">
-                            <span class="h5 mb-0 text-primary">{{ fsc.formatMoney(product.price) }}</span>
+                            <span class="mb-0">{{ fsc.formatMoney(product.price) }}</span>
                             {% if product.stock > 0 %}
                             <span class="badge bg-success">{{ trans('in-stock') }}</span>
                             {% else %}
