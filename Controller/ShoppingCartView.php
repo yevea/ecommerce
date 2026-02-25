@@ -18,6 +18,8 @@ class ShoppingCartView extends Controller
     public function run(): void
     {
         parent::run();
-        $this->redirect('Presupuesto');
+        $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
+        header('Location: ' . $scriptDir . '/Presupuesto', true, 302);
+        exit;
     }
 }
