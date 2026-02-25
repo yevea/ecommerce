@@ -9,6 +9,8 @@ use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 
 class StoreFront extends Controller
 {
+    protected $requiresAuth = false;
+
     /** @var Familia[] */
     public $categories = [];
 
