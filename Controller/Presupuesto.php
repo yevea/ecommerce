@@ -144,7 +144,9 @@ class Presupuesto extends Controller
             }
 
             Tools::log()->notice('order-placed-successfully');
-            $this->redirect('EditEcommerceOrder?code=' . $order->id);
+            $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
+            header('Location: ' . $scriptDir . '/EditEcommerceOrder?code=' . urlencode((string) $order->id), true, 302);
+            exit;
         } else {
             Tools::log()->error('order-placement-failed');
         }
