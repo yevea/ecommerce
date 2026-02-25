@@ -69,6 +69,7 @@ class StoreFront extends Controller
             return;
         }
 
+        $qty = max(1, (int) $this->request()->request->get('quantity', 1));
         $sessionId = $this->getSessionId();
 
         $cartItem = new EcommerceCartItem();
@@ -79,12 +80,12 @@ class StoreFront extends Controller
 
         $existing = $cartItem->all($where);
         if (!empty($existing)) {
-            $existing[0]->quantity += 1;
+            $existing[0]->quantity += $qty;
             $existing[0]->save();
         } else {
             $cartItem->session_id = $sessionId;
             $cartItem->product_referencia = $productReferencia;
-            $cartItem->quantity = 1;
+            $cartItem->quantity = $qty;
             $cartItem->save();
         }
 
@@ -171,8 +172,26 @@ class StoreFront extends Controller
 
     protected function loadCategories(): void
     {
+        // Only show families that contain at least one public product
+        $product = new Producto();
+        $wherePublic = [new \FacturaScripts\Core\Where('publico', true)];
+        $publicProducts = $product->all($wherePublic);
+
+        $familyCodes = [];
+        foreach ($publicProducts as $p) {
+            if (!empty($p->codfamilia)) {
+                $familyCodes[] = $p->codfamilia;
+            }
+        }
+        $familyCodes = array_unique($familyCodes);
+
+        if (empty($familyCodes)) {
+            $this->categories = [];
+            return;
+        }
+
         $familia = new Familia();
-        $where = [new \FacturaScripts\Core\Where('publica', true)];
+        $where = [new \FacturaScripts\Core\Where('codfamilia', 'IN', $familyCodes)];
         $this->categories = $familia->all($where, ['descripcion' => 'ASC']);
     }
 
@@ -195,7 +214,7 @@ class StoreFront extends Controller
                 'description' => $p->observaciones ?? '',
                 'price' => $p->precio,
                 'stock' => $p->stockfis,
-                'image' => property_exists($p, 'imagen') ? $p->imagen : null,
+                'image' => $p->imagen ?? null,
             ];
         }
     }
