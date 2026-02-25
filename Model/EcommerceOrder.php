@@ -44,7 +44,7 @@ class EcommerceOrder extends ModelClass
         return 'id';
     }
 
-    public static function primaryDescriptionColumn(): string
+    public function primaryDescriptionColumn(): string
     {
         return 'code';
     }
