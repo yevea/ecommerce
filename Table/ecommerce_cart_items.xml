@@ -29,6 +29,11 @@
         <type>integer</type>
         <null>YES</null>
     </column>
+    <column>
+        <name>product_id</name>
+        <type>integer</type>
+        <null>YES</null>
+    </column>
     <constraint>
         <name>pk_ecommerce_cart_items</name>
         <type>PRIMARY KEY (id)</type>

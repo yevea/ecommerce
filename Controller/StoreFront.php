@@ -218,7 +218,7 @@ class StoreFront extends Controller
         foreach ($nativeProducts as $p) {
             $imageUrl = null;
             if (class_exists($imgModelClass)) {
-                $imgWhere = [new \FacturaScripts\Core\Where('referencia', $p->referencia)];
+                $imgWhere = [new \FacturaScripts\Core\Where('idproducto', $p->idproducto)];
                 $images = (new $imgModelClass())->all($imgWhere, ['orden' => 'ASC'], 0, 1);
                 if (!empty($images)) {
                     $imageUrl = $images[0]->url('download-permanent');

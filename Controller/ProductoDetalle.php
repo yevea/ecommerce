@@ -65,7 +65,7 @@ class ProductoDetalle extends StoreFront
         $modelClass = '\FacturaScripts\Core\Model\ProductoImagen';
         if (class_exists($modelClass)) {
             $imgModel = new $modelClass();
-            $where = [new \FacturaScripts\Core\Where('referencia', $p->referencia)];
+            $where = [new \FacturaScripts\Core\Where('idproducto', $p->idproducto)];
             $images = $imgModel->all($where, ['orden' => 'ASC']);
             foreach ($images as $img) {
                 $this->productImages[] = (object) [
