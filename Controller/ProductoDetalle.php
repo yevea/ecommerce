@@ -24,6 +24,8 @@ class ProductoDetalle extends StoreFront
 
     public function run(): void
     {
+        // Disable automatic rendering so we can load the product before rendering.
+        $this->autoRenderView = false;
         parent::run();
 
         $referencia = $this->request()->query->get('ref', '');
