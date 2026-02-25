@@ -11,6 +11,9 @@ class StoreFront extends Controller
 {
     protected $requiresAuth = false;
 
+    /** @var bool When false, subclasses manage their own view rendering after parent::run() */
+    protected $autoRenderView = true;
+
     /** @var Familia[] */
     public $categories = [];
 
@@ -49,7 +52,9 @@ class StoreFront extends Controller
         $this->loadProducts();
         $this->loadCartItemCount();
 
-        $this->view($this->controllerName() . '.html.twig');
+        if ($this->autoRenderView) {
+            $this->view($this->controllerName() . '.html.twig');
+        }
     }
 
     public function formatMoney(float $amount): string
@@ -216,7 +221,7 @@ class StoreFront extends Controller
                 $imgWhere = [new \FacturaScripts\Core\Where('referencia', $p->referencia)];
                 $images = $imgModelClass::all($imgWhere, ['orden' => 'ASC'], 0, 1);
                 if (!empty($images)) {
-                    $imageUrl = $images[0]->url('download-permanent');
+                    $imageUrl = $images[0]->getThumbnail(200, 200, true, true);
                 }
             }
             $this->products[] = (object) [
