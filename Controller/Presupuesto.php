@@ -116,7 +116,8 @@ class Presupuesto extends Controller
 
         foreach ($items as $item) {
             $product = new Producto();
-            if ($product->loadFromCode($item->product_referencia)) {
+            $where = [new \FacturaScripts\Core\Where('referencia', $item->product_referencia)];
+            if ($product->loadWhere($where)) {
                 $subtotal = $product->precio * $item->quantity;
                 $total += $subtotal;
 
@@ -161,7 +162,8 @@ class Presupuesto extends Controller
 
         foreach ($items as $item) {
             $product = new Producto();
-            if ($product->loadFromCode($item->product_referencia)) {
+            $where = [new \FacturaScripts\Core\Where('referencia', $item->product_referencia)];
+            if ($product->loadWhere($where)) {
                 $this->cartItems[] = (object) [
                     'id' => $item->id,
                     'product_name' => $product->descripcion,
