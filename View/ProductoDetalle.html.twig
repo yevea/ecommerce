@@ -1,0 +1,144 @@
+{% extends "Master/MenuTemplate.html.twig" %}
+
+{% block body %}
+<div class="container mt-4">
+
+    {% if fsc.product is not null %}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ asset('Productos') }}">{{ trans('products') }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{ fsc.product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        {# Images column #}
+        <div class="col-md-5 mb-4">
+            {% if fsc.productImages is not empty %}
+            <div id="productCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    {% for img in fsc.productImages %}
+                    <div class="carousel-item {% if loop.first %}active{% endif %}">
+                        <img src="{{ img.url }}" class="d-block w-100 rounded" alt="{{ img.alt }}" style="max-height: 400px; object-fit: contain; background:#f8f9fa;">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if fsc.productImages | length > 1 %}
+                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="bg-light d-flex align-items-center justify-content-center rounded mb-3" style="height: 300px;">
+                <i class="fa-solid fa-image fa-5x text-muted"></i>
+            </div>
+            {% endif %}
+        </div>
+
+        {# Product info column #}
+        <div class="col-md-7 mb-4">
+            <h1 class="h2 mb-2">{{ fsc.product.name }}</h1>
+
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <span class="h3 text-primary mb-0">{{ fsc.formatMoney(fsc.product.price) }}</span>
+                {% if fsc.product.stock > 0 %}
+                <span class="badge bg-success fs-6">{{ trans('in-stock') }}</span>
+                {% else %}
+                <span class="badge bg-danger fs-6">{{ trans('out-of-stock') }}</span>
+                {% endif %}
+            </div>
+
+            {% if fsc.product.description is not empty %}
+            <div class="mb-4">
+                <h5>{{ trans('description') }}</h5>
+                <p class="text-muted">{{ fsc.product.description | nl2br }}</p>
+            </div>
+            {% endif %}
+
+            {# Variant selector #}
+            {% if fsc.productVariants is not empty %}
+            <div class="mb-4">
+                <h5>{{ trans('variants') }}</h5>
+                <select id="variant-selector" class="form-select" onchange="updateVariant(this)">
+                    <option value="{{ fsc.product.referencia }}" data-price="{{ fsc.product.price }}" data-stock="{{ fsc.product.stock }}">
+                        {{ trans('standard') }} – {{ fsc.formatMoney(fsc.product.price) }}
+                    </option>
+                    {% for variant in fsc.productVariants %}
+                    <option value="{{ variant.referencia }}" data-price="{{ variant.price }}" data-stock="{{ variant.stock }}">
+                        {{ variant.description }} – {{ fsc.formatMoney(variant.price) }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            {% if fsc.product.stock > 0 %}
+            <form method="post" action="{{ asset('ProductoDetalle') }}?ref={{ fsc.product.referencia }}">
+                <input type="hidden" name="action" value="add-to-cart">
+                <input type="hidden" name="product_referencia" id="add-referencia" value="{{ fsc.product.referencia }}">
+                <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
+                <div class="input-group mb-3" style="max-width: 200px;">
+                    <label class="input-group-text" for="qty">{{ trans('quantity') }}</label>
+                    <input type="number" id="qty" name="quantity" value="1" min="1" max="{{ fsc.product.stock }}" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-cart-plus"></i> {{ trans('add-to-presupuesto') }}
+                </button>
+            </form>
+            {% else %}
+            <button class="btn btn-secondary btn-lg" disabled>
+                <i class="fa-solid fa-ban"></i> {{ trans('out-of-stock') }}
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Additional images with observaciones #}
+    {% if fsc.productImages | length > 1 %}
+    <div class="row mt-2 mb-4">
+        <div class="col-12">
+            <h5>{{ trans('product-images') }}</h5>
+            <div class="row g-2">
+                {% for img in fsc.productImages %}
+                <div class="col-6 col-md-3 col-lg-2">
+                    <img src="{{ img.url }}" class="img-thumbnail w-100" alt="{{ img.alt }}" style="height: 100px; object-fit: cover; cursor: pointer;"
+                         onclick="document.querySelector('#productCarousel').querySelectorAll('.carousel-item')[{{ loop.index0 }}].closest('.carousel').dispatchEvent(new CustomEvent('slide-to', {detail: {{ loop.index0 }}}))">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="fa-solid fa-exclamation-triangle"></i> {{ trans('product-not-found') }}
+    </div>
+    <a href="{{ asset('Productos') }}" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> {{ trans('products') }}
+    </a>
+    {% endif %}
+
+    {% if fsc.cartItemCount > 0 %}
+    <div class="fixed-bottom mb-3 me-3 text-end">
+        <a href="{{ asset('Presupuesto') }}" class="btn btn-success btn-lg shadow">
+            <i class="fa-solid fa-file-invoice"></i>
+            {{ trans('view-presupuesto') }} ({{ fsc.cartItemCount }})
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function updateVariant(select) {
+    var option = select.options[select.selectedIndex];
+    document.getElementById('add-referencia').value = option.value;
+}
+</script>
+{% endblock %}
