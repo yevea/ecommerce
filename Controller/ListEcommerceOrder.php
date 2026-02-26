@@ -19,7 +19,12 @@ class ListEcommerceOrder extends ListController
     {
         $this->addView($viewName, 'EcommerceOrder', 'orders', 'fa-solid fa-shopping-bag')
             ->addSearchFields(['code', 'customer_name', 'customer_email'])
-            ->addFilterSelect('status', 'status', 'status', 'ecommerce_orders', 'status', 'status')
+            ->addFilterSelect('status', 'status', 'status', [
+                ['code' => 'pending', 'description' => 'pending'],
+                ['code' => 'processing', 'description' => 'processing'],
+                ['code' => 'completed', 'description' => 'completed'],
+                ['code' => 'cancelled', 'description' => 'cancelled'],
+            ])
             ->addOrderBy(['creation_date'], 'creation-date', 2)
             ->addOrderBy(['total'], 'total')
             ->addOrderBy(['code'], 'code');
