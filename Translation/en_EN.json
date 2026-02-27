@@ -64,5 +64,6 @@
     "standard": "Standard",
     "families": "Families",
     "stripe-secret-key": "Stripe Secret Key (sk_...)",
-    "stripe-public-key": "Stripe Public Key (pk_...)"
+    "stripe-public-key": "Stripe Public Key (pk_...)",
+    "settings-ecommerce": "E-Commerce Settings"
 }
