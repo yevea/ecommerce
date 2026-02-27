@@ -8,7 +8,7 @@ class ListEcommerceOrder extends ListController
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
-        $pageData['menu'] = 'ventas';
+        $pageData['menu'] = 'Ventas';
         $pageData['title'] = 'orders';
         $pageData['icon'] = 'fa-solid fa-shopping-bag';
         return $pageData;
