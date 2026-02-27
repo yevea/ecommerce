@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="ecommerce" icon="fa-solid fa-store" numcolumns="12">
+            <column name="stripe-secret-key" numcolumns="6">
+                <widget type="password" fieldname="stripe_secret_key" />
+            </column>
+            <column name="stripe-public-key" numcolumns="6">
+                <widget type="text" fieldname="stripe_public_key" />
+            </column>
+        </group>
+    </columns>
+</view>

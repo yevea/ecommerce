@@ -72,6 +72,23 @@ ecommerce/
 3. Navigate to **Admin > Plugins** and enable the **ecommerce** plugin
 4. The plugin will create the necessary database tables automatically
 
+## Configuration
+
+### Stripe Payment Gateway
+
+To enable the Stripe payment gateway, you must set your Stripe API keys in the FacturaScripts settings panel:
+
+1. Log in to the FacturaScripts admin panel
+2. Navigate to **Admin > Settings** (or go to `/AppSettings`)
+3. Select the **E-Commerce** tab
+4. Enter your **Stripe Secret Key** (`sk_live_...` or `sk_test_...` for testing)
+5. Enter your **Stripe Public Key** (`pk_live_...` or `pk_test_...` for testing)
+6. Save the settings
+
+You can obtain your API keys from the [Stripe Dashboard](https://dashboard.stripe.com/apikeys).
+
+> **Note:** Use test keys (`sk_test_...` / `pk_test_...`) during development and switch to live keys for production.
+
 ## Usage
 
 ### Admin Panel

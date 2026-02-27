@@ -62,5 +62,7 @@
     "order-payment-cancelled": "El pago fue cancelado. Tu carrito sigue disponible.",
     "variants": "Variantes",
     "standard": "Estándar",
-    "families": "Familias"
+    "families": "Familias",
+    "stripe-secret-key": "Clave Secreta de Stripe (sk_...)",
+    "stripe-public-key": "Clave Pública de Stripe (pk_...)"
 }
