@@ -77,17 +77,42 @@ ecommerce/
 
 ### Stripe Payment Gateway
 
-To enable the Stripe payment gateway, enter your Stripe API keys in the FacturaScripts settings panel:
+Stripe is the payment gateway used during checkout.  You need a **Stripe Secret Key** (`sk_…`) to accept payments.
 
-1. Log in to the FacturaScripts admin panel
-2. Navigate to **Admin > Settings** (or go to `/SettingsEcommerce`)
-3. Enter your **Stripe Secret Key** (`sk_live_...` or `sk_test_...` for testing)
-4. Enter your **Stripe Public Key** (`pk_live_...` or `pk_test_...` for testing)
-5. Save the settings
+#### Option A — Admin panel (recommended)
 
-You can obtain your API keys from the [Stripe Dashboard](https://dashboard.stripe.com/apikeys).
+1. Log in to the FacturaScripts admin panel.
+2. Navigate to **Admin → Settings** and click the **E-Commerce** tab  
+   (direct URL: `/SettingsEcommerce`).
+3. Enter your **Stripe Secret Key** (`sk_live_…` or `sk_test_…` for testing) and optionally the **Stripe Public Key** (`pk_live_…` / `pk_test_…`).
+4. Click **Save**.
 
-> **Note:** Use test keys (`sk_test_...` / `pk_test_...`) during development and switch to live keys for production.
+You can obtain both keys from the [Stripe Dashboard → Developers → API keys](https://dashboard.stripe.com/apikeys).
+
+> **Tip:** Use test keys (`sk_test_…` / `pk_test_…`) during development and switch to live keys for production.
+
+#### Option B — phpMyAdmin / cPanel File Manager (no admin panel access needed)
+
+If you prefer to configure the keys directly in the database (e.g. via **cPanel → phpMyAdmin**):
+
+1. Open phpMyAdmin and select the FacturaScripts database.
+2. Browse the `fs_settings` table.
+3. Look for a row where `name = 'ecommerce'`.  
+   • If it exists, open the row for editing.  
+   • If it does not exist yet, insert a new row with `name = 'ecommerce'`.
+4. In the `properties` column (a JSON string), add or update the Stripe keys:
+
+   ```json
+   {"stripe_secret_key":"sk_test_YOUR_KEY_HERE","stripe_public_key":"pk_test_YOUR_KEY_HERE"}
+   ```
+
+   If the column already contains other properties, merge them — for example:
+
+   ```json
+   {"other_setting":"value","stripe_secret_key":"sk_test_YOUR_KEY_HERE","stripe_public_key":"pk_test_YOUR_KEY_HERE"}
+   ```
+
+5. Save the row.  No restart is needed; the plugin reads settings on every request.
 
 ### Native FacturaScripts Order Integration
 

@@ -68,6 +68,7 @@
     "product-not-found": "Product not found.",
     "stripe-not-configured": "Stripe payment gateway is not configured.",
     "stripe-session-failed": "Failed to start Stripe payment.",
+    "presupuesto-creation-failed": "Failed to create the native presupuesto.",
     "order-code": "Order Code",
     "order-payment-cancelled": "Payment was cancelled. Your cart is still available.",
     "variants": "Variants",

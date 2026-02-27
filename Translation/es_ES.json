@@ -68,6 +68,7 @@
     "product-not-found": "Producto no encontrado.",
     "stripe-not-configured": "La pasarela de pago Stripe no está configurada.",
     "stripe-session-failed": "No se pudo iniciar el pago con Stripe.",
+    "presupuesto-creation-failed": "No se pudo crear el presupuesto nativo.",
     "order-code": "Código de Pedido",
     "order-payment-cancelled": "El pago fue cancelado. Tu carrito sigue disponible.",
     "variants": "Variantes",

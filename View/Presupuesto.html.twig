@@ -136,7 +136,7 @@
             <i class="fa-solid fa-arrow-left"></i> {{ trans('continue-shopping') }}
         </a>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-secondary no-print" onclick="window.print()">
+            <button type="button" class="btn btn-outline-secondary no-print" onclick="submitPrintPresupuesto()">
                 <i class="fa-solid fa-print"></i> {{ trans('print-presupuesto') }}
             </button>
             <button type="submit" form="checkout-form" class="btn btn-success btn-lg no-print">
@@ -163,4 +163,14 @@
 }
 .print-only { display: none; }
 </style>
+<script>
+function submitPrintPresupuesto() {
+    const form = document.getElementById('checkout-form');
+    const actionInput = form.querySelector('input[name="action"]');
+    const original = actionInput.value;
+    actionInput.value = 'print-presupuesto';
+    form.submit();
+    actionInput.value = original;
+}
+</script>
 {% endblock %}
