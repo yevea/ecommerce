@@ -6,7 +6,19 @@
         <i class="fa-solid fa-file-invoice"></i> {{ trans('presupuesto') }}
     </h1>
 
-    {% if fsc.cartItems is not empty %}
+    {% if fsc.orderSuccess %}
+    <div class="alert alert-success text-center py-5">
+        <i class="fa-solid fa-circle-check fa-3x mb-3 d-block"></i>
+        <h3>{{ trans('order-placed-successfully') }}</h3>
+        {% if fsc.orderCode is not empty %}
+        <p class="lead">{{ trans('order-code') }}: <strong>{{ fsc.orderCode }}</strong></p>
+        {% endif %}
+        <a href="{{ asset('Productos') }}" class="btn btn-primary mt-3">
+            <i class="fa-solid fa-store"></i> {{ trans('go-to-store') }}
+        </a>
+    </div>
+
+    {% elseif fsc.cartItems is not empty %}
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <div class="table-responsive">

@@ -18,6 +18,12 @@ class Presupuesto extends Controller
     /** @var float */
     public $cartTotal = 0;
 
+    /** @var bool */
+    public $orderSuccess = false;
+
+    /** @var string */
+    public $orderCode = '';
+
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
@@ -31,6 +37,13 @@ class Presupuesto extends Controller
     public function run(): void
     {
         parent::run();
+
+        $stripeCallback = $this->request()->query->get('stripe', '');
+        if ($stripeCallback === 'success') {
+            $this->handleStripeSuccess();
+        } elseif ($stripeCallback === 'cancel') {
+            $this->handleStripeCancel();
+        }
 
         $action = $this->request()->request->get('action', '');
         switch ($action) {
@@ -96,30 +109,88 @@ class Presupuesto extends Controller
             return;
         }
 
-        $order = new EcommerceOrder();
-        $order->customer_name = trim($this->request()->request->get('customer_name', ''));
-        $order->customer_email = trim($this->request()->request->get('customer_email', ''));
-        $order->address = trim($this->request()->request->get('address', ''));
-        $order->notes = trim($this->request()->request->get('notes', ''));
-        $order->status = 'pending';
+        $customerName = trim($this->request()->request->get('customer_name', ''));
+        $customerEmail = trim($this->request()->request->get('customer_email', ''));
+        $address = trim($this->request()->request->get('address', ''));
+        $notes = trim($this->request()->request->get('notes', ''));
 
-        if (empty($order->customer_name)) {
+        if (empty($customerName)) {
             Tools::log()->warning('customer-name-required');
             return;
         }
 
-        if (!empty($order->customer_email) && false === filter_var($order->customer_email, FILTER_VALIDATE_EMAIL)) {
+        if (!empty($customerEmail) && false === filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
             Tools::log()->warning('invalid-email');
             return;
         }
+
+        $secretKey = Tools::settings('ecommerce', 'stripe_secret_key', '');
+        if (empty($secretKey)) {
+            Tools::log()->error('stripe-not-configured');
+            return;
+        }
+
+        // Store pending order data in session to retrieve after Stripe callback
+        $_SESSION['pending_ecommerce_order'] = [
+            'customer_name' => $customerName,
+            'customer_email' => $customerEmail,
+            'address' => $address,
+            'notes' => $notes,
+        ];
+
+        $checkoutUrl = $this->createStripeCheckoutSession($items, $secretKey);
+        if ($checkoutUrl) {
+            header('Location: ' . $checkoutUrl, true, 302);
+            exit;
+        }
+
+        Tools::log()->error('stripe-session-failed');
+    }
+
+    private function handleStripeSuccess(): void
+    {
+        $stripeSessionId = $this->request()->query->get('stripe_session_id', '');
+        if (empty($stripeSessionId)) {
+            return;
+        }
+
+        $secretKey = Tools::settings('ecommerce', 'stripe_secret_key', '');
+        if (empty($secretKey)) {
+            return;
+        }
+
+        if (!$this->verifyStripePayment($stripeSessionId, $secretKey)) {
+            Tools::log()->error('stripe-session-failed');
+            return;
+        }
+
+        $sessionId = $this->getSessionId();
+        $pendingOrder = $_SESSION['pending_ecommerce_order'] ?? null;
+        if (empty($pendingOrder)) {
+            // Session expired or order was already processed; show a generic success page
+            $this->orderSuccess = true;
+            Tools::log()->notice('order-placed-successfully');
+            return;
+        }
+
+        $cartItem = new EcommerceCartItem();
+        $where = [new \FacturaScripts\Core\Where('session_id', $sessionId)];
+        $items = $cartItem->all($where);
+
+        $order = new EcommerceOrder();
+        $order->customer_name = $pendingOrder['customer_name'];
+        $order->customer_email = $pendingOrder['customer_email'];
+        $order->address = $pendingOrder['address'];
+        $order->notes = $pendingOrder['notes'];
+        $order->status = 'pending';
 
         $total = 0;
         $orderLines = [];
 
         foreach ($items as $item) {
             $product = new Producto();
-            $where = [new \FacturaScripts\Core\Where('referencia', $item->product_referencia)];
-            if ($product->loadWhere($where)) {
+            $productWhere = [new \FacturaScripts\Core\Where('referencia', $item->product_referencia)];
+            if ($product->loadWhere($productWhere)) {
                 $subtotal = $product->precio * $item->quantity;
                 $total += $subtotal;
 
@@ -145,13 +216,101 @@ class Presupuesto extends Controller
                 $item->delete();
             }
 
-            Tools::log()->notice('order-placed-successfully');
-            $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
-            header('Location: ' . $scriptDir . '/EditEcommerceOrder?code=' . urlencode((string) $order->id), true, 302);
-            exit;
+            unset($_SESSION['pending_ecommerce_order']);
+            $this->orderSuccess = true;
+            $this->orderCode = $order->code;
         } else {
             Tools::log()->error('order-placement-failed');
         }
+    }
+
+    private function handleStripeCancel(): void
+    {
+        Tools::log()->notice('order-payment-cancelled');
+    }
+
+    private function createStripeCheckoutSession(array $items, string $secretKey): ?string
+    {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = preg_replace('/[^a-zA-Z0-9.\-]/', '', $_SERVER['SERVER_NAME'] ?? 'localhost');
+        $port = (int) ($_SERVER['SERVER_PORT'] ?? 80);
+        $defaultPort = ($scheme === 'https') ? 443 : 80;
+        $hostWithPort = ($port !== $defaultPort) ? $host . ':' . $port : $host;
+        $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
+        $baseUrl = $scheme . '://' . $hostWithPort . $scriptDir;
+
+        $lineItems = [];
+        foreach ($items as $item) {
+            $product = new Producto();
+            $productWhere = [new \FacturaScripts\Core\Where('referencia', $item->product_referencia)];
+            if ($product->loadWhere($productWhere)) {
+                $lineItems[] = [
+                    'price_data' => [
+                        'currency' => 'eur',
+                        'product_data' => ['name' => $product->descripcion],
+                        'unit_amount' => (int) round($product->precio * 100),
+                    ],
+                    'quantity' => $item->quantity,
+                ];
+            }
+        }
+
+        if (empty($lineItems)) {
+            return null;
+        }
+
+        $params = [
+            'payment_method_types' => ['card'],
+            'line_items' => $lineItems,
+            'mode' => 'payment',
+            'success_url' => $baseUrl . '/Presupuesto?stripe=success&stripe_session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => $baseUrl . '/Presupuesto?stripe=cancel',
+        ];
+
+        $ch = curl_init('https://api.stripe.com/v1/checkout/sessions');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ':');
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if (!$response || $httpCode !== 200) {
+            if ($curlError) {
+                Tools::log()->error($curlError);
+            }
+            return null;
+        }
+
+        $data = json_decode($response, true);
+        return $data['url'] ?? null;
+    }
+
+    private function verifyStripePayment(string $stripeSessionId, string $secretKey): bool
+    {
+        $ch = curl_init('https://api.stripe.com/v1/checkout/sessions/' . urlencode($stripeSessionId));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ':');
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if (!$response || $httpCode !== 200) {
+            if ($curlError) {
+                Tools::log()->error($curlError);
+            }
+            return false;
+        }
+
+        $data = json_decode($response, true);
+        return isset($data['payment_status']) && $data['payment_status'] === 'paid';
     }
 
     private function loadCartItems(): void
