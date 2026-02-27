@@ -1,7 +1,7 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
-use FacturaScripts\Core\Lib\ExtendedController\EditSettings;
+use FacturaScripts\Core\Controller\EditSettings;
 
 class SettingsEcommerce extends EditSettings
 {
