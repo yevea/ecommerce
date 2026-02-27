@@ -79,40 +79,6 @@
 
     <div class="card shadow-sm mb-4 no-print">
         <div class="card-header">
-            <h5 class="mb-0">
-                {% if fsc.loggedIn %}
-                {{ trans('my-account') }}
-                {% else %}
-                {{ trans('register') }}
-                {% endif %}
-            </h5>
-        </div>
-        <div class="card-body">
-            {% if fsc.loggedIn %}
-            <p class="mb-2">
-                <i class="fa-solid fa-user-check text-success"></i>
-                {{ trans('access-account') }}: <strong>{{ fsc.user.nick }}</strong>
-            </p>
-            {% if fsc.clienteCode is not empty %}
-            <a href="{{ asset('EditCliente') }}?code={{ fsc.clienteCode }}" class="btn btn-outline-primary">
-                <i class="fa-solid fa-user-edit"></i> {{ trans('edit-my-data') }}
-            </a>
-            {% endif %}
-            {% else %}
-            <div class="d-flex gap-2 flex-wrap">
-                <a href="{{ asset('Login') }}" class="btn btn-outline-primary">
-                    <i class="fa-solid fa-sign-in-alt"></i> {{ trans('access-account') }}
-                </a>
-                <a href="{{ asset('EditCliente') }}" class="btn btn-primary">
-                    <i class="fa-solid fa-user-plus"></i> {{ trans('register') }}
-                </a>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <div class="card shadow-sm mb-4 no-print">
-        <div class="card-header">
             <h5 class="mb-0">{{ trans('checkout') }}</h5>
         </div>
         <div class="card-body">
@@ -125,12 +91,36 @@
                         <input type="text" name="customer_name" id="customer_name" class="form-control" required>
                     </div>
                     <div class="col-md-6 mb-3">
+                        <label for="customer_nif" class="form-label">{{ trans('customer-nif') }}</label>
+                        <input type="text" name="customer_nif" id="customer_nif" class="form-control" maxlength="30">
+                    </div>
+                    <div class="col-md-6 mb-3">
                         <label for="customer_email" class="form-label">{{ trans('customer-email') }}</label>
                         <input type="email" name="customer_email" id="customer_email" class="form-control">
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="customer_phone" class="form-label">{{ trans('customer-phone') }}</label>
+                        <input type="tel" name="customer_phone" id="customer_phone" class="form-control" maxlength="30">
+                    </div>
                     <div class="col-12 mb-3">
                         <label for="address" class="form-label">{{ trans('address') }}</label>
-                        <textarea name="address" id="address" class="form-control" rows="2"></textarea>
+                        <input type="text" name="address" id="address" class="form-control">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="customer_zip" class="form-label">{{ trans('customer-zip') }}</label>
+                        <input type="text" name="customer_zip" id="customer_zip" class="form-control" maxlength="10">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="customer_city" class="form-label">{{ trans('customer-city') }}</label>
+                        <input type="text" name="customer_city" id="customer_city" class="form-control">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="customer_province" class="form-label">{{ trans('customer-province') }}</label>
+                        <input type="text" name="customer_province" id="customer_province" class="form-control">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="customer_country" class="form-label">{{ trans('customer-country') }}</label>
+                        <input type="text" name="customer_country" id="customer_country" class="form-control" value="ES" maxlength="10">
                     </div>
                     <div class="col-12 mb-3">
                         <label for="notes" class="form-label">{{ trans('notes') }}</label>

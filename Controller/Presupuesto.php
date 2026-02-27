@@ -12,6 +12,10 @@ class Presupuesto extends Controller
 {
     protected $requiresAuth = false;
 
+    private const CLIENTE_CLASS = 'FacturaScripts\\Dinamic\\Model\\Cliente';
+    private const PEDIDO_CLASS = 'FacturaScripts\\Dinamic\\Model\\PedidoCliente';
+    private const LINEA_CLASS = 'FacturaScripts\\Dinamic\\Model\\LineaPedidoCliente';
+
     /** @var array */
     public $cartItems = [];
 
@@ -23,12 +27,6 @@ class Presupuesto extends Controller
 
     /** @var string */
     public $orderCode = '';
-
-    /** @var bool */
-    public $loggedIn = false;
-
-    /** @var string */
-    public $clienteCode = '';
 
     public function getPageData(): array
     {
@@ -43,11 +41,6 @@ class Presupuesto extends Controller
     public function run(): void
     {
         parent::run();
-
-        if ($this->user) {
-            $this->loggedIn = true;
-            $this->clienteCode = $this->user->codcliente ?? '';
-        }
 
         $stripeCallback = $this->request()->query->get('stripe', '');
         if ($stripeCallback === 'success') {
@@ -122,7 +115,13 @@ class Presupuesto extends Controller
 
         $customerName = trim($this->request()->request->get('customer_name', ''));
         $customerEmail = trim($this->request()->request->get('customer_email', ''));
+        $customerPhone = trim($this->request()->request->get('customer_phone', ''));
+        $customerNif = trim($this->request()->request->get('customer_nif', ''));
         $address = trim($this->request()->request->get('address', ''));
+        $customerCity = trim($this->request()->request->get('customer_city', ''));
+        $customerZip = trim($this->request()->request->get('customer_zip', ''));
+        $customerProvince = trim($this->request()->request->get('customer_province', ''));
+        $customerCountry = trim($this->request()->request->get('customer_country', 'ES'));
         $notes = trim($this->request()->request->get('notes', ''));
 
         if (empty($customerName)) {
@@ -145,7 +144,13 @@ class Presupuesto extends Controller
         $_SESSION['pending_ecommerce_order'] = [
             'customer_name' => $customerName,
             'customer_email' => $customerEmail,
+            'customer_phone' => $customerPhone,
+            'customer_nif' => $customerNif,
             'address' => $address,
+            'customer_city' => $customerCity,
+            'customer_zip' => $customerZip,
+            'customer_province' => $customerProvince,
+            'customer_country' => $customerCountry ?: 'ES',
             'notes' => $notes,
         ];
 
@@ -191,7 +196,13 @@ class Presupuesto extends Controller
         $order = new EcommerceOrder();
         $order->customer_name = $pendingOrder['customer_name'];
         $order->customer_email = $pendingOrder['customer_email'];
+        $order->customer_phone = $pendingOrder['customer_phone'] ?? '';
+        $order->customer_nif = $pendingOrder['customer_nif'] ?? '';
         $order->address = $pendingOrder['address'];
+        $order->customer_city = $pendingOrder['customer_city'] ?? '';
+        $order->customer_zip = $pendingOrder['customer_zip'] ?? '';
+        $order->customer_province = $pendingOrder['customer_province'] ?? '';
+        $order->customer_country = $pendingOrder['customer_country'] ?? 'ES';
         $order->notes = $pendingOrder['notes'];
         $order->status = 'pending';
 
@@ -223,6 +234,9 @@ class Presupuesto extends Controller
                 $line->save();
             }
 
+            // Integrate with FacturaScripts native client and order models
+            $this->createNativeFsOrder($order, $orderLines, $pendingOrder);
+
             foreach ($items as $item) {
                 $item->delete();
             }
@@ -233,6 +247,103 @@ class Presupuesto extends Controller
         } else {
             Tools::log()->error('order-placement-failed');
         }
+    }
+
+    /**
+     * Creates a native FacturaScripts Cliente and PedidoCliente from the ecommerce order.
+     * Gracefully skips if the required FS models are not available.
+     */
+    private function createNativeFsOrder(EcommerceOrder $order, array $orderLines, array $pendingOrder): void
+    {
+        if (!class_exists(self::CLIENTE_CLASS) || !class_exists(self::PEDIDO_CLASS) || !class_exists(self::LINEA_CLASS)) {
+            return;
+        }
+
+        try {
+            // Find or create a Cliente
+            $cliente = $this->findOrCreateCliente($pendingOrder);
+            if (null === $cliente) {
+                return;
+            }
+
+            $order->codcliente = $cliente->codcliente;
+
+            // Create a PedidoCliente
+            /** @var \FacturaScripts\Dinamic\Model\PedidoCliente $pedido */
+            $pedido = new (self::PEDIDO_CLASS)();
+            $pedido->codcliente = $cliente->codcliente;
+            $pedido->nombrecliente = $pendingOrder['customer_name'];
+            $pedido->cifnif = $pendingOrder['customer_nif'] ?? '';
+            $pedido->email = $pendingOrder['customer_email'] ?? '';
+            $pedido->telefono1 = $pendingOrder['customer_phone'] ?? '';
+            $pedido->direccion = $pendingOrder['address'] ?? '';
+            $pedido->codpostal = $pendingOrder['customer_zip'] ?? '';
+            $pedido->ciudad = $pendingOrder['customer_city'] ?? '';
+            $pedido->provincia = $pendingOrder['customer_province'] ?? '';
+            $pedido->codpais = $pendingOrder['customer_country'] ?? 'ES';
+            $pedido->observaciones = $pendingOrder['notes'] ?? '';
+            $pedido->fecha = Tools::date();
+            $pedido->hora = Tools::hour();
+
+            if ($pedido->save()) {
+                $order->codpedido = $pedido->codigo;
+                $order->save();
+
+                // Add order lines to PedidoCliente
+                foreach ($orderLines as $ecommerceLine) {
+                    /** @var \FacturaScripts\Dinamic\Model\LineaPedidoCliente $linea */
+                    $linea = new (self::LINEA_CLASS)();
+                    $linea->idpedido = $pedido->idpedido;
+                    $linea->referencia = $ecommerceLine->product_referencia;
+                    $linea->descripcion = $ecommerceLine->product_name;
+                    $linea->cantidad = $ecommerceLine->quantity;
+                    $linea->pvpunitario = $ecommerceLine->price;
+                    $linea->pvpsindto = $ecommerceLine->price;
+                    $linea->pvptotal = $ecommerceLine->subtotal;
+                    $linea->save();
+                }
+            }
+        } catch (\Exception $e) {
+            Tools::log()->error($e->getMessage());
+        }
+    }
+
+    /**
+     * Finds an existing Cliente by email or creates a new one.
+     *
+     * @param array $pendingOrder
+     * @return object|null
+     */
+    private function findOrCreateCliente(array $pendingOrder): ?object
+    {
+        $email = $pendingOrder['customer_email'] ?? '';
+
+        if (!empty($email)) {
+            /** @var \FacturaScripts\Dinamic\Model\Cliente $existing */
+            $existing = new (self::CLIENTE_CLASS)();
+            $where = [new \FacturaScripts\Core\Where('email', $email)];
+            if ($existing->loadWhere($where)) {
+                return $existing;
+            }
+        }
+
+        /** @var \FacturaScripts\Dinamic\Model\Cliente $cliente */
+        $cliente = new (self::CLIENTE_CLASS)();
+        $cliente->nombre = $pendingOrder['customer_name'];
+        $cliente->cifnif = $pendingOrder['customer_nif'] ?? '';
+        $cliente->email = $email;
+        $cliente->telefono1 = $pendingOrder['customer_phone'] ?? '';
+        $cliente->direccion = $pendingOrder['address'] ?? '';
+        $cliente->codpostal = $pendingOrder['customer_zip'] ?? '';
+        $cliente->ciudad = $pendingOrder['customer_city'] ?? '';
+        $cliente->provincia = $pendingOrder['customer_province'] ?? '';
+        $cliente->codpais = $pendingOrder['customer_country'] ?? 'ES';
+
+        if ($cliente->save()) {
+            return $cliente;
+        }
+
+        return null;
     }
 
     private function handleStripeCancel(): void

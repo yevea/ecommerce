@@ -25,6 +25,24 @@ class EcommerceOrder extends ModelClass
     public $address;
 
     /** @var string */
+    public $customer_phone;
+
+    /** @var string */
+    public $customer_nif;
+
+    /** @var string */
+    public $customer_city;
+
+    /** @var string */
+    public $customer_zip;
+
+    /** @var string */
+    public $customer_province;
+
+    /** @var string */
+    public $customer_country;
+
+    /** @var string */
     public $status;
 
     /** @var float */
@@ -32,6 +50,12 @@ class EcommerceOrder extends ModelClass
 
     /** @var string */
     public $notes;
+
+    /** @var string */
+    public $codcliente;
+
+    /** @var string */
+    public $codpedido;
 
     /** @var string */
     public $creation_date;
@@ -57,6 +81,7 @@ class EcommerceOrder extends ModelClass
     public function clear(): void
     {
         parent::clear();
+        $this->customer_country = 'ES';
         $this->status = 'pending';
         $this->total = 0;
     }

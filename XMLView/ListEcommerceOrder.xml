@@ -13,6 +13,12 @@
         <column name="customer-email" display="left" order="130">
             <widget type="text" fieldname="customer_email" />
         </column>
+        <column name="codcliente" display="center" order="135">
+            <widget type="text" fieldname="codcliente" />
+        </column>
+        <column name="codpedido" display="center" order="137">
+            <widget type="text" fieldname="codpedido" />
+        </column>
         <column name="status" display="center" order="140">
             <widget type="select" translate="true" fieldname="status">
                 <option color="warning">pending</option>
