@@ -15,6 +15,12 @@ class ProductoDetalle extends StoreFront
     /** @var array */
     public $productVariants = [];
 
+    /** @var array Attribute groups: [codatributo => ['nombre' => string, 'values' => [id => valor]]] */
+    public $productAttributes = [];
+
+    /** @var object|null First/default variant data for initial display */
+    public $defaultVariant = null;
+
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
@@ -87,21 +93,91 @@ class ProductoDetalle extends StoreFront
     private function loadProductVariants(Producto $p): void
     {
         $this->productVariants = [];
+        $this->productAttributes = [];
+        $this->defaultVariant = null;
 
-        // Try loading product combinations/variants if model is available
-        $modelClass = '\FacturaScripts\Core\Model\ProductoCombinacion';
-        if (class_exists($modelClass)) {
-            $combModel = new $modelClass();
-            $where = [new \FacturaScripts\Core\Where('referencia', $p->referencia)];
-            $combinations = $combModel->all($where, ['descripcion' => 'ASC']);
-            foreach ($combinations as $comb) {
-                $this->productVariants[] = (object) [
-                    'referencia' => $comb->referencia,
-                    'description' => $comb->descripcion ?? '',
-                    'price' => $comb->precio ?? $p->precio,
-                    'stock' => $comb->stockfis ?? 0,
-                ];
+        $varianteClass = '\FacturaScripts\Core\Model\Variante';
+        $attrValClass = '\FacturaScripts\Core\Model\AtributoValor';
+        if (!class_exists($varianteClass)) {
+            return;
+        }
+
+        $variante = new $varianteClass();
+        $where = [new \FacturaScripts\Core\Where('idproducto', $p->idproducto)];
+        $variants = $variante->all($where, ['referencia' => 'ASC']);
+
+        // Single-variant product: no selector needed
+        if (count($variants) <= 1) {
+            return;
+        }
+
+        $attrValueCache = []; // id => ['codatributo' => ..., 'nombre' => ..., 'valor' => ...]
+        $attrGroups = []; // codatributo => ['nombre' => ..., 'values' => [id => valor]]
+
+        foreach ($variants as $v) {
+            $attrMap = []; // codatributo => idatributovalor (int)
+
+            foreach ([$v->idatributovalor1, $v->idatributovalor2, $v->idatributovalor3, $v->idatributovalor4] as $idAttrVal) {
+                if (empty($idAttrVal)) {
+                    continue;
+                }
+
+                if (!isset($attrValueCache[$idAttrVal]) && class_exists($attrValClass)) {
+                    $attrValModel = new $attrValClass();
+                    if ($attrValModel->loadFromCode($idAttrVal)) {
+                        $atributo = $attrValModel->getAtributo();
+                        $attrValueCache[$idAttrVal] = [
+                            'codatributo' => $attrValModel->codatributo,
+                            'nombre' => $atributo->nombre,
+                            'valor' => $attrValModel->valor,
+                        ];
+                        if (!isset($attrGroups[$attrValModel->codatributo])) {
+                            $attrGroups[$attrValModel->codatributo] = [
+                                'nombre' => $atributo->nombre,
+                                'values' => [],
+                            ];
+                        }
+                        if (!isset($attrGroups[$attrValModel->codatributo]['values'][$idAttrVal])) {
+                            $attrGroups[$attrValModel->codatributo]['values'][$idAttrVal] = $attrValModel->valor;
+                        }
+                    }
+                }
+
+                if (isset($attrValueCache[$idAttrVal])) {
+                    $attrMap[$attrValueCache[$idAttrVal]['codatributo']] = $idAttrVal;
+                }
+            }
+
+            // Determine a human-readable description for the simple dropdown fallback
+            $desc = '';
+            if (method_exists($v, 'description')) {
+                $desc = $v->description(true);
+            }
+            if (empty($desc)) {
+                $desc = $v->referencia;
+            }
+
+            $variantObj = (object) [
+                'referencia' => $v->referencia,
+                'description' => $desc,
+                'price' => $v->precio,
+                'stock' => $v->stockfis,
+                'attributes' => $attrMap,
+            ];
+
+            $this->productVariants[] = $variantObj;
+
+            // Use the variant matching the parent product referencia as the default
+            if ($v->referencia === $p->referencia && $this->defaultVariant === null) {
+                $this->defaultVariant = $variantObj;
             }
         }
+
+        // Fall back to the first variant as the default
+        if ($this->defaultVariant === null && !empty($this->productVariants)) {
+            $this->defaultVariant = $this->productVariants[0];
+        }
+
+        $this->productAttributes = $attrGroups;
     }
 }
