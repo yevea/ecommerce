@@ -405,6 +405,9 @@ class Presupuesto extends Controller
                 return;
             }
 
+            // Build lines using getNewLine() so tax defaults are applied, then
+            // use Calculator::calculate() to compute proper line and document totals.
+            $lines = [];
             foreach ($items as $item) {
                 $product = new Producto();
                 $productWhere = [new \FacturaScripts\Core\Where('referencia', $item->product_referencia)];
@@ -412,20 +415,19 @@ class Presupuesto extends Controller
                     continue;
                 }
 
-                /** @var \FacturaScripts\Dinamic\Model\LineaPresupuestoCliente $linea */
-                $linea = new (self::LINEA_PRESUPUESTO_CLASS)();
-                $linea->idpresupuesto = $presupuesto->idpresupuesto;
+                $linea = $presupuesto->getNewLine();
                 $linea->referencia = $product->referencia;
                 $linea->descripcion = $product->descripcion;
                 $linea->cantidad = $item->quantity;
                 $linea->pvpunitario = $product->precio;
-                $linea->pvpsindto = $product->precio;
-                $linea->pvptotal = $product->precio * $item->quantity;
-                $linea->save();
+                $lines[] = $linea;
             }
 
+            \FacturaScripts\Core\Lib\Calculator::calculate($presupuesto, $lines, true);
+
+            // Use the numeric primary key in the URL so EditPresupuestoCliente can find the record.
             $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
-            $url = $scriptDir . '/EditPresupuestoCliente?action=export&option=PDF&code=' . urlencode($presupuesto->codigo);
+            $url = $scriptDir . '/EditPresupuestoCliente?action=export&option=PDF&code=' . urlencode($presupuesto->idpresupuesto);
             header('Location: ' . $url, true, 302);
             exit;
         } catch (\Exception $e) {
