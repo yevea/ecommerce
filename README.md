@@ -12,8 +12,9 @@ A simple ecommerce / shopping cart plugin for FacturaScripts. Provides product c
 - **Category Management** — Organize products into categories
 - **Storefront** — Public-facing product catalog with category filtering
 - **Shopping Cart** — Session-based cart with add, update quantity, and remove functionality
-- **Order Processing** — Checkout flow that converts cart items into orders with customer details
-- **Order Management** — View and manage orders with line items, status tracking (pending, processing, completed, cancelled)
+- **Order Processing** — Checkout flow that converts cart items into orders with full customer details (name, NIF/CIF, email, phone, address, city, postal code, province, country)
+- **Native FS Integration** — On order placement, automatically creates a native FacturaScripts `Cliente` (or reuses an existing one matched by email) and a `PedidoCliente` with line items, making orders visible in the standard FacturaScripts Ventas > Pedidos list
+- **Order Management** — View and manage orders with line items, status tracking (pending, processing, completed, cancelled), and direct links to the native FS client and order records
 - **Translations** — English and Spanish language support
 
 ## Plugin Structure
@@ -76,18 +77,27 @@ ecommerce/
 
 ### Stripe Payment Gateway
 
-To enable the Stripe payment gateway, you must set your Stripe API keys in the FacturaScripts settings panel:
+To enable the Stripe payment gateway, enter your Stripe API keys in the FacturaScripts settings panel:
 
 1. Log in to the FacturaScripts admin panel
-2. Navigate to **Admin > Settings** (or go to `/AppSettings`)
-3. Select the **E-Commerce** tab
-4. Enter your **Stripe Secret Key** (`sk_live_...` or `sk_test_...` for testing)
-5. Enter your **Stripe Public Key** (`pk_live_...` or `pk_test_...` for testing)
-6. Save the settings
+2. Navigate to **Admin > Settings** (or go to `/SettingsEcommerce`)
+3. Enter your **Stripe Secret Key** (`sk_live_...` or `sk_test_...` for testing)
+4. Enter your **Stripe Public Key** (`pk_live_...` or `pk_test_...` for testing)
+5. Save the settings
 
 You can obtain your API keys from the [Stripe Dashboard](https://dashboard.stripe.com/apikeys).
 
 > **Note:** Use test keys (`sk_test_...` / `pk_test_...`) during development and switch to live keys for production.
+
+### Native FacturaScripts Order Integration
+
+When a customer completes a payment via Stripe, the plugin automatically:
+
+1. **Finds or creates a `Cliente`** — searches for an existing client by email address; if none is found, a new client is created with all the submitted contact details.
+2. **Creates a `PedidoCliente`** — a native FacturaScripts sales order is created and linked to the client. The order appears in **Ventas > Pedidos** like any manually entered order.
+3. **Links back to the ecommerce order** — the `EcommerceOrder` record stores the `codcliente` and `codpedido` values so you can navigate directly to the native records from **Ventas > Pedidos (Ecommerce) > Edit**.
+
+> This integration requires the FacturaScripts **Ventas** (Facturación) plugin to be installed. The plugin gracefully skips the native order creation if the required models are not available.
 
 ## Usage
 
@@ -99,6 +109,6 @@ You can obtain your API keys from the [Stripe Dashboard](https://dashboard.strip
 ### Storefront
 - Access the storefront at `/StoreFront` or `/Productos`
 - Browse products, filter by category, add items to cart
-- Use the **Pay with Stripe** button for instant single-product checkout via Stripe
-- Access the shopping cart at `/ShoppingCartView`
-- Complete checkout by entering customer name, email, delivery/invoice address, and placing the order
+- Access the quote/cart at `/Presupuesto`
+- Complete checkout by entering customer details (name, NIF/CIF, email, phone, address, city, postal code, province, country) and clicking **Realizar Pedido**
+- Stripe payment is processed; on success, a native FacturaScripts client and sales order are created automatically

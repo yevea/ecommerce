@@ -13,16 +13,40 @@
             <column name="total" numcolumns="3">
                 <widget type="money" fieldname="total" readonly="true" />
             </column>
+            <column name="codcliente" numcolumns="3">
+                <widget type="text" fieldname="codcliente" readonly="true" href="EditCliente?code={codcliente}" />
+            </column>
+            <column name="codpedido" numcolumns="3">
+                <widget type="text" fieldname="codpedido" readonly="true" href="EditPedidoCliente?code={codpedido}" />
+            </column>
             <column name="customer-name" numcolumns="6">
                 <widget type="text" fieldname="customer_name" required="true" />
+            </column>
+            <column name="customer-nif" numcolumns="6">
+                <widget type="text" fieldname="customer_nif" />
             </column>
             <column name="customer-email" numcolumns="6">
                 <widget type="text" fieldname="customer_email" />
             </column>
-            <column name="address" numcolumns="12">
-                <widget type="textarea" fieldname="address" />
+            <column name="customer-phone" numcolumns="6">
+                <widget type="text" fieldname="customer_phone" />
             </column>
-            <column name="notes" numcolumns="12">
+            <column name="address" numcolumns="12">
+                <widget type="text" fieldname="address" />
+            </column>
+            <column name="customer-zip" numcolumns="3">
+                <widget type="text" fieldname="customer_zip" />
+            </column>
+            <column name="customer-city" numcolumns="5">
+                <widget type="text" fieldname="customer_city" />
+            </column>
+            <column name="customer-province" numcolumns="4">
+                <widget type="text" fieldname="customer_province" />
+            </column>
+            <column name="customer-country" numcolumns="3">
+                <widget type="text" fieldname="customer_country" />
+            </column>
+            <column name="notes" numcolumns="9">
                 <widget type="textarea" fieldname="notes" />
             </column>
         </group>

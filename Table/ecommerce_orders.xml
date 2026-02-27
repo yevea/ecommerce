@@ -34,8 +34,41 @@
         <default>0</default>
     </column>
     <column>
+        <name>customer_phone</name>
+        <type>character varying(30)</type>
+    </column>
+    <column>
+        <name>customer_nif</name>
+        <type>character varying(30)</type>
+    </column>
+    <column>
+        <name>customer_city</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
+        <name>customer_zip</name>
+        <type>character varying(10)</type>
+    </column>
+    <column>
+        <name>customer_province</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
+        <name>customer_country</name>
+        <type>character varying(10)</type>
+        <default>'ES'</default>
+    </column>
+    <column>
         <name>notes</name>
         <type>text</type>
+    </column>
+    <column>
+        <name>codcliente</name>
+        <type>character varying(10)</type>
+    </column>
+    <column>
+        <name>codpedido</name>
+        <type>character varying(20)</type>
     </column>
     <column>
         <name>creation_date</name>
