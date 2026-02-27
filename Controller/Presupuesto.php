@@ -24,6 +24,12 @@ class Presupuesto extends Controller
     /** @var string */
     public $orderCode = '';
 
+    /** @var bool */
+    public $loggedIn = false;
+
+    /** @var string */
+    public $clienteCode = '';
+
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
@@ -37,6 +43,11 @@ class Presupuesto extends Controller
     public function run(): void
     {
         parent::run();
+
+        if ($this->user) {
+            $this->loggedIn = true;
+            $this->clienteCode = $this->user->codcliente ?? '';
+        }
 
         $stripeCallback = $this->request()->query->get('stripe', '');
         if ($stripeCallback === 'success') {
