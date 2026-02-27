@@ -15,6 +15,8 @@ class Presupuesto extends Controller
     private const CLIENTE_CLASS = 'FacturaScripts\\Dinamic\\Model\\Cliente';
     private const PEDIDO_CLASS = 'FacturaScripts\\Dinamic\\Model\\PedidoCliente';
     private const LINEA_CLASS = 'FacturaScripts\\Dinamic\\Model\\LineaPedidoCliente';
+    private const PRESUPUESTO_CLASS = 'FacturaScripts\\Dinamic\\Model\\PresupuestoCliente';
+    private const LINEA_PRESUPUESTO_CLASS = 'FacturaScripts\\Dinamic\\Model\\LineaPresupuestoCliente';
 
     /** @var array */
     public $cartItems = [];
@@ -61,6 +63,10 @@ class Presupuesto extends Controller
 
             case 'place-order':
                 $this->placeOrder();
+                break;
+
+            case 'print-presupuesto':
+                $this->printPresupuesto();
                 break;
         }
 
@@ -344,6 +350,87 @@ class Presupuesto extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Creates a native FacturaScripts PresupuestoCliente from the current cart items
+     * and redirects to the FS native PDF export so the user gets the standard presupuesto PDF.
+     * Falls back to window.print() if the required FS models are not available.
+     */
+    private function printPresupuesto(): void
+    {
+        if (!class_exists(self::PRESUPUESTO_CLASS) || !class_exists(self::LINEA_PRESUPUESTO_CLASS)) {
+            // Ventas plugin not available — front-end falls back to window.print()
+            return;
+        }
+
+        $sessionId = $this->getSessionId();
+        $cartItem = new EcommerceCartItem();
+        $where = [new \FacturaScripts\Core\Where('session_id', $sessionId)];
+        $items = $cartItem->all($where);
+
+        if (empty($items)) {
+            Tools::log()->warning('cart-empty');
+            return;
+        }
+
+        try {
+            /** @var \FacturaScripts\Dinamic\Model\PresupuestoCliente $presupuesto */
+            $presupuesto = new (self::PRESUPUESTO_CLASS)();
+            $presupuesto->nombrecliente = trim($this->request()->request->get('customer_name', '')) ?: 'Cliente';
+            $presupuesto->cifnif = trim($this->request()->request->get('customer_nif', ''));
+            $presupuesto->email = trim($this->request()->request->get('customer_email', ''));
+            $presupuesto->telefono1 = trim($this->request()->request->get('customer_phone', ''));
+            $presupuesto->direccion = trim($this->request()->request->get('address', ''));
+            $presupuesto->codpostal = trim($this->request()->request->get('customer_zip', ''));
+            $presupuesto->ciudad = trim($this->request()->request->get('customer_city', ''));
+            $presupuesto->provincia = trim($this->request()->request->get('customer_province', ''));
+            $presupuesto->codpais = trim($this->request()->request->get('customer_country', 'ES')) ?: 'ES';
+            $presupuesto->observaciones = trim($this->request()->request->get('notes', ''));
+            $presupuesto->fecha = Tools::date();
+            $presupuesto->hora = Tools::hour();
+
+            // Link to existing cliente if email matches
+            if (!empty($presupuesto->email) && class_exists(self::CLIENTE_CLASS)) {
+                /** @var \FacturaScripts\Dinamic\Model\Cliente $existing */
+                $existing = new (self::CLIENTE_CLASS)();
+                $clienteWhere = [new \FacturaScripts\Core\Where('email', $presupuesto->email)];
+                if ($existing->loadWhere($clienteWhere)) {
+                    $presupuesto->codcliente = $existing->codcliente;
+                }
+            }
+
+            if (!$presupuesto->save()) {
+                Tools::log()->error('presupuesto-creation-failed');
+                return;
+            }
+
+            foreach ($items as $item) {
+                $product = new Producto();
+                $productWhere = [new \FacturaScripts\Core\Where('referencia', $item->product_referencia)];
+                if (!$product->loadWhere($productWhere)) {
+                    continue;
+                }
+
+                /** @var \FacturaScripts\Dinamic\Model\LineaPresupuestoCliente $linea */
+                $linea = new (self::LINEA_PRESUPUESTO_CLASS)();
+                $linea->idpresupuesto = $presupuesto->idpresupuesto;
+                $linea->referencia = $product->referencia;
+                $linea->descripcion = $product->descripcion;
+                $linea->cantidad = $item->quantity;
+                $linea->pvpunitario = $product->precio;
+                $linea->pvpsindto = $product->precio;
+                $linea->pvptotal = $product->precio * $item->quantity;
+                $linea->save();
+            }
+
+            $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
+            $url = $scriptDir . '/EditPresupuestoCliente?action=export&option=PDF&code=' . urlencode($presupuesto->codigo);
+            header('Location: ' . $url, true, 302);
+            exit;
+        } catch (\Exception $e) {
+            Tools::log()->error($e->getMessage());
+        }
     }
 
     private function handleStripeCancel(): void
