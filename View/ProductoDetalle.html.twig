@@ -205,7 +205,7 @@ function updateVariantFromAttributes() {
         if (addBtn) addBtn.disabled = !inStock;
 
         var qtyInput = document.getElementById('qty');
-        if (qtyInput) qtyInput.max = inStock ? Math.floor(match.stock) : 0;
+        if (qtyInput && inStock) qtyInput.max = Math.floor(match.stock);
     }
 }
 
@@ -230,7 +230,7 @@ function updateVariant(select) {
     if (addBtn) addBtn.disabled = !inStock;
 
     var qtyInput = document.getElementById('qty');
-    if (qtyInput) qtyInput.max = inStock ? Math.floor(stock) : 0;
+    if (qtyInput && inStock) qtyInput.max = Math.floor(stock);
 }
 
 document.addEventListener('DOMContentLoaded', function () {
