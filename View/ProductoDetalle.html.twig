@@ -9,7 +9,13 @@
             <li class="breadcrumb-item">
                 <a href="{{ asset('Productos') }}">{{ trans('products') }}</a>
             </li>
-            <li class="breadcrumb-item active" aria-current="page">{{ fsc.product.name }}</li>
+            <li class="breadcrumb-item active" aria-current="page" id="breadcrumb-product-name">
+                {% if fsc.defaultVariant and fsc.defaultVariant.description is not empty %}
+                    {{ fsc.product.name }} – {{ fsc.defaultVariant.description }}
+                {% else %}
+                    {{ fsc.product.name }}
+                {% endif %}
+            </li>
         </ol>
     </nav>
 
@@ -18,24 +24,22 @@
         <div class="col-md-5 mb-4">
             {% if fsc.productImages is not empty %}
             <div id="productCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
-                <div class="carousel-inner">
+                <div class="carousel-inner" id="carousel-inner">
                     {% for img in fsc.productImages %}
-                    <div class="carousel-item {% if loop.first %}active{% endif %}">
+                    <div class="carousel-item {% if loop.first %}active{% endif %}" data-idvariante="{{ img.idvariante ?? '' }}">
                         <img src="{{ img.url }}" class="d-block w-100 rounded" alt="{{ img.alt }}" style="max-height: 400px; object-fit: contain; background:#f8f9fa;">
                     </div>
                     {% endfor %}
                 </div>
-                {% if fsc.productImages | length > 1 %}
-                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev" id="carousel-prev">
                     <span class="carousel-control-prev-icon"></span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next" id="carousel-next">
                     <span class="carousel-control-next-icon"></span>
                 </button>
-                {% endif %}
             </div>
             {% else %}
-            <div class="bg-light d-flex align-items-center justify-content-center rounded mb-3" style="height: 300px;">
+            <div class="bg-light d-flex align-items-center justify-content-center rounded mb-3" id="no-image-placeholder" style="height: 300px;">
                 <i class="fa-solid fa-image fa-5x text-muted"></i>
             </div>
             {% endif %}
@@ -43,7 +47,13 @@
 
         {# Product info column #}
         <div class="col-md-7 mb-4">
-            <h1 class="h2 mb-2">{{ fsc.product.name }}</h1>
+            <h1 class="h2 mb-2" id="product-title">
+                {% if fsc.defaultVariant and fsc.defaultVariant.description is not empty %}
+                    {{ fsc.product.name }} – {{ fsc.defaultVariant.description }}
+                {% else %}
+                    {{ fsc.product.name }}
+                {% endif %}
+            </h1>
 
             {% set currentPrice = fsc.defaultVariant ? fsc.defaultVariant.price : fsc.product.price %}
             {% set currentStock = fsc.defaultVariant ? fsc.defaultVariant.stock : fsc.product.stock %}
@@ -87,6 +97,8 @@
                 <select id="variant-selector" class="form-select" onchange="updateVariant(this)">
                     {% for variant in fsc.productVariants %}
                     <option value="{{ variant.referencia }}" data-price="{{ variant.price }}" data-stock="{{ variant.stock }}"
+                        data-idvariante="{{ variant.idvariante ?? '' }}"
+                        data-description="{{ variant.description }}"
                         {% if fsc.defaultVariant and fsc.defaultVariant.referencia == variant.referencia %}selected{% endif %}>
                         {{ variant.description }} – {{ fsc.formatMoney(variant.price) }}
                     </option>
@@ -120,16 +132,20 @@
         </div>
     </div>
 
-    {# Additional images with observaciones #}
+    {# Vertical image gallery with descriptions #}
     {% if fsc.productImages | length > 1 %}
     <div class="row mt-2 mb-4">
         <div class="col-12">
             <h5>{{ trans('product-images') }}</h5>
-            <div class="row g-2">
+            <div id="product-gallery" class="d-flex flex-column gap-3">
                 {% for img in fsc.productImages %}
-                <div class="col-6 col-md-3 col-lg-2">
-                    <img src="{{ img.url }}" class="img-thumbnail w-100" alt="{{ img.alt }}" style="height: 100px; object-fit: cover; cursor: pointer;"
-                         onclick="document.querySelector('#productCarousel').querySelectorAll('.carousel-item')[{{ loop.index0 }}].closest('.carousel').dispatchEvent(new CustomEvent('slide-to', {detail: {{ loop.index0 }}}))">
+                <div class="gallery-item" data-idvariante="{{ img.idvariante ?? '' }}" style="max-width: 400px;">
+                    <img src="{{ img.url }}" class="img-thumbnail w-100" alt="{{ img.alt }}"
+                         style="object-fit: cover; cursor: pointer;"
+                         onclick="scrollCarouselTo({{ loop.index0 }})">
+                    {% if img.description is not empty %}
+                    <p class="mt-1 mb-0 text-muted small">{{ img.description }}</p>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
@@ -158,11 +174,79 @@
 
 <script>
 var variantData = {{ fsc.productVariants | json_encode | raw }};
+var variantImages = {{ fsc.variantImages | json_encode | raw }};
+var allImages = {{ fsc.productImages | json_encode | raw }};
+var productBaseName = {{ fsc.product.name | json_encode | raw }};
 var inStockLabel = {{ trans('in-stock') | json_encode | raw }};
 var outOfStockLabel = {{ trans('out-of-stock') | json_encode | raw }};
 
 function formatMoney(amount) {
     return amount.toFixed(2).replace('.', ',') + ' \u20ac';
+}
+
+function updateCarouselForVariant(idvariante) {
+    var inner = document.getElementById('carousel-inner');
+    if (!inner) return;
+
+    var items = inner.querySelectorAll('.carousel-item');
+    var idvarianteStr = idvariante !== null && idvariante !== undefined ? String(idvariante) : '';
+    var hasVariantImages = idvarianteStr !== '' && variantImages[idvariante] && variantImages[idvariante].length > 0;
+
+    var visibleCount = 0;
+    items.forEach(function (item) {
+        var itemVariante = item.dataset.idvariante;
+        var show;
+        if (hasVariantImages) {
+            show = itemVariante === idvarianteStr;
+        } else {
+            // No variant-specific images: show images with no variant assigned (parent images)
+            show = !itemVariante || itemVariante === '';
+        }
+        item.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+    });
+
+    // Ensure one item is active
+    var activeFound = false;
+    items.forEach(function (item) {
+        if (item.style.display !== 'none') {
+            if (!activeFound) {
+                item.classList.add('active');
+                activeFound = true;
+            } else {
+                item.classList.remove('active');
+            }
+        } else {
+            item.classList.remove('active');
+        }
+    });
+
+    // Show/hide prev/next buttons
+    var prevBtn = document.getElementById('carousel-prev');
+    var nextBtn = document.getElementById('carousel-next');
+    if (prevBtn) prevBtn.style.display = visibleCount > 1 ? '' : 'none';
+    if (nextBtn) nextBtn.style.display = visibleCount > 1 ? '' : 'none';
+
+    // Update gallery items
+    var galleryItems = document.querySelectorAll('.gallery-item');
+    galleryItems.forEach(function (gi) {
+        var giVariante = gi.dataset.idvariante;
+        var show;
+        if (hasVariantImages) {
+            show = giVariante === idvarianteStr;
+        } else {
+            show = !giVariante || giVariante === '';
+        }
+        gi.style.display = show ? '' : 'none';
+    });
+}
+
+function updateProductTitle(description) {
+    var title = document.getElementById('product-title');
+    var breadcrumb = document.getElementById('breadcrumb-product-name');
+    var fullName = description ? productBaseName + ' \u2013 ' + description : productBaseName;
+    if (title) title.textContent = fullName;
+    if (breadcrumb) breadcrumb.textContent = fullName;
 }
 
 function updateVariantFromAttributes() {
@@ -206,6 +290,9 @@ function updateVariantFromAttributes() {
 
         var qtyInput = document.getElementById('qty');
         if (qtyInput && inStock) qtyInput.max = Math.floor(match.stock);
+
+        updateProductTitle(match.description);
+        updateCarouselForVariant(match.idvariante);
     }
 }
 
@@ -231,11 +318,30 @@ function updateVariant(select) {
 
     var qtyInput = document.getElementById('qty');
     if (qtyInput && inStock) qtyInput.max = Math.floor(stock);
+
+    updateProductTitle(option.dataset.description || '');
+    updateCarouselForVariant(option.dataset.idvariante || null);
+}
+
+function scrollCarouselTo(index) {
+    var inner = document.getElementById('carousel-inner');
+    if (!inner) return;
+    var visibleItems = Array.from(inner.querySelectorAll('.carousel-item')).filter(function(el) {
+        return el.style.display !== 'none';
+    });
+    if (index < visibleItems.length) {
+        visibleItems.forEach(function(el) { el.classList.remove('active'); });
+        visibleItems[index].classList.add('active');
+        visibleItems[index].scrollIntoView({behavior: 'smooth', block: 'nearest'});
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
     if (document.querySelector('.attr-selector')) {
         updateVariantFromAttributes();
+    } else if (document.getElementById('variant-selector')) {
+        var sel = document.getElementById('variant-selector');
+        updateVariant(sel);
     }
 });
 </script>

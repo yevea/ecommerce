@@ -548,15 +548,35 @@ class Presupuesto extends Controller
 
     /**
      * Resolves product name and price by referencia.
-     * First tries to find a Producto directly; if not found, looks up a Variante
-     * and returns the parent product's name combined with the variant's attribute
-     * description, plus the variant's own price.
+     * Prefers Variante lookup so the full name (parent + attribute description) is always
+     * returned for variant products. Falls back to a direct Producto lookup for single-variant
+     * products or when the Variante model is unavailable.
      *
      * @param string $referencia
      * @return object|null with properties: name (string), price (float)
      */
     private function resolveProductInfoByRef(string $referencia): ?object
     {
+        $varianteClass = '\FacturaScripts\Core\Model\Variante';
+
+        // Prefer variant lookup so we can always build the full name with attributes
+        if (class_exists($varianteClass)) {
+            $variante = new $varianteClass();
+            $varWhere = [new \FacturaScripts\Core\Where('referencia', $referencia)];
+            if ($variante->loadWhere($varWhere)) {
+                $parent = new Producto();
+                if ($parent->loadFromCode($variante->idproducto)) {
+                    $attrDesc = method_exists($variante, 'description') ? $variante->description(true) : '';
+                    $name = empty($attrDesc) ? $parent->descripcion : $parent->descripcion . ' – ' . $attrDesc;
+                    return (object) [
+                        'name' => $name,
+                        'price' => $variante->precio,
+                    ];
+                }
+            }
+        }
+
+        // Fall back to direct Producto lookup (e.g. single-variant products or when Variante model unavailable)
         $product = new Producto();
         $where = [new \FacturaScripts\Core\Where('referencia', $referencia)];
         if ($product->loadWhere($where)) {
@@ -566,29 +586,7 @@ class Presupuesto extends Controller
             ];
         }
 
-        $varianteClass = '\FacturaScripts\Core\Model\Variante';
-        if (!class_exists($varianteClass)) {
-            return null;
-        }
-
-        $variante = new $varianteClass();
-        $varWhere = [new \FacturaScripts\Core\Where('referencia', $referencia)];
-        if (!$variante->loadWhere($varWhere)) {
-            return null;
-        }
-
-        $parent = new Producto();
-        if (!$parent->loadFromCode($variante->idproducto)) {
-            return null;
-        }
-
-        $attrDesc = method_exists($variante, 'description') ? $variante->description(true) : '';
-        $name = empty($attrDesc) ? $parent->descripcion : $parent->descripcion . ' – ' . $attrDesc;
-
-        return (object) [
-            'name' => $name,
-            'price' => $variante->precio,
-        ];
+        return null;
     }
 
     private function getSessionId(): string
