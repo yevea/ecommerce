@@ -14,7 +14,7 @@
         <p class="lead">{{ trans('order-code') }}: <strong>{{ fsc.orderCode }}</strong></p>
         {% endif %}
         <a href="{{ asset('Productos') }}" class="btn btn-primary mt-3">
-            <i class="fa-solid fa-store"></i> {{ trans('go-to-store') }}
+            <i class="fa-solid fa-arrow-left"></i> {{ trans('go-to-store') }}
         </a>
     </div>
 
@@ -79,6 +79,40 @@
 
     <div class="card shadow-sm mb-4 no-print">
         <div class="card-header">
+            <h5 class="mb-0">
+                {% if fsc.loggedIn %}
+                {{ trans('my-account') }}
+                {% else %}
+                {{ trans('register') }}
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if fsc.loggedIn %}
+            <p class="mb-2">
+                <i class="fa-solid fa-user-check text-success"></i>
+                {{ trans('access-account') }}: <strong>{{ fsc.user.nick }}</strong>
+            </p>
+            {% if fsc.clienteCode is not empty %}
+            <a href="{{ asset('EditCliente') }}?code={{ fsc.clienteCode }}" class="btn btn-outline-primary">
+                <i class="fa-solid fa-user-edit"></i> {{ trans('edit-my-data') }}
+            </a>
+            {% endif %}
+            {% else %}
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ asset('Login') }}" class="btn btn-outline-primary">
+                    <i class="fa-solid fa-sign-in-alt"></i> {{ trans('access-account') }}
+                </a>
+                <a href="{{ asset('EditCliente') }}" class="btn btn-primary">
+                    <i class="fa-solid fa-user-plus"></i> {{ trans('register') }}
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4 no-print">
+        <div class="card-header">
             <h5 class="mb-0">{{ trans('checkout') }}</h5>
         </div>
         <div class="card-body">
@@ -126,7 +160,7 @@
         <i class="fa-solid fa-info-circle"></i> {{ trans('presupuesto-empty') }}
     </div>
     <a href="{{ asset('Productos') }}" class="btn btn-primary">
-        <i class="fa-solid fa-store"></i> {{ trans('go-to-store') }}
+        <i class="fa-solid fa-arrow-left"></i> {{ trans('go-to-store') }}
     </a>
     {% endif %}
 </div>
