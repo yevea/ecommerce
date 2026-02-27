@@ -216,17 +216,16 @@ class Presupuesto extends Controller
         $orderLines = [];
 
         foreach ($items as $item) {
-            $product = new Producto();
-            $productWhere = [new \FacturaScripts\Core\Where('referencia', $item->product_referencia)];
-            if ($product->loadWhere($productWhere)) {
-                $subtotal = $product->precio * $item->quantity;
+            $info = $this->resolveProductInfoByRef($item->product_referencia);
+            if ($info !== null) {
+                $subtotal = $info->price * $item->quantity;
                 $total += $subtotal;
 
                 $line = new EcommerceOrderLine();
-                $line->product_referencia = $product->referencia;
-                $line->product_name = $product->descripcion;
+                $line->product_referencia = $item->product_referencia;
+                $line->product_name = $info->name;
                 $line->quantity = $item->quantity;
-                $line->price = $product->precio;
+                $line->price = $info->price;
                 $line->subtotal = $subtotal;
                 $orderLines[] = $line;
             }
@@ -409,17 +408,16 @@ class Presupuesto extends Controller
             // use Calculator::calculate() to compute proper line and document totals.
             $lines = [];
             foreach ($items as $item) {
-                $product = new Producto();
-                $productWhere = [new \FacturaScripts\Core\Where('referencia', $item->product_referencia)];
-                if (!$product->loadWhere($productWhere)) {
+                $info = $this->resolveProductInfoByRef($item->product_referencia);
+                if ($info === null) {
                     continue;
                 }
 
                 $linea = $presupuesto->getNewLine();
-                $linea->referencia = $product->referencia;
-                $linea->descripcion = $product->descripcion;
+                $linea->referencia = $item->product_referencia;
+                $linea->descripcion = $info->name;
                 $linea->cantidad = $item->quantity;
-                $linea->pvpunitario = $product->precio;
+                $linea->pvpunitario = $info->price;
                 $lines[] = $linea;
             }
 
@@ -535,18 +533,62 @@ class Presupuesto extends Controller
         $items = $cartItem->all($where);
 
         foreach ($items as $item) {
-            $product = new Producto();
-            $where = [new \FacturaScripts\Core\Where('referencia', $item->product_referencia)];
-            if ($product->loadWhere($where)) {
+            $info = $this->resolveProductInfoByRef($item->product_referencia);
+            if ($info !== null) {
                 $this->cartItems[] = (object) [
                     'id' => $item->id,
-                    'product_name' => $product->descripcion,
-                    'product_price' => $product->precio,
+                    'product_name' => $info->name,
+                    'product_price' => $info->price,
                     'quantity' => $item->quantity,
                 ];
-                $this->cartTotal += $product->precio * $item->quantity;
+                $this->cartTotal += $info->price * $item->quantity;
             }
         }
+    }
+
+    /**
+     * Resolves product name and price by referencia.
+     * First tries to find a Producto directly; if not found, looks up a Variante
+     * and returns the parent product's name combined with the variant's attribute
+     * description, plus the variant's own price.
+     *
+     * @param string $referencia
+     * @return object|null with properties: name (string), price (float)
+     */
+    private function resolveProductInfoByRef(string $referencia): ?object
+    {
+        $product = new Producto();
+        $where = [new \FacturaScripts\Core\Where('referencia', $referencia)];
+        if ($product->loadWhere($where)) {
+            return (object) [
+                'name' => $product->descripcion,
+                'price' => $product->precio,
+            ];
+        }
+
+        $varianteClass = '\FacturaScripts\Core\Model\Variante';
+        if (!class_exists($varianteClass)) {
+            return null;
+        }
+
+        $variante = new $varianteClass();
+        $varWhere = [new \FacturaScripts\Core\Where('referencia', $referencia)];
+        if (!$variante->loadWhere($varWhere)) {
+            return null;
+        }
+
+        $parent = new Producto();
+        if (!$parent->loadFromCode($variante->idproducto)) {
+            return null;
+        }
+
+        $attrDesc = method_exists($variante, 'description') ? $variante->description(true) : '';
+        $name = empty($attrDesc) ? $parent->descripcion : $parent->descripcion . ' – ' . $attrDesc;
+
+        return (object) [
+            'name' => $name,
+            'price' => $variante->precio,
+        ];
     }
 
     private function getSessionId(): string

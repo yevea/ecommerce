@@ -69,9 +69,27 @@ class StoreFront extends Controller
             return;
         }
 
+        $isPublic = false;
         $product = new Producto();
         $where = [new \FacturaScripts\Core\Where('referencia', $productReferencia)];
-        if (!$product->loadWhere($where) || !$product->publico) {
+        if ($product->loadWhere($where)) {
+            $isPublic = $product->publico;
+        } else {
+            // Product not found by referencia — try looking up via Variante for non-primary variants
+            $varianteClass = '\FacturaScripts\Core\Model\Variante';
+            if (class_exists($varianteClass)) {
+                $variante = new $varianteClass();
+                $varWhere = [new \FacturaScripts\Core\Where('referencia', $productReferencia)];
+                if ($variante->loadWhere($varWhere)) {
+                    $parent = new Producto();
+                    if ($parent->loadFromCode($variante->idproducto)) {
+                        $isPublic = $parent->publico;
+                    }
+                }
+            }
+        }
+
+        if (!$isPublic) {
             return;
         }
 

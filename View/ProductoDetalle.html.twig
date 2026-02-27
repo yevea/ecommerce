@@ -45,12 +45,14 @@
         <div class="col-md-7 mb-4">
             <h1 class="h2 mb-2">{{ fsc.product.name }}</h1>
 
+            {% set currentPrice = fsc.defaultVariant ? fsc.defaultVariant.price : fsc.product.price %}
+            {% set currentStock = fsc.defaultVariant ? fsc.defaultVariant.stock : fsc.product.stock %}
             <div class="d-flex align-items-center gap-3 mb-3">
-                <span class="mb-0">{{ fsc.formatMoney(fsc.product.price) }}</span>
-                {% if fsc.product.stock > 0 %}
-                <span class="badge bg-success fs-6">{{ trans('in-stock') }}</span>
+                <span id="variant-price" class="mb-0">{{ fsc.formatMoney(currentPrice) }}</span>
+                {% if currentStock > 0 %}
+                <span id="variant-stock-badge" class="badge bg-success fs-6">{{ trans('in-stock') }}</span>
                 {% else %}
-                <span class="badge bg-danger fs-6">{{ trans('out-of-stock') }}</span>
+                <span id="variant-stock-badge" class="badge bg-danger fs-6">{{ trans('out-of-stock') }}</span>
                 {% endif %}
             </div>
 
@@ -61,16 +63,31 @@
             </div>
             {% endif %}
 
-            {# Variant selector #}
-            {% if fsc.productVariants is not empty %}
+            {# Attribute-based variant selectors #}
+            {% if fsc.productAttributes is not empty %}
+            <div class="mb-4" id="attribute-selectors">
+                {% for codatributo, attr in fsc.productAttributes %}
+                <div class="mb-2">
+                    <label class="form-label fw-semibold">{{ attr.nombre }}</label>
+                    <select class="form-select attr-selector" data-codatributo="{{ codatributo }}" onchange="updateVariantFromAttributes()">
+                        {% for idVal, valor in attr.values %}
+                        <option value="{{ idVal }}"
+                            {% if fsc.defaultVariant and fsc.defaultVariant.attributes[codatributo] == idVal %}selected{% endif %}>
+                            {{ valor }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endfor %}
+            </div>
+            {% elseif fsc.productVariants is not empty %}
+            {# Fallback: simple dropdown when variants have no attribute data #}
             <div class="mb-4">
                 <h5>{{ trans('variants') }}</h5>
                 <select id="variant-selector" class="form-select" onchange="updateVariant(this)">
-                    <option value="{{ fsc.product.referencia }}" data-price="{{ fsc.product.price }}" data-stock="{{ fsc.product.stock }}">
-                        {{ trans('standard') }} – {{ fsc.formatMoney(fsc.product.price) }}
-                    </option>
                     {% for variant in fsc.productVariants %}
-                    <option value="{{ variant.referencia }}" data-price="{{ variant.price }}" data-stock="{{ variant.stock }}">
+                    <option value="{{ variant.referencia }}" data-price="{{ variant.price }}" data-stock="{{ variant.stock }}"
+                        {% if fsc.defaultVariant and fsc.defaultVariant.referencia == variant.referencia %}selected{% endif %}>
                         {{ variant.description }} – {{ fsc.formatMoney(variant.price) }}
                     </option>
                     {% endfor %}
@@ -78,16 +95,20 @@
             </div>
             {% endif %}
 
-            {% if fsc.product.stock > 0 %}
+            {# Add to cart form — always shown when variants exist, JS manages submit state #}
+            {% set showForm = fsc.productVariants is not empty or fsc.product.stock > 0 %}
+            {% if showForm %}
             <form method="post" action="{{ asset('ProductoDetalle') }}?ref={{ fsc.product.referencia }}">
                 <input type="hidden" name="action" value="add-to-cart">
-                <input type="hidden" name="product_referencia" id="add-referencia" value="{{ fsc.product.referencia }}">
+                <input type="hidden" name="product_referencia" id="add-referencia"
+                    value="{{ fsc.defaultVariant ? fsc.defaultVariant.referencia : fsc.product.referencia }}">
                 <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
                 <div class="input-group mb-3" style="max-width: 200px;">
                     <label class="input-group-text" for="qty">{{ trans('quantity') }}</label>
-                    <input type="number" id="qty" name="quantity" value="1" min="1" max="{{ fsc.product.stock }}" class="form-control">
+                    <input type="number" id="qty" name="quantity" value="1" min="1" max="{{ currentStock }}" class="form-control">
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg">
+                <button type="submit" id="add-to-cart-btn" class="btn btn-primary btn-lg"
+                    {% if currentStock <= 0 %}disabled{% endif %}>
                     <i class="fa-solid fa-cart-plus"></i> {{ trans('add-to-presupuesto') }}
                 </button>
             </form>
@@ -136,9 +157,86 @@
 </div>
 
 <script>
+var variantData = {{ fsc.productVariants | json_encode | raw }};
+var inStockLabel = {{ trans('in-stock') | json_encode | raw }};
+var outOfStockLabel = {{ trans('out-of-stock') | json_encode | raw }};
+
+function formatMoney(amount) {
+    return amount.toFixed(2).replace('.', ',') + ' \u20ac';
+}
+
+function updateVariantFromAttributes() {
+    var selected = {};
+    document.querySelectorAll('.attr-selector').forEach(function (sel) {
+        selected[sel.dataset.codatributo] = parseInt(sel.value, 10);
+    });
+
+    var match = null;
+    for (var i = 0; i < variantData.length; i++) {
+        var v = variantData[i];
+        var allMatch = true;
+        for (var cod in selected) {
+            if (!v.attributes || v.attributes[cod] !== selected[cod]) {
+                allMatch = false;
+                break;
+            }
+        }
+        if (allMatch) {
+            match = v;
+            break;
+        }
+    }
+
+    if (match) {
+        var refInput = document.getElementById('add-referencia');
+        if (refInput) refInput.value = match.referencia;
+
+        var priceEl = document.getElementById('variant-price');
+        if (priceEl) priceEl.textContent = formatMoney(parseFloat(match.price));
+
+        var inStock = parseFloat(match.stock) > 0;
+        var badge = document.getElementById('variant-stock-badge');
+        if (badge) {
+            badge.className = inStock ? 'badge bg-success fs-6' : 'badge bg-danger fs-6';
+            badge.textContent = inStock ? inStockLabel : outOfStockLabel;
+        }
+
+        var addBtn = document.getElementById('add-to-cart-btn');
+        if (addBtn) addBtn.disabled = !inStock;
+
+        var qtyInput = document.getElementById('qty');
+        if (qtyInput && inStock) qtyInput.max = Math.floor(match.stock);
+    }
+}
+
 function updateVariant(select) {
     var option = select.options[select.selectedIndex];
-    document.getElementById('add-referencia').value = option.value;
+    var refInput = document.getElementById('add-referencia');
+    if (refInput) refInput.value = option.value;
+
+    var price = parseFloat(option.dataset.price);
+    var priceEl = document.getElementById('variant-price');
+    if (priceEl) priceEl.textContent = formatMoney(price);
+
+    var stock = parseFloat(option.dataset.stock);
+    var inStock = stock > 0;
+    var badge = document.getElementById('variant-stock-badge');
+    if (badge) {
+        badge.className = inStock ? 'badge bg-success fs-6' : 'badge bg-danger fs-6';
+        badge.textContent = inStock ? inStockLabel : outOfStockLabel;
+    }
+
+    var addBtn = document.getElementById('add-to-cart-btn');
+    if (addBtn) addBtn.disabled = !inStock;
+
+    var qtyInput = document.getElementById('qty');
+    if (qtyInput && inStock) qtyInput.max = Math.floor(stock);
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    if (document.querySelector('.attr-selector')) {
+        updateVariantFromAttributes();
+    }
+});
 </script>
 {% endblock %}
