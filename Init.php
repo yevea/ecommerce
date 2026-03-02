@@ -19,18 +19,42 @@
 namespace FacturaScripts\Plugins\ecommerce;
 
 use FacturaScripts\Core\Template\InitClass;
+use FacturaScripts\Core\Where;
+use FacturaScripts\Dinamic\Model\AttachedFileRelation;
 
 class Init extends InitClass
 {
     public function init(): void
     {
+        $this->loadExtension(new Extension\Controller\EditProducto());
     }
 
     public function update(): void
     {
+        $this->fixProductImageFileRelations();
     }
 
     public function uninstall(): void
     {
+    }
+
+    /**
+     * Fix AttachedFileRelation records for product images that have modelid set
+     * but modelcode = null. This allows editFileAction() to correctly validate
+     * these records when editing observations in the Archivos tab.
+     */
+    private function fixProductImageFileRelations(): void
+    {
+        $fileRelation = new AttachedFileRelation();
+        $where = [
+            Where::eq('model', 'Producto'),
+            Where::isNull('modelcode'),
+        ];
+        foreach ($fileRelation->all($where, [], 0, 0) as $relation) {
+            if ($relation->modelid > 0) {
+                $relation->modelcode = (string)$relation->modelid;
+                $relation->save();
+            }
+        }
     }
 }
