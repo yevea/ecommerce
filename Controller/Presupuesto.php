@@ -271,6 +271,10 @@ class Presupuesto extends Controller
             return;
         }
 
+        if (!class_exists('\FacturaScripts\Core\Lib\Calculator')) {
+            return;
+        }
+
         try {
             // Find or create a Cliente
             $cliente = $this->findOrCreateCliente($pendingOrder);
@@ -297,23 +301,27 @@ class Presupuesto extends Controller
             $pedido->fecha = Tools::date();
             $pedido->hora = Tools::hour();
 
-            if ($pedido->save()) {
+            // Build lines using getNewLine() so tax defaults are applied correctly,
+            // then use Calculator::calculate() to compute proper totals and persist everything.
+            $lines = [];
+            foreach ($orderLines as $ecommerceLine) {
+                $info = $this->resolveProductInfoByRef($ecommerceLine->product_referencia);
+                if ($info === null) {
+                    Tools::log()->warning('product-not-found', ['referencia' => $ecommerceLine->product_referencia]);
+                    continue;
+                }
+
+                $linea = $pedido->getNewLine();
+                $linea->referencia = $ecommerceLine->product_referencia;
+                $linea->descripcion = $ecommerceLine->product_name;
+                $linea->pvpunitario = $info->price;
+                $linea->cantidad = $ecommerceLine->quantity;
+                $lines[] = $linea;
+            }
+
+            if (\FacturaScripts\Core\Lib\Calculator::calculate($pedido, $lines, true)) {
                 $order->codpedido = $pedido->codigo;
                 $order->save();
-
-                // Add order lines to PedidoCliente
-                foreach ($orderLines as $ecommerceLine) {
-                    /** @var \FacturaScripts\Dinamic\Model\LineaPedidoCliente $linea */
-                    $linea = new (self::LINEA_CLASS)();
-                    $linea->idpedido = $pedido->idpedido;
-                    $linea->referencia = $ecommerceLine->product_referencia;
-                    $linea->descripcion = $ecommerceLine->product_name;
-                    $linea->cantidad = $ecommerceLine->quantity;
-                    $linea->pvpunitario = $ecommerceLine->price;
-                    $linea->pvpsindto = $ecommerceLine->price;
-                    $linea->pvptotal = $ecommerceLine->subtotal;
-                    $linea->save();
-                }
             }
         } catch (\Exception $e) {
             Tools::log()->error($e->getMessage());
