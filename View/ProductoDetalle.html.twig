@@ -199,8 +199,8 @@ function updateCarouselForVariant(idvariante) {
         if (hasVariantImages) {
             show = itemVariante === idvarianteStr;
         } else {
-            // No variant-specific images: show images with no variant assigned (parent images)
-            show = !itemVariante || itemVariante === '';
+            // No variant-specific images: show all images
+            show = true;
         }
         item.style.display = show ? '' : 'none';
         if (show) visibleCount++;
@@ -235,7 +235,7 @@ function updateCarouselForVariant(idvariante) {
         if (hasVariantImages) {
             show = giVariante === idvarianteStr;
         } else {
-            show = !giVariante || giVariante === '';
+            show = true;
         }
         gi.style.display = show ? '' : 'none';
     });
