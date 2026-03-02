@@ -218,14 +218,15 @@ class Presupuesto extends Controller
         foreach ($items as $item) {
             $info = $this->resolveProductInfoByRef($item->product_referencia);
             if ($info !== null) {
-                $subtotal = $info->price * $item->quantity;
+                $priceWithTax = $info->price * (1 + $info->tax_rate / 100);
+                $subtotal = $priceWithTax * $item->quantity;
                 $total += $subtotal;
 
                 $line = new EcommerceOrderLine();
                 $line->product_referencia = $info->referencia;
                 $line->product_name = $info->name;
                 $line->quantity = $item->quantity;
-                $line->price = $info->price;
+                $line->price = $priceWithTax;
                 $line->subtotal = $subtotal;
                 $orderLines[] = $line;
             }
@@ -452,11 +453,12 @@ class Presupuesto extends Controller
         foreach ($items as $item) {
             $info = $this->resolveProductInfoByRef($item->product_referencia);
             if ($info !== null) {
+                $unitAmountWithTax = $info->price * (1 + $info->tax_rate / 100);
                 $lineItems[] = [
                     'price_data' => [
                         'currency' => 'eur',
                         'product_data' => ['name' => $info->name],
-                        'unit_amount' => (int) round($info->price * 100),
+                        'unit_amount' => (int) round($unitAmountWithTax * 100),
                     ],
                     'quantity' => $item->quantity,
                 ];
@@ -534,13 +536,14 @@ class Presupuesto extends Controller
         foreach ($items as $item) {
             $info = $this->resolveProductInfoByRef($item->product_referencia);
             if ($info !== null) {
+                $priceWithTax = $info->price * (1 + $info->tax_rate / 100);
                 $this->cartItems[] = (object) [
                     'id' => $item->id,
                     'product_name' => $info->name,
-                    'product_price' => $info->price,
+                    'product_price' => $priceWithTax,
                     'quantity' => $item->quantity,
                 ];
-                $this->cartTotal += $info->price * $item->quantity;
+                $this->cartTotal += $priceWithTax * $item->quantity;
             }
         }
     }
@@ -571,6 +574,7 @@ class Presupuesto extends Controller
                         'name' => $name,
                         'price' => $variante->precio,
                         'referencia' => $parent->referencia,
+                        'tax_rate' => $this->getTaxRate($parent->codimpuesto ?? ''),
                     ];
                 }
             }
@@ -584,10 +588,33 @@ class Presupuesto extends Controller
                 'name' => $product->descripcion,
                 'price' => $product->precio,
                 'referencia' => $product->referencia,
+                'tax_rate' => $this->getTaxRate($product->codimpuesto ?? ''),
             ];
         }
 
         return null;
+    }
+
+    private function getTaxRate(string $codimpuesto): float
+    {
+        if (empty($codimpuesto)) {
+            return 0.0;
+        }
+
+        $impuestoClass = null;
+        foreach (['\FacturaScripts\Dinamic\Model\Impuesto', '\FacturaScripts\Core\Model\Impuesto'] as $class) {
+            if (class_exists($class)) {
+                $impuestoClass = $class;
+                break;
+            }
+        }
+
+        if ($impuestoClass === null) {
+            return 0.0;
+        }
+
+        $impuesto = new $impuestoClass();
+        return $impuesto->loadFromCode($codimpuesto) ? (float) $impuesto->iva : 0.0;
     }
 
     private function getSessionId(): string
