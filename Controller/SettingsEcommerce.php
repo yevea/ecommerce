@@ -15,6 +15,19 @@ class SettingsEcommerce extends EditSettings
         return $data;
     }
 
+    protected function execPreviousAction($action)
+    {
+        if ($action === 'insert'
+            && $this->active === 'SettingsEcommerce'
+            && isset($this->views[$this->active])
+            && $this->views[$this->active]->model instanceof Settings
+            && empty($this->views[$this->active]->model->name)) {
+            $this->views[$this->active]->model->name = 'ecommerce';
+        }
+
+        return parent::execPreviousAction($action);
+    }
+
     protected function loadData($viewName, $view)
     {
         parent::loadData($viewName, $view);
