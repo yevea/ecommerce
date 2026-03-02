@@ -65,7 +65,11 @@
                 <div class="card {{ border }} shadow">
                     <img src="{{ asset(image.url('download')) }}" class="card-img-top"
                          alt="{{ image.referencia }}" loading="lazy">
-                    <div class="card-body"></div>
+                    <div class="card-body">
+                        {% if image.observaciones is not empty %}
+                        <p class="card-text small text-muted mb-0">{{ image.observaciones }}</p>
+                        {% endif %}
+                    </div>
                     <div class="card-footer">
                         {% set formName = currentView.getViewName() ~ (counter + 1) %}
                         <form id="{{ 'form' ~ formName }}" action="{{ product.url() }}" method="post"

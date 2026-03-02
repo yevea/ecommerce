@@ -74,11 +74,25 @@ class ProductoDetalle extends StoreFront
         // Try loading from ProductoImagen model if available
         $modelClass = '\FacturaScripts\Core\Model\ProductoImagen';
         if (class_exists($modelClass)) {
+            // Build a map: referencia -> idvariante from the Variante table
+            $refToIdvariante = [];
+            $varianteClass = '\FacturaScripts\Core\Model\Variante';
+            if (class_exists($varianteClass)) {
+                $varianteModel = new $varianteClass();
+                $varWhere = [new \FacturaScripts\Core\Where('idproducto', $p->idproducto)];
+                foreach ($varianteModel->all($varWhere, [], 0, 0) as $v) {
+                    $refToIdvariante[$v->referencia] = $v->idvariante;
+                }
+            }
+
             $imgModel = new $modelClass();
             $where = [new \FacturaScripts\Core\Where('idproducto', $p->idproducto)];
             $images = $imgModel->all($where, ['orden' => 'ASC']);
             foreach ($images as $img) {
-                $idvariante = isset($img->idvariante) ? (int) $img->idvariante : null;
+                $idvariante = null;
+                if (!empty($img->referencia) && isset($refToIdvariante[$img->referencia])) {
+                    $idvariante = (int) $refToIdvariante[$img->referencia];
+                }
                 $imgObj = (object) [
                     'url' => $img->url('download-permanent'),
                     'alt' => $p->descripcion,

@@ -22,6 +22,7 @@ namespace FacturaScripts\Plugins\ecommerce\Extension\Controller;
 use Closure;
 use FacturaScripts\Core\Where;
 use FacturaScripts\Dinamic\Model\AttachedFileRelation;
+use FacturaScripts\Dinamic\Model\ProductoImagen;
 
 /**
  * Extension for EditProducto controller to fix observations on product images.
@@ -55,6 +56,7 @@ class EditProducto
 
             // Find newly created file relations that have no modelcode yet (created by addImageAction)
             $fileRelation = new AttachedFileRelation();
+            $imgModel = class_exists(ProductoImagen::class) ? new ProductoImagen() : null;
             $where = [
                 Where::eq('model', 'Producto'),
                 Where::eq('modelid', $idproducto),
@@ -64,6 +66,15 @@ class EditProducto
                 $relation->modelcode = (string)$idproducto;
                 $relation->observations = $observations;
                 $relation->save();
+
+                // Also save observations directly on the ProductoImagen record
+                if (!empty($observations) && $imgModel !== null) {
+                    $imgWhere = [Where::eq('idfile', $relation->idfile)];
+                    foreach ($imgModel->all($imgWhere, [], 0, 0) as $img) {
+                        $img->observaciones = $observations;
+                        $img->save();
+                    }
+                }
             }
         };
     }
