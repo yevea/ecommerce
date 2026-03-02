@@ -108,19 +108,63 @@
             {% endif %}
 
             {# Add to cart form — always shown when variants exist, JS manages submit state #}
-            {% set showForm = fsc.productVariants is not empty or fsc.product.stock > 0 %}
+            {% set showForm = fsc.productVariants is not empty or fsc.product.stock > 0 or fsc.productMeasurement is not null %}
             {% if showForm %}
             <form method="post" action="{{ asset('ProductoDetalle') }}?ref={{ fsc.product.referencia }}">
                 <input type="hidden" name="action" value="add-to-cart">
                 <input type="hidden" name="product_referencia" id="add-referencia"
                     value="{{ fsc.defaultVariant ? fsc.defaultVariant.referencia : fsc.product.referencia }}">
                 <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
+
+                {% if fsc.productMeasurement is not null %}
+                {# ── Measurement Price Calculator ── #}
+                {% set m = fsc.productMeasurement %}
+                {% set unitLabel = m.unitLabel() %}
+                {% set fieldLabel = m.custom_label is not empty ? m.custom_label : (unitLabel ~ ' (' ~ trans('measurement-value') ~ ')') %}
+                {% set initVal = m.min_value > 0 ? m.min_value : m.step_value %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="measurement_value">{{ fieldLabel }}</label>
+                    <div class="input-group" style="max-width: 280px;">
+                        <input type="number"
+                            id="measurement_value"
+                            name="measurement_value"
+                            class="form-control"
+                            value="{{ initVal }}"
+                            min="{{ initVal }}"
+                            {% if m.max_value > 0 %}max="{{ m.max_value }}"{% endif %}
+                            step="{{ m.step_value }}"
+                            oninput="updateMeasurementPrice(this.value)"
+                            required>
+                        <span class="input-group-text">{{ unitLabel }}</span>
+                    </div>
+                    {% if m.pricing_mode == 'quantity_based' %}
+                    <div class="form-text">
+                        {{ trans('measurement-unit-value') }}: 1 {{ trans('unit') }} = {{ m.unit_value }} {{ unitLabel }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <span class="fw-semibold">{{ trans('price') }}: </span>
+                    <span id="measurement-total-price">
+                        {% if m.pricing_mode == 'quantity_based' %}
+                            {% set initQty = (initVal / m.unit_value) | round(0, 'ceil') %}
+                            {{ fsc.formatMoney(currentPrice * initQty) }}
+                            <small class="text-muted">({{ initQty }} {{ trans('units') }})</small>
+                        {% else %}
+                            {{ fsc.formatMoney(currentPrice * initVal) }}
+                        {% endif %}
+                    </span>
+                </div>
+                {% else %}
+                {# ── Standard quantity input ── #}
                 <div class="input-group mb-3" style="max-width: 200px;">
                     <label class="input-group-text" for="qty">{{ trans('quantity') }}</label>
                     <input type="number" id="qty" name="quantity" value="1" min="1" max="{{ currentStock }}" class="form-control">
                 </div>
+                {% endif %}
+
                 <button type="submit" id="add-to-cart-btn" class="btn btn-primary btn-lg"
-                    {% if currentStock <= 0 %}disabled{% endif %}>
+                    {% if fsc.productMeasurement is null and currentStock <= 0 %}disabled{% endif %}>
                     <i class="fa-solid fa-cart-plus"></i> {{ trans('add-to-presupuesto') }}
                 </button>
             </form>
@@ -336,8 +380,48 @@ function scrollCarouselTo(index) {
     }
 }
 
-// On page load all images are shown (server-side rendering already initialises
-// price, stock, title and referencia correctly for the default variant).
-// Images are filtered only when the user explicitly selects a variant.
+document.addEventListener('DOMContentLoaded', function () {
+    if (document.querySelector('.attr-selector')) {
+        updateVariantFromAttributes();
+    } else if (document.getElementById('variant-selector')) {
+        var sel = document.getElementById('variant-selector');
+        updateVariant(sel);
+    }
+});
+
+// ── Measurement Price Calculator ──────────────────────────────────────────
+{% if fsc.productMeasurement is not null %}
+var measurementConfig = {
+    pricingMode: {{ fsc.productMeasurement.pricing_mode | json_encode | raw }},
+    unitValue: {{ fsc.productMeasurement.unit_value | json_encode | raw }},
+    unitLabel: {{ fsc.productMeasurement.unitLabel() | json_encode | raw }}
+};
+var basePrice = {{ currentPrice | json_encode | raw }};
+
+function updateMeasurementPrice(measurementVal) {
+    measurementVal = parseFloat(measurementVal) || 0;
+    var totalEl = document.getElementById('measurement-total-price');
+    if (!totalEl) return;
+
+    if (measurementConfig.pricingMode === 'quantity_based') {
+        var unitValue = Math.max(0.0001, measurementConfig.unitValue);
+        var qty = Math.ceil(measurementVal / unitValue);
+        qty = Math.max(1, qty);
+        var total = basePrice * qty;
+        totalEl.innerHTML = formatMoney(total) +
+            ' <small class="text-muted">(' + qty + ' ' + {{ trans('units') | json_encode | raw }} + ')</small>';
+    } else {
+        var total = basePrice * measurementVal;
+        totalEl.textContent = formatMoney(total);
+    }
+}
+
+// Update price on page load with the initial input value
+document.addEventListener('DOMContentLoaded', function () {
+    var inp = document.getElementById('measurement_value');
+    if (inp) updateMeasurementPrice(inp.value);
+});
+{% endif %}
+
 </script>
 {% endblock %}
