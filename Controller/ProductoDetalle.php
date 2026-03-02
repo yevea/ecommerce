@@ -12,6 +12,9 @@ class ProductoDetalle extends StoreFront
     /** @var array */
     public $productImages = [];
 
+    /** @var array Map of idvariante => array of image objects (for JS-driven variant image switching) */
+    public $variantImages = [];
+
     /** @var array */
     public $productVariants = [];
 
@@ -66,6 +69,7 @@ class ProductoDetalle extends StoreFront
     private function loadProductImages(Producto $p): void
     {
         $this->productImages = [];
+        $this->variantImages = [];
 
         // Try loading from ProductoImagen model if available
         $modelClass = '\FacturaScripts\Core\Model\ProductoImagen';
@@ -74,10 +78,17 @@ class ProductoDetalle extends StoreFront
             $where = [new \FacturaScripts\Core\Where('idproducto', $p->idproducto)];
             $images = $imgModel->all($where, ['orden' => 'ASC']);
             foreach ($images as $img) {
-                $this->productImages[] = (object) [
+                $idvariante = isset($img->idvariante) ? (int) $img->idvariante : null;
+                $imgObj = (object) [
                     'url' => $img->url('download-permanent'),
                     'alt' => $p->descripcion,
+                    'description' => $img->observaciones ?? '',
+                    'idvariante' => $idvariante,
                 ];
+                $this->productImages[] = $imgObj;
+                if (!empty($idvariante)) {
+                    $this->variantImages[$idvariante][] = $imgObj;
+                }
             }
         }
 
@@ -86,6 +97,8 @@ class ProductoDetalle extends StoreFront
             $this->productImages[] = (object) [
                 'url' => $p->imagen,
                 'alt' => $p->descripcion,
+                'description' => '',
+                'idvariante' => null,
             ];
         }
     }
@@ -159,6 +172,7 @@ class ProductoDetalle extends StoreFront
 
             $variantObj = (object) [
                 'referencia' => $v->referencia,
+                'idvariante' => $v->idvariante ?? null,
                 'description' => $desc,
                 'price' => $v->precio,
                 'stock' => $v->stockfis,
