@@ -222,7 +222,7 @@ class Presupuesto extends Controller
                 $total += $subtotal;
 
                 $line = new EcommerceOrderLine();
-                $line->product_referencia = $item->product_referencia;
+                $line->product_referencia = $info->referencia;
                 $line->product_name = $info->name;
                 $line->quantity = $item->quantity;
                 $line->price = $info->price;
@@ -571,6 +571,7 @@ class Presupuesto extends Controller
                     return (object) [
                         'name' => $name,
                         'price' => $variante->precio,
+                        'referencia' => $parent->referencia,
                     ];
                 }
             }
@@ -583,6 +584,7 @@ class Presupuesto extends Controller
             return (object) [
                 'name' => $product->descripcion,
                 'price' => $product->precio,
+                'referencia' => $product->referencia,
             ];
         }
 
