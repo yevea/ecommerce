@@ -78,5 +78,5 @@
     "codpedido": "Pedido Nativo FS",
     "stripe-secret-key": "Clave Secreta de Stripe (sk_...)",
     "stripe-public-key": "Clave Pública de Stripe (pk_...)",
-    "settings-ecommerce": "Configuración E-Commerce"
+    "settings-ecommerce": "Configuración"
 }
