@@ -301,6 +301,14 @@ class Presupuesto extends Controller
             $pedido->fecha = Tools::date();
             $pedido->hora = Tools::hour();
 
+            // Save the pedido first so its primary key (idpedido) is available when
+            // getNewLine() creates line objects – otherwise idpedido would be null and
+            // inserting into lineaspedidoscli would fail with a NOT NULL constraint.
+            if (false === $pedido->save()) {
+                Tools::log()->error('pedido-creation-failed');
+                return;
+            }
+
             // Build lines using getNewLine() so tax defaults are applied correctly,
             // then use Calculator::calculate() to compute proper totals and persist everything.
             $lines = [];
