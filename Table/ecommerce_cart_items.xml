@@ -34,19 +34,13 @@
         <type>integer</type>
         <null>YES</null>
     </column>
-    <column>
-        <name>measurement_value</name>
-        <type>double precision</type>
-        <null>YES</null>
-    </column>
-    <column>
-        <name>measurement_unit</name>
-        <type>character varying(20)</type>
-        <null>YES</null>
-    </column>
     <constraint>
         <name>pk_ecommerce_cart_items</name>
         <type>PRIMARY KEY (id)</type>
+    </constraint>
+    <constraint>
+        <name>idx_ecommerce_cart_items_session</name>
+        <type>INDEX (session_id)</type>
     </constraint>
     <constraint>
         <name>fk_ecommerce_cart_items_product</name>

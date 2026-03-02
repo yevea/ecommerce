@@ -24,12 +24,6 @@ class EcommerceCartItem extends ModelClass
     /** @var string */
     public $creation_date;
 
-    /** @var float|null Measurement entered by the customer (null = no measurement) */
-    public $measurement_value;
-
-    /** @var string|null Unit abbreviation matching the product measurement config */
-    public $measurement_unit;
-
     public static function primaryColumn(): string
     {
         return 'id';

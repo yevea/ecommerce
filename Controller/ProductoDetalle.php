@@ -3,7 +3,6 @@ namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Tools;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceProductMeasurement;
 
 class ProductoDetalle extends StoreFront
 {
@@ -21,9 +20,6 @@ class ProductoDetalle extends StoreFront
 
     /** @var array Attribute groups: [codatributo => ['nombre' => string, 'values' => [id => valor]]] */
     public $productAttributes = [];
-
-    /** @var EcommerceProductMeasurement|null Measurement calculator config for this product */
-    public $productMeasurement = null;
 
     /** @var object|null First/default variant data for initial display */
     public $defaultVariant = null;
@@ -68,16 +64,6 @@ class ProductoDetalle extends StoreFront
 
         $this->loadProductImages($p);
         $this->loadProductVariants($p);
-        $this->loadProductMeasurement($p);
-    }
-
-    private function loadProductMeasurement(Producto $p): void
-    {
-        $measurement = new EcommerceProductMeasurement();
-        $where = [new \FacturaScripts\Core\Where('product_referencia', $p->referencia)];
-        if ($measurement->loadWhere($where) && $measurement->measurement_enabled) {
-            $this->productMeasurement = $measurement;
-        }
     }
 
     private function loadProductImages(Producto $p): void

@@ -29,12 +29,6 @@ class EcommerceOrderLine extends ModelClass
     /** @var float */
     public $subtotal;
 
-    /** @var float|null Measurement value stored for reference on the order line */
-    public $measurement_value;
-
-    /** @var string|null Unit abbreviation for the measurement value */
-    public $measurement_unit;
-
     public static function primaryColumn(): string
     {
         return 'id';
