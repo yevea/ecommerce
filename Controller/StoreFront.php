@@ -6,7 +6,6 @@ use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceProductMeasurement;
 
 class StoreFront extends Controller
 {
@@ -94,82 +93,24 @@ class StoreFront extends Controller
             return;
         }
 
-        // Load measurement configuration for this product
-        $measurement = new EcommerceProductMeasurement();
-        $mWhere = [new \FacturaScripts\Core\Where('product_referencia', $productReferencia)];
-        $hasMeasurement = $measurement->loadWhere($mWhere) && $measurement->measurement_enabled;
-
+        $qty = max(1, (int) $this->request()->request->get('quantity', 1));
         $sessionId = $this->getSessionId();
 
-        if ($hasMeasurement) {
-            $measurementValue = (float) $this->request()->request->get('measurement_value', 0);
+        $cartItem = new EcommerceCartItem();
+        $where = [
+            new \FacturaScripts\Core\Where('session_id', $sessionId),
+            new \FacturaScripts\Core\Where('product_referencia', $productReferencia),
+        ];
 
-            // Enforce minimum / maximum constraints
-            if ($measurement->min_value > 0 && $measurementValue < $measurement->min_value) {
-                $measurementValue = $measurement->min_value;
-            }
-            if ($measurement->max_value > 0 && $measurementValue > $measurement->max_value) {
-                $measurementValue = $measurement->max_value;
-            }
-            if ($measurementValue <= 0) {
-                return;
-            }
-
-            if ($measurement->pricing_mode === 'quantity_based') {
-                // Calculate the number of product units required
-                $unitValue = max(0.0001, (float) $measurement->unit_value);
-                $qty = (int) ceil($measurementValue / $unitValue);
-                $qty = max(1, $qty);
-
-                // Merge with an existing cart item for this product
-                $cartItem = new EcommerceCartItem();
-                $existingWhere = [
-                    new \FacturaScripts\Core\Where('session_id', $sessionId),
-                    new \FacturaScripts\Core\Where('product_referencia', $productReferencia),
-                ];
-                $existing = $cartItem->all($existingWhere);
-                if (!empty($existing)) {
-                    $existing[0]->quantity += $qty;
-                    $existing[0]->measurement_value = ($existing[0]->measurement_value ?? 0) + $measurementValue;
-                    $existing[0]->measurement_unit = $measurement->measurement_unit;
-                    $existing[0]->save();
-                } else {
-                    $cartItem->session_id = $sessionId;
-                    $cartItem->product_referencia = $productReferencia;
-                    $cartItem->quantity = $qty;
-                    $cartItem->measurement_value = $measurementValue;
-                    $cartItem->measurement_unit = $measurement->measurement_unit;
-                    $cartItem->save();
-                }
-            } else {
-                // per_measurement: always create a new cart line (each measurement is independent)
-                $cartItem = new EcommerceCartItem();
-                $cartItem->session_id = $sessionId;
-                $cartItem->product_referencia = $productReferencia;
-                $cartItem->quantity = 1;
-                $cartItem->measurement_value = $measurementValue;
-                $cartItem->measurement_unit = $measurement->measurement_unit;
-                $cartItem->save();
-            }
+        $existing = $cartItem->all($where);
+        if (!empty($existing)) {
+            $existing[0]->quantity += $qty;
+            $existing[0]->save();
         } else {
-            // Standard (no measurement) add-to-cart
-            $qty = max(1, (int) $this->request()->request->get('quantity', 1));
-
-            $cartItem = new EcommerceCartItem();
-            $existingWhere = [
-                new \FacturaScripts\Core\Where('session_id', $sessionId),
-                new \FacturaScripts\Core\Where('product_referencia', $productReferencia),
-            ];
-            $existing = $cartItem->all($existingWhere);
-            if (!empty($existing)) {
-                $existing[0]->quantity += $qty;
-                $existing[0]->save();
-            } else {
-                $cartItem->session_id = $sessionId;
-                $cartItem->product_referencia = $productReferencia;
-                $cartItem->quantity = $qty;
-                $cartItem->save();
-            }
+            $cartItem->session_id = $sessionId;
+            $cartItem->product_referencia = $productReferencia;
+            $cartItem->quantity = $qty;
+            $cartItem->save();
         }
 
         Tools::log()->notice('product-added-to-cart');

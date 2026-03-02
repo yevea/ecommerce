@@ -7,7 +7,6 @@ use FacturaScripts\Core\Tools;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrder;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrderLine;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceProductMeasurement;
 
 class Presupuesto extends Controller
 {
@@ -84,37 +83,12 @@ class Presupuesto extends Controller
     private function updateQuantity(): void
     {
         $cartItemId = (int) $this->request()->request->get('cart_item_id', 0);
+        $quantity = (int) $this->request()->request->get('quantity', 1);
 
         $cartItem = new EcommerceCartItem();
         if ($cartItem->loadFromCode($cartItemId)) {
             if ($cartItem->session_id === $this->getSessionId()) {
-                // If the item has a measurement value in per_measurement mode, update the measurement
-                $measurementValue = $this->request()->request->get('measurement_value', null);
-                if ($measurementValue !== null && $cartItem->measurement_value !== null) {
-                    $measurementValue = (float) $measurementValue;
-                    // Load measurement config to check mode and apply constraints
-                    $mConfig = new EcommerceProductMeasurement();
-                    $mWhere = [new \FacturaScripts\Core\Where('product_referencia', $cartItem->product_referencia)];
-                    if ($mConfig->loadWhere($mWhere) && $mConfig->measurement_enabled) {
-                        if ($mConfig->min_value > 0 && $measurementValue < $mConfig->min_value) {
-                            $measurementValue = $mConfig->min_value;
-                        }
-                        if ($mConfig->max_value > 0 && $measurementValue > $mConfig->max_value) {
-                            $measurementValue = $mConfig->max_value;
-                        }
-                        if ($measurementValue <= 0) {
-                            return;
-                        }
-                        if ($mConfig->pricing_mode === 'quantity_based') {
-                            $unitValue = max(0.0001, (float) $mConfig->unit_value);
-                            $cartItem->quantity = max(1, (int) ceil($measurementValue / $unitValue));
-                        }
-                        $cartItem->measurement_value = $measurementValue;
-                    }
-                } else {
-                    $quantity = (int) $this->request()->request->get('quantity', 1);
-                    $cartItem->quantity = max(1, $quantity);
-                }
+                $cartItem->quantity = max(1, $quantity);
                 $cartItem->save();
             }
         }
@@ -244,37 +218,15 @@ class Presupuesto extends Controller
         foreach ($items as $item) {
             $info = $this->resolveProductInfoByRef($item->product_referencia);
             if ($info !== null) {
-                $measurementValue = $item->measurement_value;
-                $pricingMode = null;
-                $unitLabel = $item->measurement_unit ?? '';
-
-                if ($measurementValue !== null && $measurementValue > 0) {
-                    $mConfig = new EcommerceProductMeasurement();
-                    $mWhere = [new \FacturaScripts\Core\Where('product_referencia', $item->product_referencia)];
-                    if ($mConfig->loadWhere($mWhere) && $mConfig->measurement_enabled) {
-                        $pricingMode = $mConfig->pricing_mode;
-                        $unitLabel = $mConfig->unitLabel();
-                    }
-                }
-
-                if ($pricingMode === 'per_measurement' && $measurementValue > 0) {
-                    // Quantity in the order line = measurement_value (e.g. 2.5 m²)
-                    $lineQty = $measurementValue;
-                    $subtotal = $info->price * $measurementValue;
-                } else {
-                    $lineQty = $item->quantity;
-                    $subtotal = $info->price * $item->quantity;
-                }
+                $subtotal = $info->price * $item->quantity;
                 $total += $subtotal;
 
                 $line = new EcommerceOrderLine();
                 $line->product_referencia = $info->referencia;
                 $line->product_name = $info->name;
-                $line->quantity = (int) max(1, round($lineQty));
+                $line->quantity = $item->quantity;
                 $line->price = $info->price;
                 $line->subtotal = $subtotal;
-                $line->measurement_value = $measurementValue;
-                $line->measurement_unit = $unitLabel;
                 $orderLines[] = $line;
             }
         }
@@ -349,13 +301,7 @@ class Presupuesto extends Controller
                     $linea->idpedido = $pedido->idpedido;
                     $linea->referencia = $ecommerceLine->product_referencia;
                     $linea->descripcion = $ecommerceLine->product_name;
-                    // For per_measurement lines use the measurement_value as cantidad so the
-                    // native document shows "2.5 m²" at €5/m² rather than "1 unit" at €12.50
-                    if ($ecommerceLine->measurement_value !== null && $ecommerceLine->measurement_value > 0) {
-                        $linea->cantidad = $ecommerceLine->measurement_value;
-                    } else {
-                        $linea->cantidad = $ecommerceLine->quantity;
-                    }
+                    $linea->cantidad = $ecommerceLine->quantity;
                     $linea->pvpunitario = $ecommerceLine->price;
                     $linea->pvpsindto = $ecommerceLine->price;
                     $linea->pvptotal = $ecommerceLine->subtotal;
@@ -467,25 +413,11 @@ class Presupuesto extends Controller
                     continue;
                 }
 
-                $measurementValue = $item->measurement_value;
-                $pricingMode = null;
-                if ($measurementValue !== null && $measurementValue > 0) {
-                    $mConfig = new EcommerceProductMeasurement();
-                    $mWhere = [new \FacturaScripts\Core\Where('product_referencia', $item->product_referencia)];
-                    if ($mConfig->loadWhere($mWhere) && $mConfig->measurement_enabled) {
-                        $pricingMode = $mConfig->pricing_mode;
-                    }
-                }
-
                 $linea = $presupuesto->getNewLine();
                 $linea->referencia = $item->product_referencia;
                 $linea->descripcion = $info->name;
                 $linea->pvpunitario = $info->price;
-                if ($pricingMode === 'per_measurement' && $measurementValue > 0) {
-                    $linea->cantidad = $measurementValue;
-                } else {
-                    $linea->cantidad = $item->quantity;
-                }
+                $linea->cantidad = $item->quantity;
                 $lines[] = $linea;
             }
 
@@ -521,36 +453,14 @@ class Presupuesto extends Controller
             $product = new Producto();
             $productWhere = [new \FacturaScripts\Core\Where('referencia', $item->product_referencia)];
             if ($product->loadWhere($productWhere)) {
-                $measurementValue = $item->measurement_value;
-                $pricingMode = null;
-                if ($measurementValue !== null && $measurementValue > 0) {
-                    $mConfig = new EcommerceProductMeasurement();
-                    $mWhere = [new \FacturaScripts\Core\Where('product_referencia', $item->product_referencia)];
-                    if ($mConfig->loadWhere($mWhere) && $mConfig->measurement_enabled) {
-                        $pricingMode = $mConfig->pricing_mode;
-                    }
-                }
-
-                if ($pricingMode === 'per_measurement' && $measurementValue > 0) {
-                    // Stripe requires integer quantity; fold measurement into the unit_amount
-                    $lineItems[] = [
-                        'price_data' => [
-                            'currency' => 'eur',
-                            'product_data' => ['name' => $product->descripcion],
-                            'unit_amount' => (int) round($product->precio * $measurementValue * 100),
-                        ],
-                        'quantity' => 1,
-                    ];
-                } else {
-                    $lineItems[] = [
-                        'price_data' => [
-                            'currency' => 'eur',
-                            'product_data' => ['name' => $product->descripcion],
-                            'unit_amount' => (int) round($product->precio * 100),
-                        ],
-                        'quantity' => $item->quantity,
-                    ];
-                }
+                $lineItems[] = [
+                    'price_data' => [
+                        'currency' => 'eur',
+                        'product_data' => ['name' => $product->descripcion],
+                        'unit_amount' => (int) round($product->precio * 100),
+                    ],
+                    'quantity' => $item->quantity,
+                ];
             }
         }
 
@@ -625,47 +535,13 @@ class Presupuesto extends Controller
         foreach ($items as $item) {
             $info = $this->resolveProductInfoByRef($item->product_referencia);
             if ($info !== null) {
-                $unitPrice = $info->price;
-                $quantity = $item->quantity;
-                $measurementValue = $item->measurement_value;
-                $measurementUnit = $item->measurement_unit ?? '';
-                $pricingMode = null;
-
-                if ($measurementValue !== null && $measurementValue > 0) {
-                    $mConfig = new EcommerceProductMeasurement();
-                    $mWhere = [new \FacturaScripts\Core\Where('product_referencia', $item->product_referencia)];
-                    if ($mConfig->loadWhere($mWhere) && $mConfig->measurement_enabled) {
-                        $pricingMode = $mConfig->pricing_mode;
-                        $measurementUnit = $mConfig->unitLabel();
-                    }
-                }
-
-                if ($pricingMode === 'per_measurement' && $measurementValue > 0) {
-                    $subtotal = $unitPrice * $measurementValue;
-                } else {
-                    $subtotal = $unitPrice * $quantity;
-                }
-
-                $minValue = 0.0;
-                $stepValue = 0.01;
-                if ($pricingMode === 'per_measurement' && isset($mConfig) && $mConfig->measurement_enabled) {
-                    $minValue = (float) $mConfig->min_value;
-                    $stepValue = (float) $mConfig->step_value;
-                }
-
                 $this->cartItems[] = (object) [
                     'id' => $item->id,
                     'product_name' => $info->name,
-                    'product_price' => $unitPrice,
-                    'quantity' => $quantity,
-                    'measurement_value' => $measurementValue,
-                    'measurement_unit' => $measurementUnit,
-                    'pricing_mode' => $pricingMode,
-                    'subtotal' => $subtotal,
-                    'min_value' => $minValue,
-                    'step_value' => $stepValue,
+                    'product_price' => $info->price,
+                    'quantity' => $item->quantity,
                 ];
-                $this->cartTotal += $subtotal;
+                $this->cartTotal += $info->price * $item->quantity;
             }
         }
     }

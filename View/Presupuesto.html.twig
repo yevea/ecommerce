@@ -35,45 +35,10 @@
                     <tbody>
                         {% for item in fsc.cartItems %}
                         <tr>
-                            <td>
-                                {{ item.product_name }}
-                                {% if item.measurement_value is not null and item.measurement_value > 0 %}
-                                <br><small class="text-muted">
-                                    {{ item.measurement_value | number_format(2, ',', '.') }} {{ item.measurement_unit }}
-                                    {% if item.pricing_mode == 'quantity_based' %}
-                                    &rarr; {{ item.quantity }} {{ trans('units') }}
-                                    {% endif %}
-                                </small>
-                                {% endif %}
-                            </td>
+                            <td>{{ item.product_name }}</td>
                             <td class="text-center">{{ fsc.formatMoney(item.product_price) }}</td>
                             <td class="text-center">
-                                <span class="print-only">
-                                    {% if item.measurement_value is not null and item.measurement_value > 0 and item.pricing_mode == 'per_measurement' %}
-                                        {{ item.measurement_value | number_format(2, ',', '.') }} {{ item.measurement_unit }}
-                                    {% else %}
-                                        {{ item.quantity }}
-                                    {% endif %}
-                                </span>
-                                {% if item.measurement_value is not null and item.measurement_value > 0 and item.pricing_mode == 'per_measurement' %}
-                                {# Per-measurement items: allow updating the measurement value #}
-                                <form method="post" action="{{ asset('Presupuesto') }}" class="d-inline no-print">
-                                    <input type="hidden" name="action" value="update-quantity">
-                                    <input type="hidden" name="cart_item_id" value="{{ item.id }}">
-                                    <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
-                                    <div class="input-group input-group-sm">
-                                        <input type="number" name="measurement_value"
-                                            value="{{ item.measurement_value }}"
-                                            min="{{ item.min_value > 0 ? item.min_value : item.step_value }}"
-                                            step="{{ item.step_value }}"
-                                            class="form-control text-center" style="max-width:90px;">
-                                        <span class="input-group-text">{{ item.measurement_unit }}</span>
-                                        <button type="submit" class="btn btn-outline-primary btn-sm">
-                                            <i class="fa-solid fa-sync"></i>
-                                        </button>
-                                    </div>
-                                </form>
-                                {% else %}
+                                <span class="print-only">{{ item.quantity }}</span>
                                 <form method="post" action="{{ asset('Presupuesto') }}" class="d-inline no-print">
                                     <input type="hidden" name="action" value="update-quantity">
                                     <input type="hidden" name="cart_item_id" value="{{ item.id }}">
@@ -85,9 +50,8 @@
                                         </button>
                                     </div>
                                 </form>
-                                {% endif %}
                             </td>
-                            <td class="text-end">{{ fsc.formatMoney(item.subtotal) }}</td>
+                            <td class="text-end">{{ fsc.formatMoney(item.product_price * item.quantity) }}</td>
                             <td class="text-center no-print">
                                 <form method="post" action="{{ asset('Presupuesto') }}" class="d-inline">
                                     <input type="hidden" name="action" value="remove-item">
