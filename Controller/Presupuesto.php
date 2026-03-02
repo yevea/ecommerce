@@ -450,14 +450,13 @@ class Presupuesto extends Controller
 
         $lineItems = [];
         foreach ($items as $item) {
-            $product = new Producto();
-            $productWhere = [new \FacturaScripts\Core\Where('referencia', $item->product_referencia)];
-            if ($product->loadWhere($productWhere)) {
+            $info = $this->resolveProductInfoByRef($item->product_referencia);
+            if ($info !== null) {
                 $lineItems[] = [
                     'price_data' => [
                         'currency' => 'eur',
-                        'product_data' => ['name' => $product->descripcion],
-                        'unit_amount' => (int) round($product->precio * 100),
+                        'product_data' => ['name' => $info->name],
+                        'unit_amount' => (int) round($info->price * 100),
                     ],
                     'quantity' => $item->quantity,
                 ];
