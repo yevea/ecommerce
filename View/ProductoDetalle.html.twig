@@ -336,13 +336,8 @@ function scrollCarouselTo(index) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    if (document.querySelector('.attr-selector')) {
-        updateVariantFromAttributes();
-    } else if (document.getElementById('variant-selector')) {
-        var sel = document.getElementById('variant-selector');
-        updateVariant(sel);
-    }
-});
+// On page load all images are shown (server-side rendering already initialises
+// price, stock, title and referencia correctly for the default variant).
+// Images are filtered only when the user explicitly selects a variant.
 </script>
 {% endblock %}
