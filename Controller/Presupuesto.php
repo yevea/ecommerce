@@ -24,6 +24,12 @@ class Presupuesto extends Controller
     /** @var float */
     public $cartTotal = 0;
 
+    /** @var float */
+    public $cartNeto = 0;
+
+    /** @var float */
+    public $cartImpuestos = 0;
+
     /** @var bool */
     public $orderSuccess = false;
 
@@ -286,7 +292,7 @@ class Presupuesto extends Controller
             $pedido->codpostal = $pendingOrder['customer_zip'] ?? '';
             $pedido->ciudad = $pendingOrder['customer_city'] ?? '';
             $pedido->provincia = $pendingOrder['customer_province'] ?? '';
-            $pedido->codpais = $pendingOrder['customer_country'] ?? 'ES';
+            $pedido->codpais = $pendingOrder['customer_country'] ?: 'ES';
             $pedido->observaciones = $pendingOrder['notes'] ?? '';
             $pedido->fecha = Tools::date();
             $pedido->hora = Tools::hour();
@@ -343,7 +349,7 @@ class Presupuesto extends Controller
         $cliente->codpostal = $pendingOrder['customer_zip'] ?? '';
         $cliente->ciudad = $pendingOrder['customer_city'] ?? '';
         $cliente->provincia = $pendingOrder['customer_province'] ?? '';
-        $cliente->codpais = $pendingOrder['customer_country'] ?? 'ES';
+        $cliente->codpais = $pendingOrder['customer_country'] ?: 'ES';
 
         if ($cliente->save()) {
             return $cliente;
@@ -528,6 +534,8 @@ class Presupuesto extends Controller
         $sessionId = $this->getSessionId();
         $this->cartItems = [];
         $this->cartTotal = 0;
+        $this->cartNeto = 0;
+        $this->cartImpuestos = 0;
 
         $cartItem = new EcommerceCartItem();
         $where = [new \FacturaScripts\Core\Where('session_id', $sessionId)];
@@ -536,16 +544,29 @@ class Presupuesto extends Controller
         foreach ($items as $item) {
             $info = $this->resolveProductInfoByRef($item->product_referencia);
             if ($info !== null) {
-                $priceWithTax = $info->price * (1 + $info->tax_rate / 100);
+                $netPrice = $info->price;
+                $taxRate = $info->tax_rate;
+                $neto = $netPrice * $item->quantity;
+                $taxAmount = round($neto * $taxRate / 100, 2);
+                $subtotal = $neto + $taxAmount;
                 $this->cartItems[] = (object) [
                     'id' => $item->id,
+                    'referencia' => $info->referencia,
                     'product_name' => $info->name,
-                    'product_price' => $priceWithTax,
+                    'net_price' => $netPrice,
+                    'tax_rate' => $taxRate,
                     'quantity' => $item->quantity,
+                    'neto' => $neto,
+                    'tax_amount' => $taxAmount,
+                    'subtotal' => $subtotal,
+                    'product_price' => $netPrice * (1 + $taxRate / 100),
                 ];
-                $this->cartTotal += $priceWithTax * $item->quantity;
+                $this->cartNeto += $neto;
+                $this->cartTotal += $subtotal;
             }
         }
+
+        $this->cartImpuestos = round($this->cartTotal - $this->cartNeto, 2);
     }
 
     /**

@@ -25,9 +25,12 @@
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>{{ trans('product') }}</th>
-                            <th class="text-center">{{ trans('price') }}</th>
+                            <th>{{ trans('reference') }}</th>
+                            <th>{{ trans('description') }}</th>
                             <th class="text-center" style="width: 150px;">{{ trans('quantity') }}</th>
+                            <th class="text-end">{{ trans('price') }}</th>
+                            <th class="text-end">{{ trans('neto') }}</th>
+                            <th class="text-end">{{ trans('impuesto') }}</th>
                             <th class="text-end">{{ trans('subtotal') }}</th>
                             <th class="text-center no-print" style="width: 80px;"></th>
                         </tr>
@@ -35,8 +38,8 @@
                     <tbody>
                         {% for item in fsc.cartItems %}
                         <tr>
+                            <td>{{ item.referencia }}</td>
                             <td>{{ item.product_name }}</td>
-                            <td class="text-center">{{ fsc.formatMoney(item.product_price) }}</td>
                             <td class="text-center">
                                 <span class="print-only">{{ item.quantity }}</span>
                                 <form method="post" action="{{ asset('Presupuesto') }}" class="d-inline no-print">
@@ -51,7 +54,10 @@
                                     </div>
                                 </form>
                             </td>
-                            <td class="text-end">{{ fsc.formatMoney(item.product_price * item.quantity) }}</td>
+                            <td class="text-end">{{ fsc.formatMoney(item.net_price) }}</td>
+                            <td class="text-end">{{ fsc.formatMoney(item.neto) }}</td>
+                            <td class="text-end">{{ fsc.formatMoney(item.tax_amount) }}</td>
+                            <td class="text-end">{{ fsc.formatMoney(item.subtotal) }}</td>
                             <td class="text-center no-print">
                                 <form method="post" action="{{ asset('Presupuesto') }}" class="d-inline">
                                     <input type="hidden" name="action" value="remove-item">
@@ -66,9 +72,19 @@
                         {% endfor %}
                     </tbody>
                     <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-end">{{ trans('neto') }}:</td>
+                            <td class="text-end" colspan="3">{{ fsc.formatMoney(fsc.cartNeto) }}</td>
+                            <td class="no-print"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end">{{ trans('impuestos') }}:</td>
+                            <td class="text-end" colspan="3">{{ fsc.formatMoney(fsc.cartImpuestos) }}</td>
+                            <td class="no-print"></td>
+                        </tr>
                         <tr class="table-active">
-                            <td colspan="3" class="text-end fw-bold">{{ trans('total') }}:</td>
-                            <td class="text-end fw-bold">{{ fsc.formatMoney(fsc.cartTotal) }}</td>
+                            <td colspan="4" class="text-end fw-bold">{{ trans('total') }}:</td>
+                            <td class="text-end fw-bold" colspan="3">{{ fsc.formatMoney(fsc.cartTotal) }}</td>
                             <td class="no-print"></td>
                         </tr>
                     </tfoot>
