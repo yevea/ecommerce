@@ -61,11 +61,14 @@
                 <span id="variant-price" class="mb-0">
                     {{ fsc.formatMoney(currentPrice) }}
                     {% if fsc.familyType == 'tableros' %}
-                    <small class="text-muted">/cm²</small>
+                    <small class="text-muted">/m²</small>
                     {% endif %}
                 </span>
                 {% if fsc.familyType == 'artesania' and fsc.product.isSold %}
                 <span id="variant-stock-badge" class="badge bg-warning text-dark fs-6">{{ trans('sold') }}</span>
+                {% elseif fsc.familyType == 'tableros' %}
+                {# Tableros: stock is not controlled, no badge shown #}
+                <span id="variant-stock-badge"></span>
                 {% elseif currentStock > 0 %}
                 <span id="variant-stock-badge" class="badge bg-success fs-6">{{ trans('in-stock') }}</span>
                 {% else %}
@@ -146,7 +149,7 @@
 
             {# === TABLEROS: custom dimension input === #}
             {% elseif fsc.familyType == 'tableros' %}
-            {% set showForm = fsc.productVariants is not empty or fsc.product.stock > 0 %}
+            {% set showForm = true %}{# Tableros: stock not controlled, always show form #}
             {% if showForm %}
             <form method="post" action="{{ asset('ProductoDetalle') }}?ref={{ fsc.product.referencia }}" id="tableros-form">
                 <input type="hidden" name="action" value="add-to-cart">
@@ -184,12 +187,11 @@
                 </div>
 
                 <div class="mb-3" id="tableros-calc" style="display:none;">
-                    <p class="mb-1"><strong>{{ trans('area') }}:</strong> <span id="tableros-area">0</span> cm²</p>
+                    <p class="mb-1"><strong>{{ trans('area') }}:</strong> <span id="tableros-area">0</span> m²</p>
                     <p class="mb-1"><strong>{{ trans('calculated-price') }}:</strong> <span id="tableros-total-price">0,00 €</span></p>
                 </div>
 
-                <button type="submit" id="add-to-cart-btn" class="btn btn-primary btn-lg"
-                    {% if currentStock <= 0 %}disabled{% endif %}>
+                <button type="submit" id="add-to-cart-btn" class="btn btn-primary btn-lg">
                     <i class="fa-solid fa-cart-plus"></i> {{ trans('add-to-presupuesto') }}
                 </button>
             </form>
@@ -390,13 +392,17 @@ function updateVariantFromAttributes() {
         var priceEl = document.getElementById('variant-price');
         if (priceEl) {
             priceEl.textContent = formatMoney(parseFloat(match.price));
-            if (familyType === 'tableros') priceEl.innerHTML += ' <small class="text-muted">/cm²</small>';
+            if (familyType === 'tableros') priceEl.innerHTML += ' <small class="text-muted">/m²</small>';
         }
 
         var inStock = parseFloat(match.stock) > 0;
         var badge = document.getElementById('variant-stock-badge');
         if (badge) {
-            if (familyType === 'artesania' && !inStock) {
+            if (familyType === 'tableros') {
+                // Tableros: stock not controlled, no badge
+                badge.className = '';
+                badge.textContent = '';
+            } else if (familyType === 'artesania' && !inStock) {
                 badge.className = 'badge bg-warning text-dark fs-6';
                 badge.textContent = soldLabel;
             } else {
@@ -407,7 +413,9 @@ function updateVariantFromAttributes() {
 
         var addBtn = document.getElementById('add-to-cart-btn');
         if (addBtn) {
-            if (familyType === 'artesania' && !inStock) {
+            if (familyType === 'tableros') {
+                addBtn.disabled = false;
+            } else if (familyType === 'artesania' && !inStock) {
                 addBtn.disabled = true;
             } else {
                 addBtn.disabled = !inStock;
@@ -435,14 +443,18 @@ function updateVariant(select) {
     var priceEl = document.getElementById('variant-price');
     if (priceEl) {
         priceEl.textContent = formatMoney(price);
-        if (familyType === 'tableros') priceEl.innerHTML += ' <small class="text-muted">/cm²</small>';
+        if (familyType === 'tableros') priceEl.innerHTML += ' <small class="text-muted">/m²</small>';
     }
 
     var stock = parseFloat(option.dataset.stock);
     var inStock = stock > 0;
     var badge = document.getElementById('variant-stock-badge');
     if (badge) {
-        if (familyType === 'artesania' && !inStock) {
+        if (familyType === 'tableros') {
+            // Tableros: stock not controlled, no badge
+            badge.className = '';
+            badge.textContent = '';
+        } else if (familyType === 'artesania' && !inStock) {
             badge.className = 'badge bg-warning text-dark fs-6';
             badge.textContent = soldLabel;
         } else {
@@ -453,7 +465,9 @@ function updateVariant(select) {
 
     var addBtn = document.getElementById('add-to-cart-btn');
     if (addBtn) {
-        if (familyType === 'artesania' && !inStock) {
+        if (familyType === 'tableros') {
+            addBtn.disabled = false;
+        } else if (familyType === 'artesania' && !inStock) {
             addBtn.disabled = true;
         } else {
             addBtn.disabled = !inStock;
@@ -493,28 +507,29 @@ function calculateTablerosPrice() {
     var ancho = parseFloat(anchoInput.value) || 0;
 
     if (largo > 0 && ancho > 0) {
-        var area = largo * ancho;
-        // Get current variant price
-        var pricePerCm2 = 0;
+        var areaCm2 = largo * ancho;
+        var areaM2 = areaCm2 / 10000;
+        // Get current variant price (€/m²)
+        var pricePerM2 = 0;
         var refInput = document.getElementById('add-referencia');
         if (refInput) {
             for (var i = 0; i < variantData.length; i++) {
                 if (variantData[i].referencia === refInput.value) {
-                    pricePerCm2 = parseFloat(variantData[i].price);
+                    pricePerM2 = parseFloat(variantData[i].price);
                     break;
                 }
             }
         }
         // Fallback to product price if no variant found
-        if (pricePerCm2 === 0) {
+        if (pricePerM2 === 0) {
             var priceEl = document.getElementById('variant-price');
             if (priceEl) {
                 var priceText = priceEl.textContent.replace(/[^\d,.-]/g, '').replace(',', '.');
-                pricePerCm2 = parseFloat(priceText) || 0;
+                pricePerM2 = parseFloat(priceText) || 0;
             }
         }
-        var totalPrice = pricePerCm2 * area;
-        if (areaSpan) areaSpan.textContent = area.toFixed(2);
+        var totalPrice = pricePerM2 * areaM2;
+        if (areaSpan) areaSpan.textContent = areaM2.toFixed(4);
         if (totalSpan) totalSpan.textContent = formatMoney(totalPrice);
         if (calcDiv) calcDiv.style.display = '';
     } else {

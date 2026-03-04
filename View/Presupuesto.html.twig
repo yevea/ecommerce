@@ -45,7 +45,7 @@
                                 <br><small class="text-muted">
                                     {{ trans('largo') }}: {{ item.largo_cm }} cm ×
                                     {{ trans('ancho') }}: {{ item.ancho_cm }} cm
-                                    ({{ (item.largo_cm * item.ancho_cm) | number_format(2, ',', '.') }} cm²)
+                                    ({{ (item.largo_cm * item.ancho_cm / 10000) | number_format(4, ',', '.') }} m²)
                                 </small>
                                 {% endif %}
                             </td>

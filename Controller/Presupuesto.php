@@ -728,13 +728,13 @@ class Presupuesto extends Controller
     }
 
     /**
-     * Calculates the area for Tableros items.
+     * Calculates the area in m² for Tableros items.
      * Returns null if this is not a Tableros item (no valid dimensions).
      */
     private function calculateTablerosArea(?float $largoCm, ?float $anchoCm): ?float
     {
         if ($largoCm !== null && $anchoCm !== null && $largoCm > 0 && $anchoCm > 0) {
-            return $largoCm * $anchoCm;
+            return $largoCm * $anchoCm / 10000;
         }
         return null;
     }
