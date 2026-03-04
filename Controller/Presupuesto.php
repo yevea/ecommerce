@@ -613,7 +613,7 @@ class Presupuesto extends Controller
                 $netPrice = $info->price;
                 $taxRate = $info->tax_rate;
 
-                // For Tableros: price is per cm², calculate based on area
+                // For Tableros: price is per m², calculate based on area
                 $largoCm = $item->largo_cm ?? null;
                 $anchoCm = $item->ancho_cm ?? null;
                 $isTableros = false;
@@ -699,6 +699,12 @@ class Presupuesto extends Controller
 
     private function getTaxRate(string $codimpuesto): float
     {
+        // Fall back to the company default tax when the product has no codimpuesto,
+        // matching the behaviour of Calculator::calculate() used in printPresupuesto().
+        if (empty($codimpuesto)) {
+            $codimpuesto = Tools::settings('default', 'codimpuesto', '');
+        }
+
         if (empty($codimpuesto)) {
             return 0.0;
         }
