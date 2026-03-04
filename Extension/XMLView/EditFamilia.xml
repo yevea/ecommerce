@@ -5,7 +5,7 @@
             <column name="public" order="110">
                 <widget type="checkbox" fieldname="publica"/>
             </column>
-            <column name="family-type" order="115">
+            <column name="family-type" numcolumns="12" order="115">
                 <widget type="select" fieldname="tipofamilia">
                     <values title="mercancia">mercancia</values>
                     <values title="artesania">artesania</values>
@@ -13,6 +13,8 @@
                     <values title="tableros">tableros</values>
                 </widget>
             </column>
+        </group>
+        <group name="dimension-limits" id="dimension-limits" numcolumns="12" title="dimension-limits" order="200">
             <column name="largo-min" order="120">
                 <widget type="number" fieldname="largo_min" decimal="2" min="0"/>
             </column>
