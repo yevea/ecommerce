@@ -90,11 +90,13 @@
                             <span class="mb-0">
                                 {{ fsc.formatMoney(product.price) }}
                                 {% if product.familyType is defined and product.familyType == 'tableros' %}
-                                <small class="text-muted">/cm²</small>
+                                <small class="text-muted">/m²</small>
                                 {% endif %}
                             </span>
                             {% if product.isSold is defined and product.isSold %}
                             <span class="badge bg-warning text-dark">{{ trans('sold') }}</span>
+                            {% elseif product.familyType is defined and product.familyType == 'tableros' %}
+                            {# Tableros: stock not controlled, no badge shown #}
                             {% elseif product.stock > 0 %}
                             <span class="badge bg-success">{{ trans('in-stock') }}</span>
                             {% else %}
