@@ -27,8 +27,9 @@ use FacturaScripts\Dinamic\Model\AttachedFileRelation;
 use FacturaScripts\Dinamic\Model\ProductoImagen;
 
 /**
- * Extension for EditProducto controller to fix observations on product images
- * and auto-set nostock for Tableros family products.
+ * Extension for EditProducto controller to fix observations on product images,
+ * auto-set nostock for Tableros family products, and hide dimension fields
+ * (largo, ancho, espesor) for non-tablones families.
  *
  * Fixes two issues:
  * 1. When images are uploaded via the Imágenes tab, their AttachedFileRelation records
@@ -38,6 +39,30 @@ use FacturaScripts\Dinamic\Model\ProductoImagen;
  */
 class EditProducto
 {
+    protected function loadData(): Closure
+    {
+        return function ($viewName, $view) {
+            if ($viewName !== 'EditVariante') {
+                return;
+            }
+
+            $codfamilia = $this->getViewModelValue('EditProducto', 'codfamilia');
+            if (empty($codfamilia)) {
+                foreach (['largo', 'ancho', 'espesor'] as $col) {
+                    $view->disableColumn($col);
+                }
+                return;
+            }
+
+            $familia = new Familia();
+            if (!$familia->loadFromCode($codfamilia) || ($familia->tipofamilia ?? '') !== 'tablones') {
+                foreach (['largo', 'ancho', 'espesor'] as $col) {
+                    $view->disableColumn($col);
+                }
+            }
+        };
+    }
+
     protected function execAfterAction(): Closure
     {
         return function ($action) {
