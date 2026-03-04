@@ -1,6 +1,7 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
+use FacturaScripts\Core\Model\Familia;
 use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
@@ -225,7 +226,16 @@ class Presupuesto extends Controller
             $info = $this->resolveProductInfoByRef($item->product_referencia);
             if ($info !== null) {
                 $priceWithTax = $info->price * (1 + $info->tax_rate / 100);
-                $subtotal = $priceWithTax * $item->quantity;
+
+                // For Tableros: area-based pricing
+                $largoCm = $item->largo_cm ?? null;
+                $anchoCm = $item->ancho_cm ?? null;
+                if ($largoCm !== null && $anchoCm !== null && $largoCm > 0 && $anchoCm > 0) {
+                    $area = $largoCm * $anchoCm;
+                    $subtotal = $priceWithTax * $area * $item->quantity;
+                } else {
+                    $subtotal = $priceWithTax * $item->quantity;
+                }
                 $total += $subtotal;
 
                 $line = new EcommerceOrderLine();
@@ -234,6 +244,8 @@ class Presupuesto extends Controller
                 $line->quantity = $item->quantity;
                 $line->price = $priceWithTax;
                 $line->subtotal = $subtotal;
+                $line->largo_cm = $largoCm;
+                $line->ancho_cm = $anchoCm;
                 $orderLines[] = $line;
             }
         }
@@ -476,14 +488,33 @@ class Presupuesto extends Controller
             $info = $this->resolveProductInfoByRef($item->product_referencia);
             if ($info !== null) {
                 $unitAmountWithTax = $info->price * (1 + $info->tax_rate / 100);
-                $lineItems[] = [
-                    'price_data' => [
-                        'currency' => 'eur',
-                        'product_data' => ['name' => $info->name],
-                        'unit_amount' => (int) round($unitAmountWithTax * 100),
-                    ],
-                    'quantity' => $item->quantity,
-                ];
+
+                // For Tableros: area-based pricing
+                $largoCm = $item->largo_cm ?? null;
+                $anchoCm = $item->ancho_cm ?? null;
+                $itemName = $info->name;
+                if ($largoCm !== null && $anchoCm !== null && $largoCm > 0 && $anchoCm > 0) {
+                    $area = $largoCm * $anchoCm;
+                    $totalAmount = (int) round($unitAmountWithTax * $area * 100);
+                    $itemName .= ' (' . $largoCm . 'x' . $anchoCm . ' cm)';
+                    $lineItems[] = [
+                        'price_data' => [
+                            'currency' => 'eur',
+                            'product_data' => ['name' => $itemName],
+                            'unit_amount' => $totalAmount,
+                        ],
+                        'quantity' => $item->quantity,
+                    ];
+                } else {
+                    $lineItems[] = [
+                        'price_data' => [
+                            'currency' => 'eur',
+                            'product_data' => ['name' => $itemName],
+                            'unit_amount' => (int) round($unitAmountWithTax * 100),
+                        ],
+                        'quantity' => $item->quantity,
+                    ];
+                }
             }
         }
 
@@ -562,7 +593,19 @@ class Presupuesto extends Controller
             if ($info !== null) {
                 $netPrice = $info->price;
                 $taxRate = $info->tax_rate;
-                $neto = $netPrice * $item->quantity;
+
+                // For Tableros: price is per cm², calculate based on area
+                $largoCm = $item->largo_cm ?? null;
+                $anchoCm = $item->ancho_cm ?? null;
+                $isTableros = false;
+                if ($largoCm !== null && $anchoCm !== null && $largoCm > 0 && $anchoCm > 0) {
+                    $area = $largoCm * $anchoCm;
+                    $neto = $netPrice * $area * $item->quantity;
+                    $isTableros = true;
+                } else {
+                    $neto = $netPrice * $item->quantity;
+                }
+
                 $taxAmount = round($neto * $taxRate / 100, 2);
                 $subtotal = $neto + $taxAmount;
                 $this->cartItems[] = (object) [
@@ -576,6 +619,9 @@ class Presupuesto extends Controller
                     'tax_amount' => $taxAmount,
                     'subtotal' => $subtotal,
                     'product_price' => $netPrice * (1 + $taxRate / 100),
+                    'largo_cm' => $largoCm,
+                    'ancho_cm' => $anchoCm,
+                    'isTableros' => $isTableros,
                 ];
                 $this->cartNeto += $neto;
                 $this->cartTotal += $subtotal;

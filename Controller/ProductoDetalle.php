@@ -1,6 +1,7 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
+use FacturaScripts\Core\Model\Familia;
 use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Tools;
 
@@ -23,6 +24,12 @@ class ProductoDetalle extends StoreFront
 
     /** @var object|null First/default variant data for initial display */
     public $defaultVariant = null;
+
+    /** @var string Family type of this product */
+    public $familyType = 'mercancia';
+
+    /** @var object|null Family data including dimension limits for tableros */
+    public $familyData = null;
 
     public function getPageData(): array
     {
@@ -53,6 +60,14 @@ class ProductoDetalle extends StoreFront
             return;
         }
 
+        // Load family type
+        $this->loadFamilyType($p);
+
+        $isSold = false;
+        if ($this->familyType === 'artesania' && $p->stockfis <= 0) {
+            $isSold = true;
+        }
+
         $this->product = (object) [
             'referencia' => $p->referencia,
             'name' => $p->descripcion,
@@ -60,10 +75,36 @@ class ProductoDetalle extends StoreFront
             'price' => $p->precio,
             'stock' => $p->stockfis,
             'image' => $p->imagen ?? null,
+            'familyType' => $this->familyType,
+            'isSold' => $isSold,
         ];
 
         $this->loadProductImages($p);
         $this->loadProductVariants($p);
+    }
+
+    private function loadFamilyType(Producto $p): void
+    {
+        $this->familyType = 'mercancia';
+        $this->familyData = null;
+
+        if (empty($p->codfamilia)) {
+            return;
+        }
+
+        $familia = new Familia();
+        if ($familia->loadFromCode($p->codfamilia)) {
+            $this->familyType = $familia->tipofamilia ?? 'mercancia';
+            $this->familyData = (object) [
+                'codfamilia' => $familia->codfamilia,
+                'descripcion' => $familia->descripcion,
+                'tipofamilia' => $this->familyType,
+                'largo_min' => (float) ($familia->largo_min ?? 0),
+                'largo_max' => (float) ($familia->largo_max ?? 0),
+                'ancho_min' => (float) ($familia->ancho_min ?? 0),
+                'ancho_max' => (float) ($familia->ancho_max ?? 0),
+            ];
+        }
     }
 
     private function loadProductImages(Producto $p): void
@@ -133,8 +174,27 @@ class ProductoDetalle extends StoreFront
         $where = [new \FacturaScripts\Core\Where('idproducto', $p->idproducto)];
         $variants = $variante->all($where, ['referencia' => 'ASC']);
 
-        // Single-variant product: no selector needed
-        if (count($variants) <= 1) {
+        // For Tableros, always build variant list (even single variant) for thickness selection
+        $isTablones = $this->familyType === 'tablones';
+        $isTableros = $this->familyType === 'tableros';
+
+        // Single-variant product: no selector needed (unless Tableros/Tablones)
+        if (count($variants) <= 1 && !$isTableros) {
+            // For single-variant Tablones, still expose dimensions
+            if ($isTablones && count($variants) === 1) {
+                $v = $variants[0];
+                $this->defaultVariant = (object) [
+                    'referencia' => $v->referencia,
+                    'idvariante' => $v->idvariante ?? null,
+                    'description' => '',
+                    'price' => $v->precio,
+                    'stock' => $v->stockfis,
+                    'attributes' => [],
+                    'largo' => $v->largo ?? null,
+                    'ancho' => $v->ancho ?? null,
+                    'espesor' => $v->espesor ?? null,
+                ];
+            }
             return;
         }
 
@@ -191,6 +251,9 @@ class ProductoDetalle extends StoreFront
                 'price' => $v->precio,
                 'stock' => $v->stockfis,
                 'attributes' => $attrMap,
+                'largo' => $v->largo ?? null,
+                'ancho' => $v->ancho ?? null,
+                'espesor' => $v->espesor ?? null,
             ];
 
             $this->productVariants[] = $variantObj;
