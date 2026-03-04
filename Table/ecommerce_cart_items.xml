@@ -48,10 +48,10 @@
         <name>pk_ecommerce_cart_items</name>
         <type>PRIMARY KEY (id)</type>
     </constraint>
-    <constraint>
+    <index>
         <name>idx_ecommerce_cart_items_session</name>
-        <type>INDEX (session_id)</type>
-    </constraint>
+        <columns>session_id</columns>
+    </index>
     <constraint>
         <name>fk_ecommerce_cart_items_product</name>
         <type>FOREIGN KEY (product_referencia) REFERENCES productos (referencia) ON DELETE CASCADE ON UPDATE CASCADE</type>
