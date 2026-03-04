@@ -29,6 +29,12 @@ class EcommerceOrderLine extends ModelClass
     /** @var float */
     public $subtotal;
 
+    /** @var float|null */
+    public $largo_cm;
+
+    /** @var float|null */
+    public $ancho_cm;
+
     public static function primaryColumn(): string
     {
         return 'id';
