@@ -356,9 +356,9 @@ function updateDimensionsTable(variant) {
     var largoEl = document.getElementById('dim-largo');
     var anchoEl = document.getElementById('dim-ancho');
     var espesorEl = document.getElementById('dim-espesor');
-    if (largoEl) largoEl.textContent = variant.largo !== null ? variant.largo : '';
-    if (anchoEl) anchoEl.textContent = variant.ancho !== null ? variant.ancho : '';
-    if (espesorEl) espesorEl.textContent = variant.espesor !== null ? variant.espesor : '';
+    if (largoEl) largoEl.textContent = (variant.largo !== null && variant.largo !== '') ? variant.largo : '';
+    if (anchoEl) anchoEl.textContent = (variant.ancho !== null && variant.ancho !== '') ? variant.ancho : '';
+    if (espesorEl) espesorEl.textContent = (variant.espesor !== null && variant.espesor !== '') ? variant.espesor : '';
 }
 
 function updateVariantFromAttributes() {
@@ -469,9 +469,9 @@ function updateVariant(select) {
     // Update Tablones dimensions from data attributes
     if (familyType === 'tablones') {
         var variant = {
-            largo: option.dataset.largo || null,
-            ancho: option.dataset.ancho || null,
-            espesor: option.dataset.espesor || null
+            largo: option.dataset.largo !== '' ? option.dataset.largo : null,
+            ancho: option.dataset.ancho !== '' ? option.dataset.ancho : null,
+            espesor: option.dataset.espesor !== '' ? option.dataset.espesor : null
         };
         updateDimensionsTable(variant);
     }

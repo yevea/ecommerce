@@ -304,7 +304,6 @@ class StoreFront extends Controller
 
         $this->products = [];
         $imgModelClass = '\FacturaScripts\Core\Model\ProductoImagen';
-        $varianteClass = '\FacturaScripts\Core\Model\Variante';
         foreach ($nativeProducts as $p) {
             $imageUrl = null;
             if (class_exists($imgModelClass)) {

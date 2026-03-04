@@ -1,7 +1,6 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
-use FacturaScripts\Core\Model\Familia;
 use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
@@ -230,8 +229,8 @@ class Presupuesto extends Controller
                 // For Tableros: area-based pricing
                 $largoCm = $item->largo_cm ?? null;
                 $anchoCm = $item->ancho_cm ?? null;
-                if ($largoCm !== null && $anchoCm !== null && $largoCm > 0 && $anchoCm > 0) {
-                    $area = $largoCm * $anchoCm;
+                $area = $this->calculateTablerosArea($largoCm, $anchoCm);
+                if ($area !== null) {
                     $subtotal = $priceWithTax * $area * $item->quantity;
                 } else {
                     $subtotal = $priceWithTax * $item->quantity;
@@ -335,6 +334,16 @@ class Presupuesto extends Controller
                 $linea->referencia = $ecommerceLine->product_referencia;
                 $linea->descripcion = $ecommerceLine->product_name;
                 $linea->pvpunitario = $info->price;
+
+                // For Tableros: adjust price by area
+                $largoCm = $ecommerceLine->largo_cm ?? null;
+                $anchoCm = $ecommerceLine->ancho_cm ?? null;
+                $area = $this->calculateTablerosArea($largoCm, $anchoCm);
+                if ($area !== null) {
+                    $linea->pvpunitario = $info->price * $area;
+                    $linea->descripcion .= ' (' . $largoCm . 'x' . $anchoCm . ' cm)';
+                }
+
                 $linea->cantidad = $ecommerceLine->quantity;
                 $lines[] = $linea;
             }
@@ -452,6 +461,16 @@ class Presupuesto extends Controller
                 $linea->referencia = $item->product_referencia;
                 $linea->descripcion = $info->name;
                 $linea->pvpunitario = $info->price;
+
+                // For Tableros: adjust price by area
+                $largoCm = $item->largo_cm ?? null;
+                $anchoCm = $item->ancho_cm ?? null;
+                $area = $this->calculateTablerosArea($largoCm, $anchoCm);
+                if ($area !== null) {
+                    $linea->pvpunitario = $info->price * $area;
+                    $linea->descripcion .= ' (' . $largoCm . 'x' . $anchoCm . ' cm)';
+                }
+
                 $linea->cantidad = $item->quantity;
                 $lines[] = $linea;
             }
@@ -493,8 +512,8 @@ class Presupuesto extends Controller
                 $largoCm = $item->largo_cm ?? null;
                 $anchoCm = $item->ancho_cm ?? null;
                 $itemName = $info->name;
-                if ($largoCm !== null && $anchoCm !== null && $largoCm > 0 && $anchoCm > 0) {
-                    $area = $largoCm * $anchoCm;
+                $area = $this->calculateTablerosArea($largoCm, $anchoCm);
+                if ($area !== null) {
                     $totalAmount = (int) round($unitAmountWithTax * $area * 100);
                     $itemName .= ' (' . $largoCm . 'x' . $anchoCm . ' cm)';
                     $lineItems[] = [
@@ -598,8 +617,8 @@ class Presupuesto extends Controller
                 $largoCm = $item->largo_cm ?? null;
                 $anchoCm = $item->ancho_cm ?? null;
                 $isTableros = false;
-                if ($largoCm !== null && $anchoCm !== null && $largoCm > 0 && $anchoCm > 0) {
-                    $area = $largoCm * $anchoCm;
+                $area = $this->calculateTablerosArea($largoCm, $anchoCm);
+                if ($area !== null) {
                     $neto = $netPrice * $area * $item->quantity;
                     $isTableros = true;
                 } else {
@@ -706,5 +725,17 @@ class Presupuesto extends Controller
             session_start();
         }
         return session_id();
+    }
+
+    /**
+     * Calculates the area for Tableros items.
+     * Returns null if this is not a Tableros item (no valid dimensions).
+     */
+    private function calculateTablerosArea(?float $largoCm, ?float $anchoCm): ?float
+    {
+        if ($largoCm !== null && $anchoCm !== null && $largoCm > 0 && $anchoCm > 0) {
+            return $largoCm * $anchoCm;
+        }
+        return null;
     }
 }

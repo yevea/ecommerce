@@ -102,5 +102,6 @@
     "sold": "Vendido",
     "filter-dimensions": "Filtrar por dimensiones",
     "min": "Mín",
-    "max": "Máx"
+    "max": "Máx",
+    "invalid-dimensions": "Las dimensiones ingresadas no son válidas."
 }
