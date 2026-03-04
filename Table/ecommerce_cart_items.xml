@@ -34,6 +34,16 @@
         <type>integer</type>
         <null>YES</null>
     </column>
+    <column>
+        <name>largo_cm</name>
+        <type>double precision</type>
+        <null>YES</null>
+    </column>
+    <column>
+        <name>ancho_cm</name>
+        <type>double precision</type>
+        <null>YES</null>
+    </column>
     <constraint>
         <name>pk_ecommerce_cart_items</name>
         <type>PRIMARY KEY (id)</type>

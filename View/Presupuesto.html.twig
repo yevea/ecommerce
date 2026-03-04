@@ -39,7 +39,16 @@
                         {% for item in fsc.cartItems %}
                         <tr>
                             <td>{{ item.referencia }}</td>
-                            <td>{{ item.product_name }}</td>
+                            <td>
+                                {{ item.product_name }}
+                                {% if item.isTableros is defined and item.isTableros %}
+                                <br><small class="text-muted">
+                                    {{ trans('largo') }}: {{ item.largo_cm }} cm ×
+                                    {{ trans('ancho') }}: {{ item.ancho_cm }} cm
+                                    ({{ (item.largo_cm * item.ancho_cm) | number_format(2, ',', '.') }} cm²)
+                                </small>
+                                {% endif %}
+                            </td>
                             <td class="text-center">
                                 <span class="print-only">{{ item.quantity }}</span>
                                 <form method="post" action="{{ asset('Presupuesto') }}" class="d-inline no-print">

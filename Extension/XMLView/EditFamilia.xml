@@ -5,6 +5,26 @@
             <column name="public" order="110">
                 <widget type="checkbox" fieldname="publica"/>
             </column>
+            <column name="family-type" order="115">
+                <widget type="select" fieldname="tipofamilia">
+                    <values title="mercancia">mercancia</values>
+                    <values title="artesania">artesania</values>
+                    <values title="tablones">tablones</values>
+                    <values title="tableros">tableros</values>
+                </widget>
+            </column>
+            <column name="largo-min" order="120">
+                <widget type="number" fieldname="largo_min" decimal="2" min="0"/>
+            </column>
+            <column name="largo-max" order="121">
+                <widget type="number" fieldname="largo_max" decimal="2" min="0"/>
+            </column>
+            <column name="ancho-min" order="122">
+                <widget type="number" fieldname="ancho_min" decimal="2" min="0"/>
+            </column>
+            <column name="ancho-max" order="123">
+                <widget type="number" fieldname="ancho_max" decimal="2" min="0"/>
+            </column>
         </group>
     </columns>
 </view>

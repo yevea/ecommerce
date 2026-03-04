@@ -21,6 +21,12 @@ class EcommerceCartItem extends ModelClass
     /** @var int */
     public $quantity;
 
+    /** @var float|null */
+    public $largo_cm;
+
+    /** @var float|null */
+    public $ancho_cm;
+
     /** @var string */
     public $creation_date;
 

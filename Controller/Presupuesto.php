@@ -225,7 +225,16 @@ class Presupuesto extends Controller
             $info = $this->resolveProductInfoByRef($item->product_referencia);
             if ($info !== null) {
                 $priceWithTax = $info->price * (1 + $info->tax_rate / 100);
-                $subtotal = $priceWithTax * $item->quantity;
+
+                // For Tableros: area-based pricing
+                $largoCm = $item->largo_cm ?? null;
+                $anchoCm = $item->ancho_cm ?? null;
+                $area = $this->calculateTablerosArea($largoCm, $anchoCm);
+                if ($area !== null) {
+                    $subtotal = $priceWithTax * $area * $item->quantity;
+                } else {
+                    $subtotal = $priceWithTax * $item->quantity;
+                }
                 $total += $subtotal;
 
                 $line = new EcommerceOrderLine();
@@ -234,6 +243,8 @@ class Presupuesto extends Controller
                 $line->quantity = $item->quantity;
                 $line->price = $priceWithTax;
                 $line->subtotal = $subtotal;
+                $line->largo_cm = $largoCm;
+                $line->ancho_cm = $anchoCm;
                 $orderLines[] = $line;
             }
         }
@@ -323,6 +334,16 @@ class Presupuesto extends Controller
                 $linea->referencia = $ecommerceLine->product_referencia;
                 $linea->descripcion = $ecommerceLine->product_name;
                 $linea->pvpunitario = $info->price;
+
+                // For Tableros: adjust price by area
+                $largoCm = $ecommerceLine->largo_cm ?? null;
+                $anchoCm = $ecommerceLine->ancho_cm ?? null;
+                $area = $this->calculateTablerosArea($largoCm, $anchoCm);
+                if ($area !== null) {
+                    $linea->pvpunitario = $info->price * $area;
+                    $linea->descripcion .= ' (' . $largoCm . 'x' . $anchoCm . ' cm)';
+                }
+
                 $linea->cantidad = $ecommerceLine->quantity;
                 $lines[] = $linea;
             }
@@ -440,6 +461,16 @@ class Presupuesto extends Controller
                 $linea->referencia = $item->product_referencia;
                 $linea->descripcion = $info->name;
                 $linea->pvpunitario = $info->price;
+
+                // For Tableros: adjust price by area
+                $largoCm = $item->largo_cm ?? null;
+                $anchoCm = $item->ancho_cm ?? null;
+                $area = $this->calculateTablerosArea($largoCm, $anchoCm);
+                if ($area !== null) {
+                    $linea->pvpunitario = $info->price * $area;
+                    $linea->descripcion .= ' (' . $largoCm . 'x' . $anchoCm . ' cm)';
+                }
+
                 $linea->cantidad = $item->quantity;
                 $lines[] = $linea;
             }
@@ -476,14 +507,33 @@ class Presupuesto extends Controller
             $info = $this->resolveProductInfoByRef($item->product_referencia);
             if ($info !== null) {
                 $unitAmountWithTax = $info->price * (1 + $info->tax_rate / 100);
-                $lineItems[] = [
-                    'price_data' => [
-                        'currency' => 'eur',
-                        'product_data' => ['name' => $info->name],
-                        'unit_amount' => (int) round($unitAmountWithTax * 100),
-                    ],
-                    'quantity' => $item->quantity,
-                ];
+
+                // For Tableros: area-based pricing
+                $largoCm = $item->largo_cm ?? null;
+                $anchoCm = $item->ancho_cm ?? null;
+                $itemName = $info->name;
+                $area = $this->calculateTablerosArea($largoCm, $anchoCm);
+                if ($area !== null) {
+                    $totalAmount = (int) round($unitAmountWithTax * $area * 100);
+                    $itemName .= ' (' . $largoCm . 'x' . $anchoCm . ' cm)';
+                    $lineItems[] = [
+                        'price_data' => [
+                            'currency' => 'eur',
+                            'product_data' => ['name' => $itemName],
+                            'unit_amount' => $totalAmount,
+                        ],
+                        'quantity' => $item->quantity,
+                    ];
+                } else {
+                    $lineItems[] = [
+                        'price_data' => [
+                            'currency' => 'eur',
+                            'product_data' => ['name' => $itemName],
+                            'unit_amount' => (int) round($unitAmountWithTax * 100),
+                        ],
+                        'quantity' => $item->quantity,
+                    ];
+                }
             }
         }
 
@@ -562,7 +612,19 @@ class Presupuesto extends Controller
             if ($info !== null) {
                 $netPrice = $info->price;
                 $taxRate = $info->tax_rate;
-                $neto = $netPrice * $item->quantity;
+
+                // For Tableros: price is per cm², calculate based on area
+                $largoCm = $item->largo_cm ?? null;
+                $anchoCm = $item->ancho_cm ?? null;
+                $isTableros = false;
+                $area = $this->calculateTablerosArea($largoCm, $anchoCm);
+                if ($area !== null) {
+                    $neto = $netPrice * $area * $item->quantity;
+                    $isTableros = true;
+                } else {
+                    $neto = $netPrice * $item->quantity;
+                }
+
                 $taxAmount = round($neto * $taxRate / 100, 2);
                 $subtotal = $neto + $taxAmount;
                 $this->cartItems[] = (object) [
@@ -576,6 +638,9 @@ class Presupuesto extends Controller
                     'tax_amount' => $taxAmount,
                     'subtotal' => $subtotal,
                     'product_price' => $netPrice * (1 + $taxRate / 100),
+                    'largo_cm' => $largoCm,
+                    'ancho_cm' => $anchoCm,
+                    'isTableros' => $isTableros,
                 ];
                 $this->cartNeto += $neto;
                 $this->cartTotal += $subtotal;
@@ -660,5 +725,17 @@ class Presupuesto extends Controller
             session_start();
         }
         return session_id();
+    }
+
+    /**
+     * Calculates the area for Tableros items.
+     * Returns null if this is not a Tableros item (no valid dimensions).
+     */
+    private function calculateTablerosArea(?float $largoCm, ?float $anchoCm): ?float
+    {
+        if ($largoCm !== null && $anchoCm !== null && $largoCm > 0 && $anchoCm > 0) {
+            return $largoCm * $anchoCm;
+        }
+        return null;
     }
 }

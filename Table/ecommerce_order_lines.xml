@@ -34,6 +34,16 @@
         <type>double precision</type>
         <default>0</default>
     </column>
+    <column>
+        <name>largo_cm</name>
+        <type>double precision</type>
+        <null>YES</null>
+    </column>
+    <column>
+        <name>ancho_cm</name>
+        <type>double precision</type>
+        <null>YES</null>
+    </column>
     <constraint>
         <name>pk_ecommerce_order_lines</name>
         <type>PRIMARY KEY (id)</type>

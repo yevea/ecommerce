@@ -58,8 +58,15 @@
             {% set currentPrice = fsc.defaultVariant ? fsc.defaultVariant.price : fsc.product.price %}
             {% set currentStock = fsc.defaultVariant ? fsc.defaultVariant.stock : fsc.product.stock %}
             <div class="d-flex align-items-center gap-3 mb-3">
-                <span id="variant-price" class="mb-0">{{ fsc.formatMoney(currentPrice) }}</span>
-                {% if currentStock > 0 %}
+                <span id="variant-price" class="mb-0">
+                    {{ fsc.formatMoney(currentPrice) }}
+                    {% if fsc.familyType == 'tableros' %}
+                    <small class="text-muted">/cm²</small>
+                    {% endif %}
+                </span>
+                {% if fsc.familyType == 'artesania' and fsc.product.isSold %}
+                <span id="variant-stock-badge" class="badge bg-warning text-dark fs-6">{{ trans('sold') }}</span>
+                {% elseif currentStock > 0 %}
                 <span id="variant-stock-badge" class="badge bg-success fs-6">{{ trans('in-stock') }}</span>
                 {% else %}
                 <span id="variant-stock-badge" class="badge bg-danger fs-6">{{ trans('out-of-stock') }}</span>
@@ -70,6 +77,27 @@
             <div class="mb-4">
                 <h5>{{ trans('description') }}</h5>
                 <p class="text-muted">{{ fsc.product.description | nl2br }}</p>
+            </div>
+            {% endif %}
+
+            {# Tablones: Show variant dimensions (non-editable) #}
+            {% if fsc.familyType == 'tablones' %}
+            <div class="mb-3" id="tablones-dimensions">
+                <h6>{{ trans('dimensions') }}</h6>
+                {% set dimVariant = fsc.defaultVariant %}
+                {% if dimVariant %}
+                <table class="table table-sm table-bordered" style="max-width: 300px;" id="dimensions-table">
+                    {% if dimVariant.largo is not null %}
+                    <tr><td class="fw-semibold">{{ trans('largo') }}</td><td id="dim-largo">{{ dimVariant.largo }}</td></tr>
+                    {% endif %}
+                    {% if dimVariant.ancho is not null %}
+                    <tr><td class="fw-semibold">{{ trans('ancho') }}</td><td id="dim-ancho">{{ dimVariant.ancho }}</td></tr>
+                    {% endif %}
+                    {% if dimVariant.espesor is not null %}
+                    <tr><td class="fw-semibold">{{ trans('espesor') }}</td><td id="dim-espesor">{{ dimVariant.espesor }}</td></tr>
+                    {% endif %}
+                </table>
+                {% endif %}
             </div>
             {% endif %}
 
@@ -99,6 +127,9 @@
                     <option value="{{ variant.referencia }}" data-price="{{ variant.price }}" data-stock="{{ variant.stock }}"
                         data-idvariante="{{ variant.idvariante ?? '' }}"
                         data-description="{{ variant.description }}"
+                        data-largo="{{ variant.largo ?? '' }}"
+                        data-ancho="{{ variant.ancho ?? '' }}"
+                        data-espesor="{{ variant.espesor ?? '' }}"
                         {% if fsc.defaultVariant and fsc.defaultVariant.referencia == variant.referencia %}selected{% endif %}>
                         {{ variant.description }} – {{ fsc.formatMoney(variant.price) }}
                     </option>
@@ -107,18 +138,54 @@
             </div>
             {% endif %}
 
-            {# Add to cart form — always shown when variants exist, JS manages submit state #}
+            {# === ARTESANÍA: sold overlay === #}
+            {% if fsc.familyType == 'artesania' and fsc.product.isSold %}
+            <div class="alert alert-warning">
+                <i class="fa-solid fa-tag"></i> {{ trans('sold') }}
+            </div>
+
+            {# === TABLEROS: custom dimension input === #}
+            {% elseif fsc.familyType == 'tableros' %}
             {% set showForm = fsc.productVariants is not empty or fsc.product.stock > 0 %}
             {% if showForm %}
-            <form method="post" action="{{ asset('ProductoDetalle') }}?ref={{ fsc.product.referencia }}">
+            <form method="post" action="{{ asset('ProductoDetalle') }}?ref={{ fsc.product.referencia }}" id="tableros-form">
                 <input type="hidden" name="action" value="add-to-cart">
                 <input type="hidden" name="product_referencia" id="add-referencia"
                     value="{{ fsc.defaultVariant ? fsc.defaultVariant.referencia : fsc.product.referencia }}">
                 <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
 
-                <div class="input-group mb-3" style="max-width: 200px;">
-                    <label class="input-group-text" for="qty">{{ trans('quantity') }}</label>
-                    <input type="number" id="qty" name="quantity" value="1" min="1" max="{{ currentStock }}" class="form-control">
+                <h5>{{ trans('enter-dimensions') }}</h5>
+                {% if fsc.familyData %}
+                <p class="text-muted small">
+                    {% if fsc.familyData.largo_min > 0 or fsc.familyData.largo_max > 0 %}
+                    {{ trans('largo') }}: {{ fsc.familyData.largo_min }} - {{ fsc.familyData.largo_max }} cm<br>
+                    {% endif %}
+                    {% if fsc.familyData.ancho_min > 0 or fsc.familyData.ancho_max > 0 %}
+                    {{ trans('ancho') }}: {{ fsc.familyData.ancho_min }} - {{ fsc.familyData.ancho_max }} cm
+                    {% endif %}
+                </p>
+                {% endif %}
+
+                <div class="row g-2 mb-3">
+                    <div class="col-auto">
+                        <label class="form-label" for="largo_cm">{{ trans('largo') }}</label>
+                        <input type="number" id="largo_cm" name="largo_cm" class="form-control" step="0.01"
+                            min="{{ fsc.familyData and fsc.familyData.largo_min > 0 ? fsc.familyData.largo_min : '0.01' }}"
+                            {% if fsc.familyData and fsc.familyData.largo_max > 0 %}max="{{ fsc.familyData.largo_max }}"{% endif %}
+                            required oninput="calculateTablerosPrice()">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label" for="ancho_cm">{{ trans('ancho') }}</label>
+                        <input type="number" id="ancho_cm" name="ancho_cm" class="form-control" step="0.01"
+                            min="{{ fsc.familyData and fsc.familyData.ancho_min > 0 ? fsc.familyData.ancho_min : '0.01' }}"
+                            {% if fsc.familyData and fsc.familyData.ancho_max > 0 %}max="{{ fsc.familyData.ancho_max }}"{% endif %}
+                            required oninput="calculateTablerosPrice()">
+                    </div>
+                </div>
+
+                <div class="mb-3" id="tableros-calc" style="display:none;">
+                    <p class="mb-1"><strong>{{ trans('area') }}:</strong> <span id="tableros-area">0</span> cm²</p>
+                    <p class="mb-1"><strong>{{ trans('calculated-price') }}:</strong> <span id="tableros-total-price">0,00 €</span></p>
                 </div>
 
                 <button type="submit" id="add-to-cart-btn" class="btn btn-primary btn-lg"
@@ -130,6 +197,37 @@
             <button class="btn btn-secondary btn-lg" disabled>
                 <i class="fa-solid fa-ban"></i> {{ trans('out-of-stock') }}
             </button>
+            {% endif %}
+
+            {# === NORMAL / MERCANCÍA / TABLONES: standard add to cart === #}
+            {% else %}
+            {% set showForm = fsc.productVariants is not empty or fsc.product.stock > 0 %}
+            {% if showForm %}
+            <form method="post" action="{{ asset('ProductoDetalle') }}?ref={{ fsc.product.referencia }}">
+                <input type="hidden" name="action" value="add-to-cart">
+                <input type="hidden" name="product_referencia" id="add-referencia"
+                    value="{{ fsc.defaultVariant ? fsc.defaultVariant.referencia : fsc.product.referencia }}">
+                <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
+
+                {% if fsc.familyType != 'artesania' %}
+                <div class="input-group mb-3" style="max-width: 200px;">
+                    <label class="input-group-text" for="qty">{{ trans('quantity') }}</label>
+                    <input type="number" id="qty" name="quantity" value="1" min="1" max="{{ currentStock }}" class="form-control">
+                </div>
+                {% else %}
+                <input type="hidden" name="quantity" value="1">
+                {% endif %}
+
+                <button type="submit" id="add-to-cart-btn" class="btn btn-primary btn-lg"
+                    {% if currentStock <= 0 %}disabled{% endif %}>
+                    <i class="fa-solid fa-cart-plus"></i> {{ trans('add-to-presupuesto') }}
+                </button>
+            </form>
+            {% else %}
+            <button class="btn btn-secondary btn-lg" disabled>
+                <i class="fa-solid fa-ban"></i> {{ trans('out-of-stock') }}
+            </button>
+            {% endif %}
             {% endif %}
         </div>
     </div>
@@ -181,6 +279,8 @@ var allImages = {{ fsc.productImages | json_encode | raw }};
 var productBaseName = {{ fsc.product.name | json_encode | raw }};
 var inStockLabel = {{ trans('in-stock') | json_encode | raw }};
 var outOfStockLabel = {{ trans('out-of-stock') | json_encode | raw }};
+var soldLabel = {{ trans('sold') | json_encode | raw }};
+var familyType = {{ fsc.familyType | json_encode | raw }};
 
 function formatMoney(amount) {
     return amount.toFixed(2).replace('.', ',') + ' \u20ac';
@@ -251,6 +351,16 @@ function updateProductTitle(description) {
     if (breadcrumb) breadcrumb.textContent = fullName;
 }
 
+function updateDimensionsTable(variant) {
+    if (familyType !== 'tablones') return;
+    var largoEl = document.getElementById('dim-largo');
+    var anchoEl = document.getElementById('dim-ancho');
+    var espesorEl = document.getElementById('dim-espesor');
+    if (largoEl) largoEl.textContent = (variant.largo !== null && variant.largo !== '') ? variant.largo : '';
+    if (anchoEl) anchoEl.textContent = (variant.ancho !== null && variant.ancho !== '') ? variant.ancho : '';
+    if (espesorEl) espesorEl.textContent = (variant.espesor !== null && variant.espesor !== '') ? variant.espesor : '';
+}
+
 function updateVariantFromAttributes() {
     var selected = {};
     document.querySelectorAll('.attr-selector').forEach(function (sel) {
@@ -278,23 +388,41 @@ function updateVariantFromAttributes() {
         if (refInput) refInput.value = match.referencia;
 
         var priceEl = document.getElementById('variant-price');
-        if (priceEl) priceEl.textContent = formatMoney(parseFloat(match.price));
+        if (priceEl) {
+            priceEl.textContent = formatMoney(parseFloat(match.price));
+            if (familyType === 'tableros') priceEl.innerHTML += ' <small class="text-muted">/cm²</small>';
+        }
 
         var inStock = parseFloat(match.stock) > 0;
         var badge = document.getElementById('variant-stock-badge');
         if (badge) {
-            badge.className = inStock ? 'badge bg-success fs-6' : 'badge bg-danger fs-6';
-            badge.textContent = inStock ? inStockLabel : outOfStockLabel;
+            if (familyType === 'artesania' && !inStock) {
+                badge.className = 'badge bg-warning text-dark fs-6';
+                badge.textContent = soldLabel;
+            } else {
+                badge.className = inStock ? 'badge bg-success fs-6' : 'badge bg-danger fs-6';
+                badge.textContent = inStock ? inStockLabel : outOfStockLabel;
+            }
         }
 
         var addBtn = document.getElementById('add-to-cart-btn');
-        if (addBtn) addBtn.disabled = !inStock;
+        if (addBtn) {
+            if (familyType === 'artesania' && !inStock) {
+                addBtn.disabled = true;
+            } else {
+                addBtn.disabled = !inStock;
+            }
+        }
 
         var qtyInput = document.getElementById('qty');
         if (qtyInput && inStock) qtyInput.max = Math.floor(match.stock);
 
         updateProductTitle(match.description);
         updateCarouselForVariant(match.idvariante);
+        updateDimensionsTable(match);
+
+        // Recalculate Tableros price if applicable
+        if (familyType === 'tableros') calculateTablerosPrice();
     }
 }
 
@@ -305,24 +433,93 @@ function updateVariant(select) {
 
     var price = parseFloat(option.dataset.price);
     var priceEl = document.getElementById('variant-price');
-    if (priceEl) priceEl.textContent = formatMoney(price);
+    if (priceEl) {
+        priceEl.textContent = formatMoney(price);
+        if (familyType === 'tableros') priceEl.innerHTML += ' <small class="text-muted">/cm²</small>';
+    }
 
     var stock = parseFloat(option.dataset.stock);
     var inStock = stock > 0;
     var badge = document.getElementById('variant-stock-badge');
     if (badge) {
-        badge.className = inStock ? 'badge bg-success fs-6' : 'badge bg-danger fs-6';
-        badge.textContent = inStock ? inStockLabel : outOfStockLabel;
+        if (familyType === 'artesania' && !inStock) {
+            badge.className = 'badge bg-warning text-dark fs-6';
+            badge.textContent = soldLabel;
+        } else {
+            badge.className = inStock ? 'badge bg-success fs-6' : 'badge bg-danger fs-6';
+            badge.textContent = inStock ? inStockLabel : outOfStockLabel;
+        }
     }
 
     var addBtn = document.getElementById('add-to-cart-btn');
-    if (addBtn) addBtn.disabled = !inStock;
+    if (addBtn) {
+        if (familyType === 'artesania' && !inStock) {
+            addBtn.disabled = true;
+        } else {
+            addBtn.disabled = !inStock;
+        }
+    }
 
     var qtyInput = document.getElementById('qty');
     if (qtyInput && inStock) qtyInput.max = Math.floor(stock);
 
     updateProductTitle(option.dataset.description || '');
     updateCarouselForVariant(option.dataset.idvariante || null);
+
+    // Update Tablones dimensions from data attributes
+    if (familyType === 'tablones') {
+        var variant = {
+            largo: option.dataset.largo !== '' ? option.dataset.largo : null,
+            ancho: option.dataset.ancho !== '' ? option.dataset.ancho : null,
+            espesor: option.dataset.espesor !== '' ? option.dataset.espesor : null
+        };
+        updateDimensionsTable(variant);
+    }
+
+    // Recalculate Tableros price if applicable
+    if (familyType === 'tableros') calculateTablerosPrice();
+}
+
+function calculateTablerosPrice() {
+    var largoInput = document.getElementById('largo_cm');
+    var anchoInput = document.getElementById('ancho_cm');
+    var calcDiv = document.getElementById('tableros-calc');
+    var areaSpan = document.getElementById('tableros-area');
+    var totalSpan = document.getElementById('tableros-total-price');
+
+    if (!largoInput || !anchoInput) return;
+
+    var largo = parseFloat(largoInput.value) || 0;
+    var ancho = parseFloat(anchoInput.value) || 0;
+
+    if (largo > 0 && ancho > 0) {
+        var area = largo * ancho;
+        // Get current variant price
+        var pricePerCm2 = 0;
+        var refInput = document.getElementById('add-referencia');
+        if (refInput) {
+            for (var i = 0; i < variantData.length; i++) {
+                if (variantData[i].referencia === refInput.value) {
+                    pricePerCm2 = parseFloat(variantData[i].price);
+                    break;
+                }
+            }
+        }
+        // Fallback to product price if no variant found
+        if (pricePerCm2 === 0) {
+            var priceEl = document.getElementById('variant-price');
+            if (priceEl) {
+                var priceText = priceEl.textContent.replace(/[^\d,.-]/g, '').replace(',', '.');
+                pricePerCm2 = parseFloat(priceText) || 0;
+            }
+        }
+        var totalPrice = pricePerCm2 * area;
+        if (areaSpan) areaSpan.textContent = area.toFixed(2);
+        if (totalSpan) totalSpan.textContent = formatMoney(totalPrice);
+        if (calcDiv) calcDiv.style.display = '';
+    } else {
+        if (calcDiv) calcDiv.style.display = 'none';
+    }
 }
 
 function scrollCarouselTo(index) {
