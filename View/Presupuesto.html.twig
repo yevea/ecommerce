@@ -82,18 +82,18 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="4" class="text-end">{{ trans('neto') }}:</td>
-                            <td class="text-end" colspan="3">{{ fsc.formatMoney(fsc.cartNeto) }}</td>
+                            <td colspan="6" class="text-end">{{ trans('neto') }}:</td>
+                            <td class="text-end">{{ fsc.formatMoney(fsc.cartNeto) }}</td>
                             <td class="no-print"></td>
                         </tr>
                         <tr>
-                            <td colspan="4" class="text-end">{{ trans('impuestos') }}:</td>
-                            <td class="text-end" colspan="3">{{ fsc.formatMoney(fsc.cartImpuestos) }}</td>
+                            <td colspan="6" class="text-end">{{ trans('impuestos') }}:</td>
+                            <td class="text-end">{{ fsc.formatMoney(fsc.cartImpuestos) }}</td>
                             <td class="no-print"></td>
                         </tr>
                         <tr class="table-active">
-                            <td colspan="4" class="text-end fw-bold">{{ trans('total') }}:</td>
-                            <td class="text-end fw-bold" colspan="3">{{ fsc.formatMoney(fsc.cartTotal) }}</td>
+                            <td colspan="6" class="text-end fw-bold">{{ trans('total') }}:</td>
+                            <td class="text-end fw-bold">{{ fsc.formatMoney(fsc.cartTotal) }}</td>
                             <td class="no-print"></td>
                         </tr>
                     </tfoot>
