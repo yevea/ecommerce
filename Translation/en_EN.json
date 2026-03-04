@@ -95,6 +95,7 @@
     "ancho-min": "Min Width (cm)",
     "ancho-max": "Max Width (cm)",
     "area": "Area (m²)",
+    "dimension-limits": "Dimension Limits",
     "dimensions": "Dimensions",
     "enter-dimensions": "Enter dimensions",
     "calculated-price": "Calculated price",
