@@ -1,6 +1,7 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
+use FacturaScripts\Core\Lib\AssetManager;
 use FacturaScripts\Core\Model\Familia;
 use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
@@ -45,6 +46,11 @@ class StoreFront extends Controller
     public function run(): void
     {
         parent::run();
+
+        $cssPath = FS_FOLDER . '/Plugins/ecommerce/Assets/CSS/ecommerce.css';
+        if (file_exists($cssPath)) {
+            AssetManager::addCss(FS_ROUTE . '/Plugins/ecommerce/Assets/CSS/ecommerce.css');
+        }
 
         $action = $this->request()->request->get('action', $this->request()->query->get('action', ''));
         if ($action === 'add-to-cart') {
