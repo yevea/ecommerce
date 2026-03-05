@@ -4,64 +4,111 @@
 **License:** LGPL v3  
 **Web:** [facturascripts.com](https://facturascripts.com)
 
-A simple ecommerce / shopping cart plugin for FacturaScripts. Provides product catalog management, shopping cart functionality, and order processing — all integrated into the FacturaScripts admin panel.
+An ecommerce / shopping cart plugin for FacturaScripts, built for a Spanish olive wood sawmill. The plugin manages a product catalogue of olive wood products—planks, custom-cut boards, rustic bathroom countertops, kitchen countertops, cutting boards and handcrafted olive wood items—with full support for customers across the European Union.
+
+## Product Categories
+
+| Category (ES) | Category (EN) | Category (FR) | Category (DE) | Family Type |
+|---|---|---|---|---|
+| Madera de Olivo | Olive Wood | Bois d'Olivier | Olivenholz | mercancia |
+| Tablones de Madera | Wood Planks | Planches de Bois | Holzbohlen | tablones |
+| Tableros de Madera de Olivo | Olive Wood Boards | Plateaux en Bois d'Olivier | Olivenholzplatten | tableros |
+| Encimeras de Baño Rústicas | Rustic Bathroom Countertops | Plans de Toilette Rustiques | Rustikale Badezimmer-Waschtischplatten | tableros |
+| Encimeras de Cocina | Kitchen Countertops | Plans de Travail de Cuisine | Küchenarbeitsplatten | tableros |
+| Tablas de Cocina | Cutting Boards | Planches à Découper | Schneidebretter | artesania |
+| Artesanía de Madera de Olivo | Olive Wood Crafts | Artisanat en Bois d'Olivier | Olivenholz-Kunsthandwerk | artesania |
+
+## Target Markets
+
+The plugin targets the European Union market, with full translations for:
+
+- **Spanish** (es_ES) — primary language
+- **English** (en_EN) — international
+- **French** (fr_FR) — France market
+- **German** (de_DE) — Germany market
+
+FacturaScripts automatically selects the translation matching the user's language preference.
+
+## SEO & AI Agent Optimisation
+
+The storefront and product detail pages include:
+
+- **Schema.org JSON-LD structured data** — each product page outputs a `Product` schema with name, description, SKU, price, currency, availability, material, category, brand, manufacturer, variants and shipping area. Catalogue pages output a `Store` schema with an `OfferCatalog` listing all products.
+- **Schema.org microdata attributes** — product cards embed `itemprop` attributes (`name`, `description`, `image`, `sku`, `price`, `priceCurrency`, `availability`, `material`) so search-engine crawlers and AI agents can parse the data directly from the HTML.
+- **Semantic HTML** — `<article>`, `<nav>`, `<h1>`/`<h2>` hierarchy, `aria-label` attributes, and breadcrumb markup.
+- **Multi-language translation keys** — product-category descriptions (`olive-wood-desc`, `wood-planks-desc`, `olive-wood-boards-desc`, `rustic-bathroom-countertops-desc`, `kitchen-countertops-desc`, `cutting-boards-desc`, `olive-wood-crafts-desc`) are available in all four languages so AI agents can present product information in the user's language.
 
 ## Features
 
-- **Product Management** — Create and manage products with name, reference, description, price, stock, and image
-- **Category Management** — Organize products into categories
-- **Storefront** — Public-facing product catalog with category filtering
+- **Product Management** — Create and manage products with name, reference, description, price, stock, and images
+- **Category Management** — Organise products into families with type-specific behaviour (mercancia, tablones, tableros, artesania)
+- **Storefront** — Public-facing product catalogue with category filtering and Schema.org structured data
 - **Shopping Cart** — Session-based cart with add, update quantity, and remove functionality
-- **Order Processing** — Checkout flow that converts cart items into orders with full customer details (name, NIF/CIF, email, phone, address, city, postal code, province, country)
-- **Native FS Integration** — On order placement, automatically creates a native FacturaScripts `Cliente` (or reuses an existing one matched by email) and a `PedidoCliente` with line items, making orders visible in the standard FacturaScripts Ventas > Pedidos list
-- **Order Management** — View and manage orders with line items, status tracking (pending, processing, completed, cancelled), and direct links to the native FS client and order records
-- **Translations** — English and Spanish language support
+- **Custom Dimensions** — Tableros (boards/countertops) support customer-specified length × width with price per m²
+- **Order Processing** — Checkout flow that converts cart items into orders with full customer details
+- **Native FS Integration** — Automatically creates FacturaScripts `Cliente` and `PedidoCliente` records
+- **Stripe Payments** — Integrated Stripe checkout for card payments
+- **Translations** — English, Spanish, French and German language support
+- **EU Shipping** — Designed for customers in Spain, France, Germany and the whole EU
 
 ## Plugin Structure
 
 ```
 ecommerce/
-├── Controller/                    # Controllers
-│   ├── EditEcommerceCategory.php  # Edit category (admin)
-│   ├── EditEcommerceOrder.php     # Edit order (admin)
-│   ├── EditEcommerceProduct.php   # Edit product (admin)
-│   ├── ListEcommerceCategory.php  # List categories (admin)
-│   ├── ListEcommerceOrder.php     # List orders (admin)
-│   ├── ListEcommerceProduct.php   # List products (admin)
-│   ├── Productos.php              # Product catalog (frontend, /Productos)
-│   ├── ShoppingCartView.php       # Shopping cart (frontend)
-│   └── StoreFront.php             # Storefront product catalog (frontend, /StoreFront)
-├── Model/                         # Data models
-│   ├── EcommerceCartItem.php      # Cart item model
-│   ├── EcommerceCategory.php      # Category model
-│   ├── EcommerceOrder.php         # Order model
-│   ├── EcommerceOrderLine.php     # Order line item model
-│   └── EcommerceProduct.php       # Product model
-├── Table/                         # Database table definitions (XML)
-│   ├── ecommerce_cart_items.xml
-│   ├── ecommerce_categories.xml
-│   ├── ecommerce_order_lines.xml
-│   ├── ecommerce_orders.xml
-│   └── ecommerce_products.xml
-├── Translation/                   # i18n translations
-│   ├── en_EN.json
-│   └── es_ES.json
-├── View/                          # Twig templates (frontend)
-│   ├── Productos.html.twig
-│   ├── ShoppingCartView.html.twig
-│   └── StoreFront.html.twig
-├── XMLView/                       # XML view definitions (admin)
-│   ├── EditEcommerceCategory.xml
-│   ├── EditEcommerceCategoryProducts.xml
-│   ├── EditEcommerceOrder.xml
-│   ├── EditEcommerceOrderLine.xml
-│   ├── EditEcommerceProduct.xml
-│   ├── ListEcommerceCategory.xml
-│   ├── ListEcommerceOrder.xml
-│   └── ListEcommerceProduct.xml
-├── Init.php                       # Plugin initialization
-├── composer.json                  # PHP dependencies
-├── facturascripts.ini             # Plugin metadata
+├── Assets/
+│   └── JS/
+│       └── EditFamilia.js           # Dynamic family-type UI
+├── Controller/
+│   ├── EditEcommerceOrder.php       # Edit order (admin)
+│   ├── ListEcommerceOrder.php       # List orders (admin)
+│   ├── Presupuesto.php              # Quote/checkout (frontend)
+│   ├── ProductoDetalle.php          # Product detail (frontend)
+│   ├── Productos.php                # Product catalogue (frontend)
+│   ├── SettingsEcommerce.php        # Stripe settings (admin)
+│   ├── ShoppingCartView.php         # Shopping cart redirect
+│   └── StoreFront.php               # Storefront catalogue (frontend)
+├── Extension/
+│   ├── Controller/
+│   │   ├── EditFamilia.php          # Family type + dimension limits
+│   │   └── EditProducto.php         # Product image fixes + nostock
+│   ├── Table/
+│   │   ├── familias.xml             # Family table extensions
+│   │   ├── productos.xml            # Product table extensions
+│   │   └── variantes.xml            # Variant table extensions
+│   └── XMLView/
+│       ├── EditFamilia.xml          # Family editor extensions
+│       ├── EditProducto.xml         # Product editor extensions
+│       ├── EditVariante.xml         # Variant editor extensions
+│       ├── ListFamilia.xml          # Family list extensions
+│       └── ListProducto.xml         # Product list extensions
+├── Model/
+│   ├── EcommerceCartItem.php        # Cart item model
+│   ├── EcommerceOrder.php           # Order model
+│   └── EcommerceOrderLine.php       # Order line model
+├── Table/
+│   ├── ecommerce_cart_items.xml     # Cart items table
+│   ├── ecommerce_order_lines.xml    # Order lines table
+│   ├── ecommerce_orders.xml         # Orders table
+│   └── ProductoImagen.xml           # Product images table
+├── Translation/
+│   ├── de_DE.json                   # German translations
+│   ├── en_EN.json                   # English translations
+│   ├── es_ES.json                   # Spanish translations
+│   └── fr_FR.json                   # French translations
+├── View/
+│   ├── Presupuesto.html.twig        # Quote/checkout template
+│   ├── ProductoDetalle.html.twig    # Product detail template (with Schema.org)
+│   ├── Productos.html.twig          # Product catalogue template (with Schema.org)
+│   ├── ShoppingCartView.html.twig   # Cart redirect template
+│   └── StoreFront.html.twig         # Storefront template (with Schema.org)
+├── XMLView/
+│   ├── EditEcommerceOrder.xml       # Order editor view
+│   ├── EditEcommerceOrderLine.xml   # Order line editor view
+│   ├── ListEcommerceOrder.xml       # Order list view
+│   └── SettingsEcommerce.xml        # Settings view
+├── Init.php                         # Plugin initialisation
+├── composer.json                    # PHP dependencies
+├── facturascripts.ini               # Plugin metadata
 ├── LICENSE
 └── README.md
 ```
