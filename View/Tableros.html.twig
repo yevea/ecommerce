@@ -1,5 +1,7 @@
 {% extends "Master/MenuTemplate.html.twig" %}
 
+{% block navbar %}{% endblock %}
+
 {% block body %}
 {# Schema.org structured data for AI agents and search engines #}
 <script type="application/ld+json">
@@ -51,7 +53,7 @@
 
 <div class="container mt-4">
     <h1 class="mb-4">
-        <i class="fa-solid fa-store"></i> {{ trans('tableros') }}
+        <i class="fa-solid fa-store"></i> {% if fsc.selectedCategoryFamily %}{{ fsc.selectedCategoryFamily.descripcion }}{% else %}{{ trans('tableros') }}{% endif %}
     </h1>
 
     {% if fsc.categories is not empty %}
