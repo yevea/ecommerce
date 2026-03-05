@@ -1,7 +1,5 @@
 {% extends "Master/MenuTemplate.html.twig" %}
 
-{% block navbar %}{% endblock %}
-
 {% block body %}
 {# Schema.org structured data for AI agents and search engines #}
 <script type="application/ld+json">
@@ -80,7 +78,7 @@
             <h6 class="card-title"><i class="fa-solid fa-filter"></i> {{ trans('filter-dimensions') }}</h6>
             <form method="get" action="{{ asset('Tableros') }}">
                 <input type="hidden" name="category" value="{{ fsc.selectedCategory }}">
-                <div class="dimension-filters row g-2 align-items-end">
+                <div class="row g-2 align-items-end">
                     <div class="col-md-2">
                         <label class="form-label small">{{ trans('largo') }}</label>
                         <div class="input-group input-group-sm">
