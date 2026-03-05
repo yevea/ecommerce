@@ -13,7 +13,7 @@
         {% if fsc.orderCode is not empty %}
         <p class="lead">{{ trans('order-code') }}: <strong>{{ fsc.orderCode }}</strong></p>
         {% endif %}
-        <a href="{{ asset('Productos') }}" class="btn btn-primary mt-3">
+        <a href="{{ asset('Tableros') }}" class="btn btn-primary mt-3">
             <i class="fa-solid fa-arrow-left"></i> {{ trans('go-to-store') }}
         </a>
     </div>
@@ -157,7 +157,7 @@
     </div>
 
     <div class="d-flex justify-content-between align-items-center mt-3 mb-4 no-print">
-        <a href="{{ asset('Productos') }}" class="btn btn-outline-secondary">
+        <a href="{{ asset('Tableros') }}" class="btn btn-outline-secondary">
             <i class="fa-solid fa-arrow-left"></i> {{ trans('continue-shopping') }}
         </a>
         <button type="button" class="btn btn-outline-secondary" onclick="submitPrintPresupuesto()">
@@ -172,7 +172,7 @@
     <div class="alert alert-info">
         <i class="fa-solid fa-info-circle"></i> {{ trans('presupuesto-empty') }}
     </div>
-    <a href="{{ asset('Productos') }}" class="btn btn-primary">
+    <a href="{{ asset('Tableros') }}" class="btn btn-primary">
         <i class="fa-solid fa-arrow-left"></i> {{ trans('go-to-store') }}
     </a>
     {% endif %}
