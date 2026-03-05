@@ -4,17 +4,82 @@
 <div class="container mt-4">
 
     {% if fsc.product is not null %}
+    {# Schema.org structured data for AI agents and search engines #}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": "{% if fsc.defaultVariant and fsc.defaultVariant.description is not empty %}{{ fsc.product.name | e('js') }} – {{ fsc.defaultVariant.description | e('js') }}{% else %}{{ fsc.product.name | e('js') }}{% endif %}",
+        "description": "{{ fsc.product.description | e('js') }}",
+        "sku": "{{ fsc.product.referencia }}",
+        "material": "{{ trans('olive-wood') }}",
+        "url": "{{ asset('ProductoDetalle') }}?ref={{ fsc.product.referencia }}",
+        {% if fsc.productImages is not empty %}"image": "{{ fsc.productImages[0].url }}",{% endif %}
+        "brand": {
+            "@type": "Brand",
+            "name": "{{ trans('sawmill') }}"
+        },
+        "manufacturer": {
+            "@type": "Organization",
+            "name": "{{ trans('sawmill') }}",
+            "description": "{{ trans('sawmill-desc') }}"
+        },
+        "category": "{% if fsc.familyType == 'tableros' %}{{ trans('olive-wood-boards') }}{% elseif fsc.familyType == 'tablones' %}{{ trans('wood-planks') }}{% elseif fsc.familyType == 'artesania' %}{{ trans('olive-wood-crafts') }}{% else %}{{ trans('olive-wood') }}{% endif %}",
+        "offers": {
+            "@type": "Offer",
+            "price": "{{ fsc.defaultVariant ? fsc.defaultVariant.price : fsc.product.price }}",
+            "priceCurrency": "EUR",
+            {% if fsc.familyType == 'tableros' %}"unitCode": "MTK",
+            "unitText": "m²",{% endif %}
+            "availability": "{% if fsc.familyType == 'artesania' and fsc.product.isSold %}https://schema.org/SoldOut{% elseif fsc.familyType == 'tableros' %}https://schema.org/InStock{% elseif (fsc.defaultVariant ? fsc.defaultVariant.stock : fsc.product.stock) > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+            "areaServed": [
+                {"@type": "Country", "name": "Spain"},
+                {"@type": "Country", "name": "France"},
+                {"@type": "Country", "name": "Germany"},
+                {"@type": "Place", "name": "European Union"}
+            ],
+            "shippingDetails": {
+                "@type": "OfferShippingDetails",
+                "shippingDestination": {
+                    "@type": "DefinedRegion",
+                    "name": "European Union"
+                }
+            }
+        }
+        {% if fsc.productVariants is not empty %},
+        "hasVariant": [
+            {% for variant in fsc.productVariants %}
+            {
+                "@type": "ProductModel",
+                "name": "{{ variant.description | e('js') }}",
+                "sku": "{{ variant.referencia }}",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "{{ variant.price }}",
+                    "priceCurrency": "EUR"
+                }
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ]
+        {% endif %}
+    }
+    </script>
+
     <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{ asset('Productos') }}">{{ trans('products') }}</a>
+        <ol class="breadcrumb" itemscope itemtype="https://schema.org/BreadcrumbList">
+            <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <a href="{{ asset('Productos') }}" itemprop="item"><span itemprop="name">{{ trans('products') }}</span></a>
+                <meta itemprop="position" content="1">
             </li>
-            <li class="breadcrumb-item active" aria-current="page" id="breadcrumb-product-name">
+            <li class="breadcrumb-item active" aria-current="page" id="breadcrumb-product-name" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <span itemprop="name">
                 {% if fsc.defaultVariant and fsc.defaultVariant.description is not empty %}
                     {{ fsc.product.name }} – {{ fsc.defaultVariant.description }}
                 {% else %}
                     {{ fsc.product.name }}
                 {% endif %}
+                </span>
+                <meta itemprop="position" content="2">
             </li>
         </ol>
     </nav>

@@ -1,6 +1,54 @@
 {% extends "Master/MenuTemplate.html.twig" %}
 
 {% block body %}
+{# Schema.org structured data for AI agents and search engines #}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": "{{ trans('sawmill') }}",
+    "description": "{{ trans('sawmill-desc') }}",
+    "url": "{{ asset('Productos') }}",
+    "areaServed": [
+        {"@type": "Country", "name": "Spain"},
+        {"@type": "Country", "name": "France"},
+        {"@type": "Country", "name": "Germany"},
+        {"@type": "Place", "name": "European Union"}
+    ],
+    "availableLanguage": ["es", "en", "fr", "de"],
+    "currenciesAccepted": "EUR",
+    "paymentAccepted": "Credit Card, Stripe",
+    "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "{{ trans('products') }}",
+        "itemListElement": [
+            {% for product in fsc.products %}
+            {
+                "@type": "Product",
+                "name": "{{ product.name | e('js') }}",
+                "description": "{{ product.description | e('js') }}",
+                "sku": "{{ product.referencia }}",
+                "url": "{{ asset('ProductoDetalle') }}?ref={{ product.referencia }}",
+                {% if product.image %}"image": "{{ product.image }}",{% endif %}
+                "material": "{{ trans('olive-wood') }}",
+                "category": "{% if product.familyType is defined and product.familyType == 'tableros' %}{{ trans('olive-wood-boards') }}{% elseif product.familyType is defined and product.familyType == 'tablones' %}{{ trans('wood-planks') }}{% elseif product.familyType is defined and product.familyType == 'artesania' %}{{ trans('olive-wood-crafts') }}{% else %}{{ trans('olive-wood') }}{% endif %}",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "{{ product.price }}",
+                    "priceCurrency": "EUR",
+                    "availability": "{% if product.isSold is defined and product.isSold %}https://schema.org/SoldOut{% elseif product.familyType is defined and product.familyType == 'tableros' %}https://schema.org/InStock{% elseif product.stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+                    "areaServed": {
+                        "@type": "Place",
+                        "name": "European Union"
+                    }
+                }
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ]
+    }
+}
+</script>
+
 <div class="container mt-4">
     <h1 class="mb-4">
         <i class="fa-solid fa-store"></i> {{ trans('products') }}
@@ -72,40 +120,47 @@
     <div class="row">
         {% for product in fsc.products %}
         <div class="col-6 col-md-4 col-lg-3 mb-4">
-            <div class="card h-100 shadow-sm {% if product.isSold is defined and product.isSold %}border-warning{% endif %}">
-                <a href="{{ asset('ProductoDetalle') }}?ref={{ product.referencia }}" class="text-decoration-none text-dark">
+            <article class="card h-100 shadow-sm {% if product.isSold is defined and product.isSold %}border-warning{% endif %}" itemscope itemtype="https://schema.org/Product">
+                <meta itemprop="sku" content="{{ product.referencia }}">
+                <meta itemprop="material" content="{{ trans('olive-wood') }}">
+                <a href="{{ asset('ProductoDetalle') }}?ref={{ product.referencia }}" class="text-decoration-none text-dark" itemprop="url">
                     {% if product.image %}
-                    <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                    <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}" itemprop="image" style="height: 200px; object-fit: cover;">
                     {% else %}
                     <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
                         <i class="fa-solid fa-image fa-3x text-muted"></i>
                     </div>
                     {% endif %}
                     <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">{{ product.name }}</h5>
-                        <p class="card-text text-muted small flex-grow-1">
+                        <h2 class="card-title h5" itemprop="name">{{ product.name }}</h2>
+                        <p class="card-text text-muted small flex-grow-1" itemprop="description">
                             {{ product.description | slice(0, 100) }}{% if product.description | length > 100 %}...{% endif %}
                         </p>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <span class="mb-0">
+                        <div class="d-flex justify-content-between align-items-center mt-2" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                            <meta itemprop="priceCurrency" content="EUR">
+                            <span class="mb-0" itemprop="price" content="{{ product.price }}">
                                 {{ fsc.formatMoney(product.price) }}
                                 {% if product.familyType is defined and product.familyType == 'tableros' %}
                                 <small class="text-muted">/m²</small>
                                 {% endif %}
                             </span>
                             {% if product.isSold is defined and product.isSold %}
+                            <link itemprop="availability" href="https://schema.org/SoldOut">
                             <span class="badge bg-warning text-dark">{{ trans('sold') }}</span>
                             {% elseif product.familyType is defined and product.familyType == 'tableros' %}
+                            <link itemprop="availability" href="https://schema.org/InStock">
                             {# Tableros: stock not controlled, no badge shown #}
                             {% elseif product.stock > 0 %}
+                            <link itemprop="availability" href="https://schema.org/InStock">
                             <span class="badge bg-success">{{ trans('in-stock') }}</span>
                             {% else %}
+                            <link itemprop="availability" href="https://schema.org/OutOfStock">
                             <span class="badge bg-danger">{{ trans('out-of-stock') }}</span>
                             {% endif %}
                         </div>
                     </div>
                 </a>
-            </div>
+            </article>
         </div>
         {% else %}
         <div class="col-12">
