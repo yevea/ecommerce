@@ -1,6 +1,7 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
+use FacturaScripts\Core\Lib\AssetManager;
 use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
@@ -49,6 +50,11 @@ class Presupuesto extends Controller
     public function run(): void
     {
         parent::run();
+
+        $cssPath = FS_FOLDER . '/Plugins/ecommerce/Assets/CSS/ecommerce.css';
+        if (file_exists($cssPath)) {
+            AssetManager::addCss(FS_ROUTE . '/Plugins/ecommerce/Assets/CSS/ecommerce.css');
+        }
 
         $stripeCallback = $this->request()->query->get('stripe', '');
         if ($stripeCallback === 'success') {

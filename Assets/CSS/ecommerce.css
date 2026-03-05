@@ -1,0 +1,334 @@
+/*
+ * ecommerce storefront grey theme
+ * Palette (light → dark):
+ *   #f8f9fa  #e9ecef  #dee2e6  #ced4da
+ *   #adb5bd  #6c757d  #495057  #343a40  #212529
+ *
+ * Mobile-first responsive overrides included.
+ */
+
+/* ── Base ───────────────────────────────────────────────────── */
+body {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+/* ── Links ──────────────────────────────────────────────────── */
+a {
+    color: #495057;
+}
+a:hover {
+    color: #212529;
+}
+
+/* ── Primary buttons / outlines ─────────────────────────────── */
+.btn-primary {
+    background-color: #495057;
+    border-color: #495057;
+    color: #fff;
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active {
+    background-color: #343a40;
+    border-color: #343a40;
+    color: #fff;
+}
+.btn-primary:disabled {
+    background-color: #adb5bd;
+    border-color: #adb5bd;
+    color: #fff;
+}
+
+.btn-outline-primary {
+    color: #495057;
+    border-color: #495057;
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active,
+.btn-outline-primary.active {
+    background-color: #495057;
+    border-color: #495057;
+    color: #fff;
+}
+
+/* ── Success → dark grey ────────────────────────────────────── */
+.btn-success {
+    background-color: #343a40;
+    border-color: #343a40;
+    color: #fff;
+}
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active {
+    background-color: #212529;
+    border-color: #212529;
+    color: #fff;
+}
+
+.btn-outline-success {
+    color: #343a40;
+    border-color: #343a40;
+}
+.btn-outline-success:hover,
+.btn-outline-success:focus,
+.btn-outline-success:active {
+    background-color: #343a40;
+    border-color: #343a40;
+    color: #fff;
+}
+
+/* ── Danger → mid grey ──────────────────────────────────────── */
+.btn-danger {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-danger:active {
+    background-color: #495057;
+    border-color: #495057;
+    color: #fff;
+}
+
+.btn-outline-danger {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+.btn-outline-danger:hover,
+.btn-outline-danger:focus,
+.btn-outline-danger:active {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+/* ── Secondary ──────────────────────────────────────────────── */
+.btn-secondary {
+    background-color: #adb5bd;
+    border-color: #adb5bd;
+    color: #212529;
+}
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-secondary:active {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border-color: #ced4da;
+}
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus,
+.btn-outline-secondary:active {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+/* ── Dark button ────────────────────────────────────────────── */
+.btn-dark {
+    background-color: #212529;
+    border-color: #212529;
+    color: #fff;
+}
+.btn-dark:hover,
+.btn-dark:focus,
+.btn-dark:active {
+    background-color: #343a40;
+    border-color: #343a40;
+    color: #fff;
+}
+
+/* ── Badges ─────────────────────────────────────────────────── */
+.badge.bg-success {
+    background-color: #495057 !important;
+    color: #fff;
+}
+.badge.bg-danger {
+    background-color: #adb5bd !important;
+    color: #212529;
+}
+.badge.bg-warning {
+    background-color: #ced4da !important;
+    color: #212529;
+}
+.badge.bg-info {
+    background-color: #dee2e6 !important;
+    color: #212529;
+}
+
+/* ── Alerts ─────────────────────────────────────────────────── */
+.alert-success {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+    color: #212529;
+}
+.alert-info {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    color: #495057;
+}
+.alert-warning {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+    color: #343a40;
+}
+.alert-danger {
+    background-color: #dee2e6;
+    border-color: #ced4da;
+    color: #212529;
+}
+
+/* ── Cards ──────────────────────────────────────────────────── */
+.card {
+    border-color: #dee2e6;
+}
+.card-header {
+    background-color: #e9ecef;
+    border-bottom-color: #dee2e6;
+    color: #212529;
+}
+.card-footer {
+    background-color: #f8f9fa;
+    border-top-color: #dee2e6;
+}
+
+/* ── Tables ─────────────────────────────────────────────────── */
+.table-active {
+    background-color: #e9ecef;
+}
+
+/* ── Form controls ──────────────────────────────────────────── */
+.form-control:focus,
+.form-select:focus {
+    border-color: #adb5bd;
+    box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
+}
+
+/* ── Breadcrumb ─────────────────────────────────────────────── */
+.breadcrumb-item a {
+    color: #6c757d;
+}
+.breadcrumb-item a:hover {
+    color: #212529;
+}
+.breadcrumb-item.active {
+    color: #343a40;
+}
+
+/* ── Carousel controls (dark for grey bg) ───────────────────── */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: invert(0.5);
+}
+
+/* ── Shadow tweaks ──────────────────────────────────────────── */
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.06) !important;
+}
+.shadow {
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ── Fixed-bottom cart button ───────────────────────────────── */
+.fixed-bottom .btn {
+    border-radius: 0.5rem;
+}
+
+/* ── Mobile-first responsive ────────────────────────────────── */
+
+/* Stack table cells on small screens */
+@media (max-width: 767.98px) {
+    .table-responsive table thead {
+        display: none;
+    }
+    .table-responsive table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 0.5rem;
+    }
+    .table-responsive table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.4rem 0.5rem;
+        border: none;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .table-responsive table tbody td:last-child {
+        border-bottom: none;
+    }
+    .table-responsive table tfoot tr {
+        display: block;
+    }
+    .table-responsive table tfoot td {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.4rem 0.5rem;
+        border: none;
+    }
+
+    /* Full-width buttons on mobile */
+    .btn-lg {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Compact checkout action bar */
+    .checkout-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .checkout-actions .btn {
+        width: 100%;
+    }
+
+    /* Dimension filters: stack columns */
+    .dimension-filters .col-md-2 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    .dimension-filters .col-md-auto {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    /* Category button group: scrollable on mobile */
+    .btn-group.flex-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+    .btn-group.flex-wrap .btn {
+        flex: 0 0 auto;
+        font-size: 0.875rem;
+    }
+}
+
+/* Small spacing adjustments for extra-small screens */
+@media (max-width: 575.98px) {
+    .container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    h1 {
+        font-size: 1.5rem;
+    }
+    .card-title.h5 {
+        font-size: 0.95rem;
+    }
+    .card-img-top,
+    .card-img-top + .d-flex {
+        max-height: 160px;
+    }
+}
