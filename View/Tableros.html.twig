@@ -10,7 +10,7 @@
     "@type": "Store",
     "name": "{{ trans('sawmill') }}",
     "description": "{{ trans('sawmill-desc') }}",
-    "url": "{{ asset('Productos') }}",
+    "url": "{{ asset('Tableros') }}",
     "areaServed": [
         {"@type": "Country", "name": "Spain"},
         {"@type": "Country", "name": "France"},
@@ -53,18 +53,18 @@
 
 <div class="container mt-4">
     <h1 class="mb-4">
-        <i class="fa-solid fa-store"></i> {{ trans('products') }}
+        <i class="fa-solid fa-store"></i> {{ trans('tableros') }}
     </h1>
 
     {% if fsc.categories is not empty %}
     <div class="row mb-3">
         <div class="col-12">
             <div class="btn-group flex-wrap" role="group">
-                <a href="{{ asset('Productos') }}" class="btn btn-outline-primary {% if fsc.selectedCategory is null %}active{% endif %}">
+                <a href="{{ asset('Tableros') }}" class="btn btn-outline-primary {% if fsc.selectedCategory is null %}active{% endif %}">
                     {{ trans('all') }}
                 </a>
                 {% for cat in fsc.categories %}
-                <a href="{{ asset('Productos') }}?category={{ cat.codfamilia }}" class="btn btn-outline-primary {% if fsc.selectedCategory == cat.codfamilia %}active{% endif %}">
+                <a href="{{ asset('Tableros') }}?category={{ cat.codfamilia }}" class="btn btn-outline-primary {% if fsc.selectedCategory == cat.codfamilia %}active{% endif %}">
                     {{ cat.descripcion }}
                 </a>
                 {% endfor %}
@@ -78,7 +78,7 @@
     <div class="card mb-3">
         <div class="card-body">
             <h6 class="card-title"><i class="fa-solid fa-filter"></i> {{ trans('filter-dimensions') }}</h6>
-            <form method="get" action="{{ asset('Productos') }}">
+            <form method="get" action="{{ asset('Tableros') }}">
                 <input type="hidden" name="category" value="{{ fsc.selectedCategory }}">
                 <div class="dimension-filters row g-2 align-items-end">
                     <div class="col-md-2">
@@ -109,7 +109,7 @@
                         <button type="submit" class="btn btn-sm btn-primary">
                             <i class="fa-solid fa-search"></i> {{ trans('filter-dimensions') }}
                         </button>
-                        <a href="{{ asset('Productos') }}?category={{ fsc.selectedCategory }}" class="btn btn-sm btn-outline-secondary">
+                        <a href="{{ asset('Tableros') }}?category={{ fsc.selectedCategory }}" class="btn btn-sm btn-outline-secondary">
                             <i class="fa-solid fa-times"></i>
                         </a>
                     </div>

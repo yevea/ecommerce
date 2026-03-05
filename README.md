@@ -63,7 +63,7 @@ ecommerce/
 │   ├── ListEcommerceOrder.php       # List orders (admin)
 │   ├── Presupuesto.php              # Quote/checkout (frontend)
 │   ├── ProductoDetalle.php          # Product detail (frontend)
-│   ├── Productos.php                # Product catalogue (frontend)
+│   ├── Tableros.php                 # Product catalogue (frontend)
 │   ├── SettingsEcommerce.php        # Stripe settings (admin)
 │   ├── ShoppingCartView.php         # Shopping cart redirect
 │   └── StoreFront.php               # Storefront catalogue (frontend)
@@ -98,7 +98,7 @@ ecommerce/
 ├── View/
 │   ├── Presupuesto.html.twig        # Quote/checkout template
 │   ├── ProductoDetalle.html.twig    # Product detail template (with Schema.org)
-│   ├── Productos.html.twig          # Product catalogue template (with Schema.org)
+│   ├── Tableros.html.twig            # Product catalogue template (with Schema.org)
 │   ├── ShoppingCartView.html.twig   # Cart redirect template
 │   └── StoreFront.html.twig         # Storefront template (with Schema.org)
 ├── XMLView/
@@ -179,7 +179,7 @@ When a customer completes a payment via Stripe, the plugin automatically:
 - Orders are created automatically when customers complete the checkout process
 
 ### Storefront
-- Access the storefront at `/StoreFront` or `/Productos`
+- Access the storefront at `/StoreFront` or `/Tableros`
 - Browse products, filter by category, add items to cart
 - Access the quote/cart at `/Presupuesto`
 - Complete checkout by entering customer details (name, NIF/CIF, email, phone, address, city, postal code, province, country) and clicking **Realizar Pedido**

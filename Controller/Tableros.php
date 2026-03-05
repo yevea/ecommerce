@@ -1,7 +1,7 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
-class Productos extends StoreFront
+class Tableros extends StoreFront
 {
     /** @var array Dimension filter values for Tablones */
     public $dimensionFilters = [];
@@ -9,7 +9,7 @@ class Productos extends StoreFront
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
-        $pageData['title'] = 'products';
+        $pageData['title'] = 'tableros';
         return $pageData;
     }
 
