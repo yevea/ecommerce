@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<table>
-    <column>
-        <name>publico</name>
-        <type>boolean</type>
-        <default>false</default>
-    </column>
-</table>
