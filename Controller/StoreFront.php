@@ -285,6 +285,7 @@ class StoreFront extends Controller
         $product = new Producto();
         $publicProducts = $product->all([Where::eq('publico', true)], [], 0, 0);
 
+        // collect unique family codes from public products
         $familyCodes = [];
         foreach ($publicProducts as $p) {
             if (!empty($p->codfamilia)) {
