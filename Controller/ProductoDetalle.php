@@ -44,12 +44,27 @@ class ProductoDetalle extends StoreFront
         $this->autoRenderView = false;
         parent::run();
 
+        $slug = $this->request()->query->get('url', '');
         $referencia = $this->request()->query->get('ref', '');
-        if (!empty($referencia)) {
+        if (!empty($slug)) {
+            $this->loadProductBySlug($slug);
+        } elseif (!empty($referencia)) {
             $this->loadProduct($referencia);
         }
 
         $this->view('ProductoDetalle.html.twig');
+    }
+
+    private function loadProductBySlug(string $slug): void
+    {
+        $product = new Producto();
+        $where = [new \FacturaScripts\Core\Where('publico', true)];
+        foreach ($product->all($where) as $p) {
+            if (self::generateProductSlug($p->descripcion) === $slug) {
+                $this->loadProduct($p->referencia);
+                return;
+            }
+        }
     }
 
     private function loadProduct(string $referencia): void
@@ -70,6 +85,7 @@ class ProductoDetalle extends StoreFront
 
         $this->product = (object) [
             'referencia' => $p->referencia,
+            'slug' => self::generateProductSlug($p->descripcion),
             'name' => $p->descripcion,
             'description' => $p->observaciones ?? '',
             'price' => $p->precio,

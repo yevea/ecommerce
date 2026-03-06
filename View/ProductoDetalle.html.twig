@@ -15,7 +15,7 @@
         "description": "{{ fsc.product.description | e('js') }}",
         "sku": "{{ fsc.product.referencia }}",
         "material": "{{ trans('olive-wood') }}",
-        "url": "{{ asset('ProductoDetalle') }}?ref={{ fsc.product.referencia }}",
+        "url": "{{ asset('ProductoDetalle') }}?url={{ fsc.product.slug }}",
         {% if fsc.productImages is not empty %}"image": "{{ fsc.productImages[0].url }}",{% endif %}
         "brand": {
             "@type": "Brand",
@@ -218,7 +218,7 @@
             {% elseif fsc.familyType == 'tableros' %}
             {% set showForm = true %}{# Tableros: stock not controlled, always show form #}
             {% if showForm %}
-            <form method="post" action="{{ asset('ProductoDetalle') }}?ref={{ fsc.product.referencia }}" id="tableros-form">
+            <form method="post" action="{{ asset('ProductoDetalle') }}?url={{ fsc.product.slug }}" id="tableros-form">
                 <input type="hidden" name="action" value="add-to-cart">
                 <input type="hidden" name="product_referencia" id="add-referencia"
                     value="{{ fsc.defaultVariant ? fsc.defaultVariant.referencia : fsc.product.referencia }}">
@@ -272,7 +272,7 @@
             {% else %}
             {% set showForm = fsc.productVariants is not empty or fsc.product.stock > 0 %}
             {% if showForm %}
-            <form method="post" action="{{ asset('ProductoDetalle') }}?ref={{ fsc.product.referencia }}">
+            <form method="post" action="{{ asset('ProductoDetalle') }}?url={{ fsc.product.slug }}">
                 <input type="hidden" name="action" value="add-to-cart">
                 <input type="hidden" name="product_referencia" id="add-referencia"
                     value="{{ fsc.defaultVariant ? fsc.defaultVariant.referencia : fsc.product.referencia }}">

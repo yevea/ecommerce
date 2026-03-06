@@ -32,7 +32,7 @@
                 "name": "{{ product.name | e('js') }}",
                 "description": "{{ product.description | e('js') }}",
                 "sku": "{{ product.referencia }}",
-                "url": "{{ asset('ProductoDetalle') }}?ref={{ product.referencia }}",
+                "url": "{{ asset('ProductoDetalle') }}?url={{ product.slug }}",
                 {% if product.image %}"image": "{{ product.image }}",{% endif %}
                 "material": "{{ trans('olive-wood') }}",
                 "category": "{% if product.familyType is defined and product.familyType == 'tableros' %}{{ trans('olive-wood-boards') }}{% elseif product.familyType is defined and product.familyType == 'tablones' %}{{ trans('wood-planks') }}{% elseif product.familyType is defined and product.familyType == 'artesania' %}{{ trans('olive-wood-crafts') }}{% else %}{{ trans('olive-wood') }}{% endif %}",
@@ -136,7 +136,7 @@
             <article class="card h-100 shadow-sm {% if product.isSold is defined and product.isSold %}border-warning{% endif %}" itemscope itemtype="https://schema.org/Product">
                 <meta itemprop="sku" content="{{ product.referencia }}">
                 <meta itemprop="material" content="{{ trans('olive-wood') }}">
-                <a href="{{ asset('ProductoDetalle') }}?ref={{ product.referencia }}" class="text-decoration-none text-dark" itemprop="url">
+                <a href="{{ asset('ProductoDetalle') }}?url={{ product.slug }}" class="text-decoration-none text-dark" itemprop="url">
                     {% if product.image %}
                     <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}" itemprop="image" style="height: 200px; object-fit: cover;">
                     {% else %}

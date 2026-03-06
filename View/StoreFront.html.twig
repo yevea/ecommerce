@@ -30,7 +30,7 @@
                 "name": "{{ product.name | e('js') }}",
                 "description": "{{ product.description | e('js') }}",
                 "sku": "{{ product.referencia }}",
-                "url": "{{ asset('ProductoDetalle') }}?ref={{ product.referencia }}",
+                "url": "{{ asset('ProductoDetalle') }}?url={{ product.slug }}",
                 {% if product.image %}"image": "{{ product.image }}",{% endif %}
                 "material": "{{ trans('olive-wood') }}",
                 "offers": {
@@ -81,7 +81,7 @@
             <article class="card h-100 shadow-sm" itemscope itemtype="https://schema.org/Product">
                 <meta itemprop="sku" content="{{ product.referencia }}">
                 <meta itemprop="material" content="{{ trans('olive-wood') }}">
-                <a href="{{ asset('ProductoDetalle') }}?ref={{ product.referencia }}" class="text-decoration-none text-dark" itemprop="url">
+                <a href="{{ asset('ProductoDetalle') }}?url={{ product.slug }}" class="text-decoration-none text-dark" itemprop="url">
                     {% if product.image %}
                     <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}" itemprop="image" style="height: 200px; object-fit: cover;">
                     {% else %}
