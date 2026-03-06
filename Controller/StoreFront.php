@@ -10,6 +10,17 @@ use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 
 class StoreFront extends Controller
 {
+    private const TRANSLITERATIONS = [
+        'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
+        'ñ' => 'n', 'ü' => 'u',
+        'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U',
+        'Ñ' => 'N', 'Ü' => 'U',
+        'à' => 'a', 'è' => 'e', 'ì' => 'i', 'ò' => 'o', 'ù' => 'u',
+        'â' => 'a', 'ê' => 'e', 'î' => 'i', 'ô' => 'o', 'û' => 'u',
+        'ä' => 'a', 'ë' => 'e', 'ï' => 'i', 'ö' => 'o',
+        'ç' => 'c', 'ß' => 'ss',
+    ];
+
     protected $requiresAuth = false;
 
     /** @var bool When false, subclasses manage their own view rendering after parent::run() */
@@ -81,19 +92,23 @@ class StoreFront extends Controller
      */
     public static function generateSlug(string $text): string
     {
-        $transliterations = [
-            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
-            'ñ' => 'n', 'ü' => 'u',
-            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U',
-            'Ñ' => 'N', 'Ü' => 'U',
-            'à' => 'a', 'è' => 'e', 'ì' => 'i', 'ò' => 'o', 'ù' => 'u',
-            'â' => 'a', 'ê' => 'e', 'î' => 'i', 'ô' => 'o', 'û' => 'u',
-            'ä' => 'a', 'ë' => 'e', 'ï' => 'i', 'ö' => 'o',
-            'ç' => 'c', 'ß' => 'ss',
-        ];
-        $text = strtr($text, $transliterations);
+        $text = strtr($text, self::TRANSLITERATIONS);
         $text = preg_replace('/[^a-zA-Z0-9\s]/', '', $text);
         $text = str_replace(' ', '', ucwords($text));
+        return $text;
+    }
+
+    /**
+     * Generate a lowercase, hyphen-separated SEO-friendly slug from a product name.
+     * E.g. "Tablero Mesa Olivo" → "tablero-mesa-olivo", "Artesanía Cuenco" → "artesania-cuenco"
+     */
+    public static function generateProductSlug(string $text): string
+    {
+        $text = strtr($text, self::TRANSLITERATIONS);
+        $text = strtolower($text);
+        $text = preg_replace('/[^a-z0-9\s-]/', '', $text);
+        $text = preg_replace('/[\s-]+/', '-', $text);
+        $text = trim($text, '-');
         return $text;
     }
 
@@ -352,6 +367,7 @@ class StoreFront extends Controller
 
             $productObj = (object) [
                 'referencia' => $p->referencia,
+                'slug' => self::generateProductSlug($p->descripcion),
                 'name' => $p->descripcion,
                 'description' => $p->observaciones ?? '',
                 'price' => $p->precio,
