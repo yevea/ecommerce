@@ -40,7 +40,7 @@
                     "@type": "Offer",
                     "price": "{{ product.price }}",
                     "priceCurrency": "EUR",
-                    "availability": "{% if product.isSold is defined and product.isSold %}https://schema.org/SoldOut{% elseif product.familyType is defined and product.familyType == 'tableros' %}https://schema.org/InStock{% elseif product.stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+                    "availability": "{% if product.isSold is defined and product.isSold %}https://schema.org/SoldOut{% elseif product.nostock is defined and product.nostock %}https://schema.org/InStock{% elseif product.stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
                     "areaServed": {
                         "@type": "Place",
                         "name": "European Union"
@@ -160,9 +160,8 @@
                             {% if product.isSold is defined and product.isSold %}
                             <link itemprop="availability" href="https://schema.org/SoldOut">
                             <span class="badge bg-warning text-dark">{{ trans('sold') }}</span>
-                            {% elseif product.familyType is defined and product.familyType == 'tableros' %}
+                            {% elseif product.nostock is defined and product.nostock %}
                             <link itemprop="availability" href="https://schema.org/InStock">
-                            {# Tableros: stock not controlled, no badge shown #}
                             {% elseif product.stock > 0 %}
                             <link itemprop="availability" href="https://schema.org/InStock">
                             <span class="badge bg-success">{{ trans('in-stock') }}</span>

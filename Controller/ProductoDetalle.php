@@ -90,6 +90,7 @@ class ProductoDetalle extends StoreFront
             'description' => $p->observaciones ?? '',
             'price' => $p->precio,
             'stock' => $p->stockfis,
+            'nostock' => (bool) ($p->nostock ?? false),
             'image' => $p->imagen ?? null,
             'familyType' => $this->familyType,
             'isSold' => $isSold,

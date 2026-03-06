@@ -2,9 +2,6 @@
 <view>
     <columns>
         <group name="advanced">
-            <column name="public" order="110">
-                <widget type="checkbox" fieldname="publica"/>
-            </column>
             <column name="family-type" numcolumns="12" order="115">
                 <widget type="select" fieldname="tipofamilia">
                     <values title="mercancia">mercancia</values>
