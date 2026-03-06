@@ -75,6 +75,28 @@ class StoreFront extends Controller
         return number_format($amount, 2, ',', '.') . ' €';
     }
 
+    /**
+     * Generate a PascalCase URL slug from a category name.
+     * E.g. "Tableros Mesa" → "TablerosMesa", "Artesanía" → "Artesania"
+     */
+    public static function generateSlug(string $text): string
+    {
+        $transliterations = [
+            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
+            'ñ' => 'n', 'ü' => 'u',
+            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U',
+            'Ñ' => 'N', 'Ü' => 'U',
+            'à' => 'a', 'è' => 'e', 'ì' => 'i', 'ò' => 'o', 'ù' => 'u',
+            'â' => 'a', 'ê' => 'e', 'î' => 'i', 'ô' => 'o', 'û' => 'u',
+            'ä' => 'a', 'ë' => 'e', 'ï' => 'i', 'ö' => 'o',
+            'ç' => 'c', 'ß' => 'ss',
+        ];
+        $text = strtr($text, $transliterations);
+        $text = preg_replace('/[^a-zA-Z0-9\s]/', '', $text);
+        $text = str_replace(' ', '', ucwords($text));
+        return $text;
+    }
+
     protected function addToCart(): void
     {
         $productReferencia = $this->request()->request->get('product_referencia', '');

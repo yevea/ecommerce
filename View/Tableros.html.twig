@@ -3,6 +3,8 @@
 {% block navbar %}{% endblock %}
 
 {% block body %}
+{% block category_custom_css %}{% endblock %}
+
 {# Schema.org structured data for AI agents and search engines #}
 <script type="application/ld+json">
 {
@@ -52,10 +54,13 @@
 </script>
 
 <div class="container mt-4">
+    {% block category_header %}
     <h1 class="mb-4">
         <i class="fa-solid fa-store"></i> {% if fsc.selectedCategoryFamily %}{{ fsc.selectedCategoryFamily.descripcion }}{% else %}{{ trans('tableros') }}{% endif %}
     </h1>
+    {% endblock %}
 
+    {% block category_nav %}
     {% if fsc.categories is not empty %}
     <div class="row mb-3">
         <div class="col-12">
@@ -64,7 +69,7 @@
                     {{ trans('all') }}
                 </a>
                 {% for cat in fsc.categories %}
-                <a href="{{ asset('Tableros') }}?category={{ cat.codfamilia }}" class="btn btn-outline-primary {% if fsc.selectedCategory == cat.codfamilia %}active{% endif %}">
+                <a href="{{ asset('Tableros') }}?cat={{ fsc.slugMap[cat.codfamilia] | default(cat.codfamilia) }}" class="btn btn-outline-primary {% if fsc.selectedCategory == cat.codfamilia %}active{% endif %}">
                     {{ cat.descripcion }}
                 </a>
                 {% endfor %}
@@ -72,14 +77,18 @@
         </div>
     </div>
     {% endif %}
+    {% endblock %}
 
+    {% block category_intro %}{% endblock %}
+
+    {% block category_filters %}
     {# Dimension filters for Tablones category #}
     {% if fsc.selectedCategoryType == 'tablones' %}
     <div class="card mb-3">
         <div class="card-body">
             <h6 class="card-title"><i class="fa-solid fa-filter"></i> {{ trans('filter-dimensions') }}</h6>
             <form method="get" action="{{ asset('Tableros') }}">
-                <input type="hidden" name="category" value="{{ fsc.selectedCategory }}">
+                <input type="hidden" name="cat" value="{{ fsc.categorySlug }}">
                 <div class="row g-2 align-items-end">
                     <div class="col-md-2">
                         <label class="form-label small">{{ trans('largo') }}</label>
@@ -109,7 +118,7 @@
                         <button type="submit" class="btn btn-sm btn-primary">
                             <i class="fa-solid fa-search"></i> {{ trans('filter-dimensions') }}
                         </button>
-                        <a href="{{ asset('Tableros') }}?category={{ fsc.selectedCategory }}" class="btn btn-sm btn-outline-secondary">
+                        <a href="{{ asset('Tableros') }}?cat={{ fsc.categorySlug }}" class="btn btn-sm btn-outline-secondary">
                             <i class="fa-solid fa-times"></i>
                         </a>
                     </div>
@@ -118,7 +127,9 @@
         </div>
     </div>
     {% endif %}
+    {% endblock %}
 
+    {% block product_grid %}
     <div class="row">
         {% for product in fsc.products %}
         <div class="col-6 col-md-4 col-lg-3 mb-4">
@@ -172,6 +183,9 @@
         </div>
         {% endfor %}
     </div>
+    {% endblock %}
+
+    {% block category_outro %}{% endblock %}
 
     {% if fsc.cartItemCount > 0 %}
     <div class="fixed-bottom mb-3 me-3 text-end">
