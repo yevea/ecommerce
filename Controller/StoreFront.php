@@ -6,6 +6,7 @@ use FacturaScripts\Core\Model\Familia;
 use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
+use FacturaScripts\Core\Where;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 
 class StoreFront extends Controller
@@ -122,7 +123,7 @@ class StoreFront extends Controller
         $isPublic = false;
         $familyType = 'mercancia';
         $product = new Producto();
-        $where = [new \FacturaScripts\Core\Where('referencia', $productReferencia)];
+        $where = [Where::eq('referencia', $productReferencia)];
         if ($product->loadWhere($where)) {
             $isPublic = $product->publico;
             $familyType = $this->getFamilyTypeForProduct($product);
@@ -131,7 +132,7 @@ class StoreFront extends Controller
             $varianteClass = '\FacturaScripts\Core\Model\Variante';
             if (class_exists($varianteClass)) {
                 $variante = new $varianteClass();
-                $varWhere = [new \FacturaScripts\Core\Where('referencia', $productReferencia)];
+                $varWhere = [Where::eq('referencia', $productReferencia)];
                 if ($variante->loadWhere($varWhere)) {
                     $parent = new Producto();
                     if ($parent->loadFromCode($variante->idproducto)) {
@@ -170,8 +171,8 @@ class StoreFront extends Controller
 
         $cartItem = new EcommerceCartItem();
         $where = [
-            new \FacturaScripts\Core\Where('session_id', $sessionId),
-            new \FacturaScripts\Core\Where('product_referencia', $productReferencia),
+            Where::eq('session_id', $sessionId),
+            Where::eq('product_referencia', $productReferencia),
         ];
 
         // For Tableros, each dimension combination is a separate cart item
@@ -207,7 +208,7 @@ class StoreFront extends Controller
         }
 
         $product = new Producto();
-        $where = [new \FacturaScripts\Core\Where('referencia', $productReferencia)];
+        $where = [Where::eq('referencia', $productReferencia)];
         if (!$product->loadWhere($where)) {
             Tools::log()->error('product-not-found');
             return;
@@ -282,16 +283,14 @@ class StoreFront extends Controller
     {
         // Only show families that contain at least one public product
         $product = new Producto();
-        $wherePublic = [new \FacturaScripts\Core\Where('publico', true)];
-        $publicProducts = $product->all($wherePublic);
+        $publicProducts = $product->all([Where::eq('publico', true)], [], 0, 0);
 
         $familyCodes = [];
         foreach ($publicProducts as $p) {
             if (!empty($p->codfamilia)) {
-                $familyCodes[] = $p->codfamilia;
+                $familyCodes[$p->codfamilia] = true;
             }
         }
-        $familyCodes = array_unique($familyCodes);
 
         if (empty($familyCodes)) {
             $this->categories = [];
@@ -299,8 +298,12 @@ class StoreFront extends Controller
         }
 
         $familia = new Familia();
-        $where = [new \FacturaScripts\Core\Where('codfamilia', $familyCodes, 'IN')];
-        $this->categories = $familia->all($where, ['descripcion' => 'ASC']);
+        $this->categories = $familia->all(
+            [Where::in('codfamilia', array_keys($familyCodes))],
+            ['descripcion' => 'ASC'],
+            0,
+            0
+        );
     }
 
     protected function loadSelectedCategoryType(): void
@@ -331,13 +334,13 @@ class StoreFront extends Controller
     protected function loadProducts(): void
     {
         $product = new Producto();
-        $where = [new \FacturaScripts\Core\Where('publico', true)];
+        $where = [Where::eq('publico', true)];
 
         if ($this->selectedCategory !== null) {
-            $where[] = new \FacturaScripts\Core\Where('codfamilia', $this->selectedCategory);
+            $where[] = Where::eq('codfamilia', $this->selectedCategory);
         }
 
-        $nativeProducts = $product->all($where, ['descripcion' => 'ASC']);
+        $nativeProducts = $product->all($where, ['descripcion' => 'ASC'], 0, 0);
 
         // Build a map of family codes to types for efficient lookup
         $familyTypeMap = [];
@@ -350,7 +353,7 @@ class StoreFront extends Controller
         foreach ($nativeProducts as $p) {
             $imageUrl = null;
             if (class_exists($imgModelClass)) {
-                $imgWhere = [new \FacturaScripts\Core\Where('idproducto', $p->idproducto)];
+                $imgWhere = [Where::eq('idproducto', $p->idproducto)];
                 $images = (new $imgModelClass())->all($imgWhere, ['orden' => 'ASC'], 0, 1);
                 if (!empty($images)) {
                     $imageUrl = $images[0]->url('download-permanent');
@@ -386,7 +389,7 @@ class StoreFront extends Controller
     protected function loadCartItemCount(): void
     {
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', $this->getSessionId())];
+        $where = [Where::eq('session_id', $this->getSessionId())];
         $items = $cartItem->all($where);
         $this->cartItemCount = 0;
         foreach ($items as $item) {

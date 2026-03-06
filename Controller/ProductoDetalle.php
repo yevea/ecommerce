@@ -4,6 +4,7 @@ namespace FacturaScripts\Plugins\ecommerce\Controller;
 use FacturaScripts\Core\Model\Familia;
 use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Tools;
+use FacturaScripts\Core\Where;
 
 class ProductoDetalle extends StoreFront
 {
@@ -58,8 +59,7 @@ class ProductoDetalle extends StoreFront
     private function loadProductBySlug(string $slug): void
     {
         $product = new Producto();
-        $where = [new \FacturaScripts\Core\Where('publico', true)];
-        foreach ($product->all($where) as $p) {
+        foreach ($product->all([Where::eq('publico', true)], [], 0, 0) as $p) {
             if (self::generateProductSlug($p->descripcion) === $slug) {
                 $this->loadProduct($p->referencia);
                 return;
@@ -70,7 +70,7 @@ class ProductoDetalle extends StoreFront
     private function loadProduct(string $referencia): void
     {
         $p = new Producto();
-        $where = [new \FacturaScripts\Core\Where('referencia', $referencia)];
+        $where = [Where::eq('referencia', $referencia)];
         if (!$p->loadWhere($where) || !$p->publico) {
             return;
         }
@@ -137,14 +137,14 @@ class ProductoDetalle extends StoreFront
             $varianteClass = '\FacturaScripts\Core\Model\Variante';
             if (class_exists($varianteClass)) {
                 $varianteModel = new $varianteClass();
-                $varWhere = [new \FacturaScripts\Core\Where('idproducto', $p->idproducto)];
+                $varWhere = [Where::eq('idproducto', $p->idproducto)];
                 foreach ($varianteModel->all($varWhere, [], 0, 0) as $v) {
                     $refToIdvariante[$v->referencia] = $v->idvariante;
                 }
             }
 
             $imgModel = new $modelClass();
-            $where = [new \FacturaScripts\Core\Where('idproducto', $p->idproducto)];
+            $where = [Where::eq('idproducto', $p->idproducto)];
             $images = $imgModel->all($where, ['orden' => 'ASC']);
             foreach ($images as $img) {
                 $idvariante = null;
@@ -188,8 +188,8 @@ class ProductoDetalle extends StoreFront
         }
 
         $variante = new $varianteClass();
-        $where = [new \FacturaScripts\Core\Where('idproducto', $p->idproducto)];
-        $variants = $variante->all($where, ['referencia' => 'ASC']);
+        $where = [Where::eq('idproducto', $p->idproducto)];
+        $variants = $variante->all($where, ['referencia' => 'ASC'], 0, 0);
 
         // For Tableros, always build variant list (even single variant) for thickness selection
         $isTablones = $this->familyType === 'tablones';

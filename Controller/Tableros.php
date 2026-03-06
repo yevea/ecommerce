@@ -2,6 +2,7 @@
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Model\Familia;
+use FacturaScripts\Core\Where;
 
 class Tableros extends StoreFront
 {
@@ -75,7 +76,7 @@ class Tableros extends StoreFront
     private function preResolveSlugToCategory(string $slug): void
     {
         $familia = new Familia();
-        foreach ($familia->all([], ['descripcion' => 'ASC']) as $fam) {
+        foreach ($familia->all([], ['descripcion' => 'ASC'], 0, 0) as $fam) {
             $familySlug = parent::generateSlug($fam->descripcion);
             if ($familySlug === $slug) {
                 $this->request()->query->set('category', $fam->codfamilia);
@@ -289,8 +290,8 @@ TWIG;
         foreach ($this->products as $product) {
             // Check if any variant of this product matches the dimension filters
             $variante = new $varianteClass();
-            $varWhere = [new \FacturaScripts\Core\Where('idproducto', $product->idproducto)];
-            $variants = $variante->all($varWhere);
+            $varWhere = [Where::eq('idproducto', $product->idproducto)];
+            $variants = $variante->all($varWhere, [], 0, 0);
 
             $matches = false;
             foreach ($variants as $v) {
