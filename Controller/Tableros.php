@@ -61,6 +61,7 @@ class Tableros extends StoreFront
             $categoryTemplate = 'Tableros/' . $this->categorySlug . '.html.twig';
             $templatePath = $this->getCategoryTemplatePath($this->categorySlug);
             if (file_exists($templatePath)) {
+                $this->deployCategoryTemplate($this->categorySlug);
                 $template = $categoryTemplate;
             }
         }
@@ -108,6 +109,45 @@ class Tableros extends StoreFront
                 self::createCategoryTemplate($slug, $cat->descripcion);
             }
         }
+    }
+
+    /**
+     * Deploy a category template from the plugin View directory to the
+     * Dinamic/View directory so the Twig loader picks up the latest content.
+     * This ensures that edits to files in Plugins/ecommerce/View/Tableros/
+     * are reflected on the rendered page.
+     */
+    private function deployCategoryTemplate(string $slug): void
+    {
+        $sourcePath = $this->getCategoryTemplatePath($slug);
+        if (!file_exists($sourcePath)) {
+            return;
+        }
+
+        $dinamicDir = self::ensureDinamicViewDir();
+        if ($dinamicDir === null) {
+            return;
+        }
+
+        $dinamicPath = $dinamicDir . '/' . $slug . '.html.twig';
+
+        // Copy if the deployed version is missing or the source file is newer
+        if (!file_exists($dinamicPath) || filemtime($sourcePath) > filemtime($dinamicPath)) {
+            copy($sourcePath, $dinamicPath);
+        }
+    }
+
+    /**
+     * Ensure the Dinamic/View/Tableros directory exists and return its path.
+     * Returns null if the directory could not be created.
+     */
+    private static function ensureDinamicViewDir(): ?string
+    {
+        $dinamicDir = FS_FOLDER . '/Dinamic/View/Tableros';
+        if (!is_dir($dinamicDir) && !mkdir($dinamicDir, 0750, true)) {
+            return null;
+        }
+        return $dinamicDir;
     }
 
     /**
@@ -195,7 +235,17 @@ class Tableros extends StoreFront
 #}
 TWIG;
 
-        return (bool) file_put_contents($path, $content);
+        $result = (bool) file_put_contents($path, $content);
+
+        // Deploy to Dinamic/View so the Twig loader can find it immediately
+        if ($result) {
+            $dinamicDir = self::ensureDinamicViewDir();
+            if ($dinamicDir !== null) {
+                copy($path, $dinamicDir . '/' . $slug . '.html.twig');
+            }
+        }
+
+        return $result;
     }
 
     protected function loadProducts(): void
