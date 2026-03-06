@@ -75,7 +75,7 @@ class Tableros extends StoreFront
     {
         $familia = new Familia();
         foreach ($familia->all([], ['descripcion' => 'ASC']) as $fam) {
-            $familySlug = self::generateSlug($fam->descripcion);
+            $familySlug = parent::generateSlug($fam->descripcion);
             if ($familySlug === $slug) {
                 $this->request()->query->set('category', $fam->codfamilia);
                 break;
@@ -90,7 +90,7 @@ class Tableros extends StoreFront
     {
         $this->slugMap = [];
         foreach ($this->categories as $cat) {
-            $slug = self::generateSlug($cat->descripcion);
+            $slug = parent::generateSlug($cat->descripcion);
             $this->slugMap[$cat->codfamilia] = $slug;
         }
     }
@@ -102,7 +102,7 @@ class Tableros extends StoreFront
     private function ensureAllCategoryTemplates(): void
     {
         foreach ($this->categories as $cat) {
-            $slug = $this->slugMap[$cat->codfamilia] ?? self::generateSlug($cat->descripcion);
+            $slug = $this->slugMap[$cat->codfamilia] ?? parent::generateSlug($cat->descripcion);
             $path = $this->getCategoryTemplatePath($slug);
             if (!file_exists($path)) {
                 self::createCategoryTemplate($slug, $cat->descripcion);
@@ -133,9 +133,13 @@ class Tableros extends StoreFront
      */
     public static function createCategoryTemplate(string $slug, string $categoryName): bool
     {
+        if (empty($slug)) {
+            return false;
+        }
+
         $dir = self::getCategoryTemplateDir();
         if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+            mkdir($dir, 0750, true);
         }
 
         $path = $dir . '/' . $slug . '.html.twig';
