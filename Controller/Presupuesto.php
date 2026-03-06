@@ -5,6 +5,7 @@ use FacturaScripts\Core\Lib\AssetManager;
 use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
+use FacturaScripts\Core\Where;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrder;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrderLine;
@@ -123,7 +124,7 @@ class Presupuesto extends Controller
         $sessionId = $this->getSessionId();
 
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', $sessionId)];
+        $where = [Where::eq('session_id', $sessionId)];
         $items = $cartItem->all($where);
 
         if (empty($items)) {
@@ -208,7 +209,7 @@ class Presupuesto extends Controller
         }
 
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', $sessionId)];
+        $where = [Where::eq('session_id', $sessionId)];
         $items = $cartItem->all($where);
 
         $order = new EcommerceOrder();
@@ -376,7 +377,7 @@ class Presupuesto extends Controller
         if (!empty($email)) {
             /** @var \FacturaScripts\Dinamic\Model\Cliente $existing */
             $existing = new (self::CLIENTE_CLASS)();
-            $where = [new \FacturaScripts\Core\Where('email', $email)];
+            $where = [Where::eq('email', $email)];
             if ($existing->loadWhere($where)) {
                 return $existing;
             }
@@ -415,7 +416,7 @@ class Presupuesto extends Controller
 
         $sessionId = $this->getSessionId();
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', $sessionId)];
+        $where = [Where::eq('session_id', $sessionId)];
         $items = $cartItem->all($where);
 
         if (empty($items)) {
@@ -443,7 +444,7 @@ class Presupuesto extends Controller
             if (!empty($presupuesto->email) && class_exists(self::CLIENTE_CLASS)) {
                 /** @var \FacturaScripts\Dinamic\Model\Cliente $existing */
                 $existing = new (self::CLIENTE_CLASS)();
-                $clienteWhere = [new \FacturaScripts\Core\Where('email', $presupuesto->email)];
+                $clienteWhere = [Where::eq('email', $presupuesto->email)];
                 if ($existing->loadWhere($clienteWhere)) {
                     $presupuesto->codcliente = $existing->codcliente;
                 }
@@ -610,7 +611,7 @@ class Presupuesto extends Controller
         $this->cartImpuestos = 0;
 
         $cartItem = new EcommerceCartItem();
-        $where = [new \FacturaScripts\Core\Where('session_id', $sessionId)];
+        $where = [Where::eq('session_id', $sessionId)];
         $items = $cartItem->all($where);
 
         foreach ($items as $item) {
@@ -672,7 +673,7 @@ class Presupuesto extends Controller
         // Prefer variant lookup so we can always build the full name with attributes
         if (class_exists($varianteClass)) {
             $variante = new $varianteClass();
-            $varWhere = [new \FacturaScripts\Core\Where('referencia', $referencia)];
+            $varWhere = [Where::eq('referencia', $referencia)];
             if ($variante->loadWhere($varWhere)) {
                 $parent = new Producto();
                 if ($parent->loadFromCode($variante->idproducto)) {
@@ -690,7 +691,7 @@ class Presupuesto extends Controller
 
         // Fall back to direct Producto lookup (e.g. single-variant products or when Variante model unavailable)
         $product = new Producto();
-        $where = [new \FacturaScripts\Core\Where('referencia', $referencia)];
+        $where = [Where::eq('referencia', $referencia)];
         if ($product->loadWhere($where)) {
             return (object) [
                 'name' => $product->descripcion,
