@@ -131,8 +131,19 @@ class Tableros extends StoreFront
 
         $dinamicPath = $dinamicDir . '/' . $slug . '.html.twig';
 
-        // Copy if the deployed version is missing or the source file is newer
-        if (!file_exists($dinamicPath) || filemtime($sourcePath) > filemtime($dinamicPath)) {
+        if (!file_exists($dinamicPath)) {
+            copy($sourcePath, $dinamicPath);
+            return;
+        }
+
+        // Clear PHP's stat cache to ensure we get fresh file modification times
+        clearstatcache(true, $sourcePath);
+        clearstatcache(true, $dinamicPath);
+
+        // Copy if the source file is newer or the file contents differ
+        if (filemtime($sourcePath) > filemtime($dinamicPath)
+            || filesize($sourcePath) !== filesize($dinamicPath)
+            || md5_file($sourcePath) !== md5_file($dinamicPath)) {
             copy($sourcePath, $dinamicPath);
         }
     }
