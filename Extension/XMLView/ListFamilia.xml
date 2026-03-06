@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <view>
     <columns>
-        <column name="public" display="center" order="165">
-            <widget type="checkbox" fieldname="publica"/>
-        </column>
     </columns>
 </view>

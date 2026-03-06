@@ -21,15 +21,13 @@ namespace FacturaScripts\Plugins\ecommerce\Extension\Controller;
 
 use Closure;
 use FacturaScripts\Core\Model\Familia;
-use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Where;
 use FacturaScripts\Dinamic\Model\AttachedFileRelation;
 use FacturaScripts\Dinamic\Model\ProductoImagen;
 
 /**
- * Extension for EditProducto controller to fix observations on product images,
- * auto-set nostock for Tableros family products, and hide dimension fields
- * (largo, ancho, espesor) for non-tablones families.
+ * Extension for EditProducto controller to fix observations on product images
+ * and hide dimension fields (largo, ancho, espesor) for non-tablones families.
  *
  * Fixes two issues:
  * 1. When images are uploaded via the Imágenes tab, their AttachedFileRelation records
@@ -68,42 +66,6 @@ class EditProducto
         return function ($action) {
             if ($action === 'add-image') {
                 $this->fixImageFileRelations();
-            }
-            if (in_array($action, ['edit', 'insert'])) {
-                $this->ensureTablerosNoStock();
-            }
-        };
-    }
-
-    /**
-     * For products in a Tableros family, automatically set nostock = true.
-     */
-    protected function ensureTablerosNoStock(): Closure
-    {
-        return function () {
-            $code = $this->request->query->get('code', '');
-            if (empty($code)) {
-                $code = $this->request->request->get('code', '');
-            }
-            if (empty($code)) {
-                return;
-            }
-
-            $producto = new Producto();
-            if (!$producto->loadFromCode($code)) {
-                return;
-            }
-
-            if (empty($producto->codfamilia)) {
-                return;
-            }
-
-            $familia = new Familia();
-            if ($familia->loadFromCode($producto->codfamilia) && ($familia->tipofamilia ?? '') === 'tableros') {
-                if (!$producto->nostock) {
-                    $producto->nostock = true;
-                    $producto->save();
-                }
             }
         };
     }

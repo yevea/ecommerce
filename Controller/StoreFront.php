@@ -372,6 +372,7 @@ class StoreFront extends Controller
                 'description' => $p->observaciones ?? '',
                 'price' => $p->precio,
                 'stock' => $p->stockfis,
+                'nostock' => (bool) ($p->nostock ?? false),
                 'image' => $imageUrl,
                 'familyType' => $familyType,
                 'isSold' => $isSold,

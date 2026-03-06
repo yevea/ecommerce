@@ -33,7 +33,7 @@
             "priceCurrency": "EUR",
             {% if fsc.familyType == 'tableros' %}"unitCode": "MTK",
             "unitText": "m²",{% endif %}
-            "availability": "{% if fsc.familyType == 'artesania' and fsc.product.isSold %}https://schema.org/SoldOut{% elseif fsc.familyType == 'tableros' %}https://schema.org/InStock{% elseif (fsc.defaultVariant ? fsc.defaultVariant.stock : fsc.product.stock) > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+            "availability": "{% if fsc.familyType == 'artesania' and fsc.product.isSold %}https://schema.org/SoldOut{% elseif fsc.product.nostock %}https://schema.org/InStock{% elseif (fsc.defaultVariant ? fsc.defaultVariant.stock : fsc.product.stock) > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
             "areaServed": [
                 {"@type": "Country", "name": "Spain"},
                 {"@type": "Country", "name": "France"},
@@ -133,8 +133,7 @@
                 </span>
                 {% if fsc.familyType == 'artesania' and fsc.product.isSold %}
                 <span id="variant-stock-badge" class="badge bg-warning text-dark fs-6">{{ trans('sold') }}</span>
-                {% elseif fsc.familyType == 'tableros' %}
-                {# Tableros: stock is not controlled, no badge shown #}
+                {% elseif fsc.product.nostock %}
                 <span id="variant-stock-badge"></span>
                 {% elseif currentStock > 0 %}
                 <span id="variant-stock-badge" class="badge bg-success fs-6">{{ trans('in-stock') }}</span>
@@ -216,7 +215,7 @@
 
             {# === TABLEROS: custom dimension input === #}
             {% elseif fsc.familyType == 'tableros' %}
-            {% set showForm = true %}{# Tableros: stock not controlled, always show form #}
+            {% set showForm = fsc.product.nostock or fsc.product.stock > 0 %}
             {% if showForm %}
             <form method="post" action="{{ asset('ProductoDetalle') }}?url={{ fsc.product.slug }}" id="tableros-form">
                 <input type="hidden" name="action" value="add-to-cart">
@@ -270,7 +269,7 @@
 
             {# === NORMAL / MERCANCÍA / TABLONES: standard add to cart === #}
             {% else %}
-            {% set showForm = fsc.productVariants is not empty or fsc.product.stock > 0 %}
+            {% set showForm = fsc.productVariants is not empty or fsc.product.stock > 0 or fsc.product.nostock %}
             {% if showForm %}
             <form method="post" action="{{ asset('ProductoDetalle') }}?url={{ fsc.product.slug }}">
                 <input type="hidden" name="action" value="add-to-cart">
@@ -281,14 +280,14 @@
                 {% if fsc.familyType != 'artesania' %}
                 <div class="input-group mb-3" style="max-width: 200px;">
                     <label class="input-group-text" for="qty">{{ trans('quantity') }}</label>
-                    <input type="number" id="qty" name="quantity" value="1" min="1" max="{{ currentStock }}" class="form-control">
+                    <input type="number" id="qty" name="quantity" value="1" min="1" {% if fsc.product.nostock %}max="999"{% else %}max="{{ currentStock }}"{% endif %} class="form-control">
                 </div>
                 {% else %}
                 <input type="hidden" name="quantity" value="1">
                 {% endif %}
 
                 <button type="submit" id="add-to-cart-btn" class="btn btn-primary btn-lg"
-                    {% if currentStock <= 0 %}disabled{% endif %}>
+                    {% if not fsc.product.nostock and currentStock <= 0 %}disabled{% endif %}>
                     <i class="fa-solid fa-cart-plus"></i> {{ trans('add-to-presupuesto') }}
                 </button>
             </form>
