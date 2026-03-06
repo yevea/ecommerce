@@ -1,10 +1,18 @@
 <?php
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
+use FacturaScripts\Core\Model\Familia;
+
 class Tableros extends StoreFront
 {
     /** @var array Dimension filter values for Tablones */
     public $dimensionFilters = [];
+
+    /** @var string|null Current category slug (e.g. "TablerosMesa") */
+    public $categorySlug = null;
+
+    /** @var array Map of codfamilia => slug for all categories */
+    public $slugMap = [];
 
     public function getPageData(): array
     {
@@ -25,7 +33,169 @@ class Tableros extends StoreFront
             'espesor_max' => $this->request()->query->get('espesor_max', ''),
         ];
 
+        // Pre-resolve slug-based category parameter (?cat=SlugName)
+        // into the standard ?category= parameter before parent::run()
+        $catSlug = $this->request()->query->get('cat', null);
+        if ($catSlug !== null) {
+            $this->preResolveSlugToCategory($catSlug);
+        }
+
+        // Disable auto-rendering so we can select the template
+        $this->autoRenderView = false;
         parent::run();
+
+        // Build slug maps from the loaded categories
+        $this->buildSlugMaps();
+
+        // Set the current category slug
+        if ($this->selectedCategory !== null) {
+            $this->categorySlug = $this->slugMap[$this->selectedCategory] ?? null;
+        }
+
+        // Ensure per-category template files exist
+        $this->ensureAllCategoryTemplates();
+
+        // Render: use per-category template if a category is selected, else base template
+        $template = 'Tableros.html.twig';
+        if ($this->categorySlug !== null) {
+            $categoryTemplate = 'Tableros/' . $this->categorySlug . '.html.twig';
+            $templatePath = $this->getCategoryTemplatePath($this->categorySlug);
+            if (file_exists($templatePath)) {
+                $template = $categoryTemplate;
+            }
+        }
+        $this->view($template);
+    }
+
+    /**
+     * Resolve a slug (from ?cat= parameter) to a codfamilia and set it
+     * as the category query parameter so parent::run() filters products.
+     */
+    private function preResolveSlugToCategory(string $slug): void
+    {
+        $familia = new Familia();
+        foreach ($familia->all([], ['descripcion' => 'ASC']) as $fam) {
+            $familySlug = parent::generateSlug($fam->descripcion);
+            if ($familySlug === $slug) {
+                $this->request()->query->set('category', $fam->codfamilia);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Build maps: codfamilia => slug for URL generation in templates.
+     */
+    private function buildSlugMaps(): void
+    {
+        $this->slugMap = [];
+        foreach ($this->categories as $cat) {
+            $slug = parent::generateSlug($cat->descripcion);
+            $this->slugMap[$cat->codfamilia] = $slug;
+        }
+    }
+
+    /**
+     * Ensure a Twig template file exists for every loaded category.
+     * Creates the View/Tableros/ directory and per-category files as needed.
+     */
+    private function ensureAllCategoryTemplates(): void
+    {
+        foreach ($this->categories as $cat) {
+            $slug = $this->slugMap[$cat->codfamilia] ?? parent::generateSlug($cat->descripcion);
+            $path = $this->getCategoryTemplatePath($slug);
+            if (!file_exists($path)) {
+                self::createCategoryTemplate($slug, $cat->descripcion);
+            }
+        }
+    }
+
+    /**
+     * Get the filesystem path for a category template.
+     */
+    private function getCategoryTemplatePath(string $slug): string
+    {
+        return self::getCategoryTemplateDir() . '/' . $slug . '.html.twig';
+    }
+
+    /**
+     * Get the directory where category templates are stored.
+     */
+    public static function getCategoryTemplateDir(): string
+    {
+        return FS_FOLDER . '/Plugins/ecommerce/View/Tableros';
+    }
+
+    /**
+     * Create a per-category Twig template file.
+     * The template extends Tableros.html.twig and provides override blocks
+     * that the user can edit to customize each category's appearance.
+     */
+    public static function createCategoryTemplate(string $slug, string $categoryName): bool
+    {
+        if (empty($slug)) {
+            return false;
+        }
+
+        $dir = self::getCategoryTemplateDir();
+        if (!is_dir($dir)) {
+            mkdir($dir, 0750, true);
+        }
+
+        $path = $dir . '/' . $slug . '.html.twig';
+        if (file_exists($path)) {
+            return false;
+        }
+
+        $safeName = htmlspecialchars($categoryName, ENT_QUOTES);
+
+        $content = <<<TWIG
+{#
+    ---------------------------------------------------------------
+    Category page: $safeName
+    ---------------------------------------------------------------
+    Edit this file to customize the appearance of this category.
+    You can override the following blocks:
+
+    category_custom_css  - Add custom CSS styles for this category
+    category_header      - Customize the page title area
+    category_intro       - Add custom HTML before the product grid
+    category_outro       - Add custom HTML after the product grid
+
+    The product grid, navigation bar and dimension filters are
+    inherited automatically from the base Tableros template.
+    ---------------------------------------------------------------
+#}
+{% extends "Tableros.html.twig" %}
+
+{# -- Uncomment and edit any block below to customize this page -- #}
+
+{#
+{% block category_custom_css %}
+<style>
+    /* Custom styles for $safeName */
+</style>
+{% endblock %}
+#}
+
+{#
+{% block category_intro %}
+<div class="mb-4">
+    <p>Custom introduction for $safeName.</p>
+</div>
+{% endblock %}
+#}
+
+{#
+{% block category_outro %}
+<div class="mt-4">
+    <p>Additional content for $safeName.</p>
+</div>
+{% endblock %}
+#}
+TWIG;
+
+        return (bool) file_put_contents($path, $content);
     }
 
     protected function loadProducts(): void

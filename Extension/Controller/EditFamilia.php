@@ -21,6 +21,8 @@ namespace FacturaScripts\Plugins\ecommerce\Extension\Controller;
 
 use Closure;
 use FacturaScripts\Core\Lib\AssetManager;
+use FacturaScripts\Plugins\ecommerce\Controller\StoreFront;
+use FacturaScripts\Plugins\ecommerce\Controller\Tableros;
 
 /**
  * Extension for EditFamilia controller.
@@ -29,6 +31,7 @@ use FacturaScripts\Core\Lib\AssetManager;
  *   server-side when the family type is not "tableros".
  * - Registers a JavaScript asset for client-side dynamic toggling of the
  *   dimension-limits section based on the "Tipo de Familia" dropdown.
+ * - Auto-creates a per-category Twig template when a family is saved.
  */
 class EditFamilia
 {
@@ -51,6 +54,32 @@ class EditFamilia
                 foreach (['largo-min', 'largo-max', 'ancho-min', 'ancho-max'] as $col) {
                     $view->disableColumn($col);
                 }
+            }
+        };
+    }
+
+    protected function execAfterAction(): Closure
+    {
+        return function ($action) {
+            if ($action !== 'insert' && $action !== 'edit') {
+                return;
+            }
+
+            // After saving a family, ensure its category template exists
+            $viewName = 'EditFamilia';
+            if (!isset($this->views[$viewName])) {
+                return;
+            }
+
+            $model = $this->views[$viewName]->model;
+            $descripcion = $model->descripcion ?? '';
+            if (empty($descripcion)) {
+                return;
+            }
+
+            $slug = StoreFront::generateSlug($descripcion);
+            if (!empty($slug)) {
+                Tableros::createCategoryTemplate($slug, $descripcion);
             }
         };
     }
