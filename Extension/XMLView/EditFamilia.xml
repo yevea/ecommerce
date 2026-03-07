@@ -28,5 +28,16 @@
                 <widget type="number" fieldname="ancho_max" decimal="2" min="0"/>
             </column>
         </group>
+        <group name="category-content" numcolumns="12" title="category-content" order="300">
+            <column name="category-custom-css" numcolumns="12" order="310">
+                <widget type="textarea" fieldname="category_custom_css" rows="4"/>
+            </column>
+            <column name="category-intro" numcolumns="12" order="320">
+                <widget type="textarea" fieldname="category_intro" rows="6"/>
+            </column>
+            <column name="category-outro" numcolumns="12" order="330">
+                <widget type="textarea" fieldname="category_outro" rows="6"/>
+            </column>
+        </group>
     </columns>
 </view>

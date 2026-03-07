@@ -127,5 +127,9 @@
     "natural-material": "Natural material",
     "close": "Close",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "category-content": "Category Content",
+    "category-custom-css": "Custom Styles",
+    "category-intro": "Category Introduction",
+    "category-outro": "Final Notes"
 }

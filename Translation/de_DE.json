@@ -127,5 +127,9 @@
     "natural-material": "Natürliches Material",
     "close": "Schließen",
     "previous": "Zurück",
-    "next": "Weiter"
+    "next": "Weiter",
+    "category-content": "Kategorieinhalt",
+    "category-custom-css": "Benutzerdefinierte Stile",
+    "category-intro": "Kategorieeinführung",
+    "category-outro": "Abschlusshinweise"
 }
