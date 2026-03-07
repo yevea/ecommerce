@@ -95,7 +95,9 @@
                 <div class="carousel-inner" id="carousel-inner">
                     {% for img in fsc.productImages %}
                     <div class="carousel-item {% if loop.first %}active{% endif %}" data-idvariante="{{ img.idvariante ?? '' }}">
-                        <img src="{{ img.url }}" class="d-block w-100 rounded" alt="{{ img.alt }}" style="max-height: 400px; object-fit: contain; background:#f8f9fa;">
+                        <img src="{{ img.url }}" class="d-block w-100 rounded" alt="{{ img.alt }}"
+                             style="max-height: 400px; object-fit: contain; background:#f8f9fa; cursor: zoom-in;"
+                             onclick="openLightbox(this.src, this.alt)">
                     </div>
                     {% endfor %}
                 </div>
@@ -105,6 +107,25 @@
                 <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next" id="carousel-next">
                     <span class="carousel-control-next-icon"></span>
                 </button>
+            </div>
+            {# Lightbox modal for full-size image viewing #}
+            <div class="modal fade" id="imageLightbox" tabindex="-1" aria-label="{{ trans('image') }}" aria-hidden="true">
+                <div class="modal-dialog modal-fullscreen">
+                    <div class="modal-content bg-dark bg-opacity-75" onclick="handleLightboxBackdropClick(event)">
+                        <div class="modal-header border-0 position-absolute w-100" style="z-index:1;">
+                            <button type="button" class="btn-close btn-close-white ms-auto" aria-label="{{ trans('close') }}" onclick="closeLightbox()"></button>
+                        </div>
+                        <div class="modal-body d-flex align-items-center justify-content-center p-0">
+                            <button type="button" class="lightbox-nav lightbox-prev" aria-label="{{ trans('previous') }}" onclick="lightboxNavigate(-1)">
+                                <i class="fa-solid fa-chevron-left fa-2x"></i>
+                            </button>
+                            <img id="lightboxImage" src="" alt="" class="lightbox-img">
+                            <button type="button" class="lightbox-nav lightbox-next" aria-label="{{ trans('next') }}" onclick="lightboxNavigate(1)">
+                                <i class="fa-solid fa-chevron-right fa-2x"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
             {% else %}
             <div class="bg-light d-flex align-items-center justify-content-center rounded mb-3" id="no-image-placeholder" style="height: 300px;">
@@ -310,8 +331,8 @@
                 {% for img in fsc.productImages %}
                 <div class="gallery-item" data-idvariante="{{ img.idvariante ?? '' }}" style="max-width: 400px;">
                     <img src="{{ img.url }}" class="img-thumbnail w-100" alt="{{ img.alt }}"
-                         style="object-fit: cover; cursor: pointer;"
-                         onclick="scrollCarouselTo({{ loop.index0 }})">
+                         style="object-fit: cover; cursor: zoom-in;"
+                         onclick="openLightbox(this.src, this.alt)">
                     {% if img.description is not empty %}
                     <p class="mt-1 mb-0 text-muted small">{{ img.description }}</p>
                     {% endif %}
@@ -620,5 +641,69 @@ function scrollCarouselTo(index) {
 // On page load all images are shown (server-side rendering already initialises
 // price, stock, title and referencia correctly for the default variant).
 // Images are filtered only when the user explicitly selects a variant.
+
+/* ── Lightbox (fullscreen image viewer) ─────────────────────── */
+var lightboxModal = null;
+var lightboxCurrentSrc = '';
+
+function getVisibleImages() {
+    var inner = document.getElementById('carousel-inner');
+    if (!inner) return [];
+    return Array.from(inner.querySelectorAll('.carousel-item')).filter(function(el) {
+        return el.style.display !== 'none';
+    }).map(function(el) {
+        var img = el.querySelector('img');
+        return img ? {src: img.src, alt: img.alt} : null;
+    }).filter(Boolean);
+}
+
+function openLightbox(src, alt) {
+    var imgEl = document.getElementById('lightboxImage');
+    if (!imgEl) return;
+    imgEl.src = src;
+    imgEl.alt = alt || '';
+    lightboxCurrentSrc = src;
+    var images = getVisibleImages();
+    var prev = document.querySelector('.lightbox-prev');
+    var next = document.querySelector('.lightbox-next');
+    if (prev) prev.style.display = images.length > 1 ? '' : 'none';
+    if (next) next.style.display = images.length > 1 ? '' : 'none';
+    if (!lightboxModal) {
+        lightboxModal = new bootstrap.Modal(document.getElementById('imageLightbox'), {keyboard: true});
+    }
+    lightboxModal.show();
+}
+
+function closeLightbox() {
+    if (lightboxModal) lightboxModal.hide();
+}
+
+function handleLightboxBackdropClick(event) {
+    if (event.target === event.currentTarget || event.target.classList.contains('modal-body')) {
+        closeLightbox();
+    }
+}
+
+function lightboxNavigate(direction) {
+    var images = getVisibleImages();
+    if (images.length < 2) return;
+    var srcs = images.map(function(img) { return img.src; });
+    var idx = srcs.indexOf(lightboxCurrentSrc);
+    if (idx === -1) idx = 0;
+    idx = (idx + direction + images.length) % images.length;
+    var imgEl = document.getElementById('lightboxImage');
+    if (imgEl) {
+        imgEl.src = images[idx].src;
+        imgEl.alt = images[idx].alt;
+        lightboxCurrentSrc = images[idx].src;
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    var modal = document.getElementById('imageLightbox');
+    if (!modal || !modal.classList.contains('show')) return;
+    if (e.key === 'ArrowLeft') lightboxNavigate(-1);
+    else if (e.key === 'ArrowRight') lightboxNavigate(1);
+});
 </script>
 {% endblock %}

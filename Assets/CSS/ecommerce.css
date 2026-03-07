@@ -257,6 +257,41 @@ a:hover {
     filter: invert(0.5);
 }
 
+/* ── Image lightbox (fullscreen viewer) ─────────────────────── */
+#imageLightbox .modal-body {
+    position: relative;
+    overflow: hidden;
+}
+.lightbox-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    touch-action: pinch-zoom;
+    user-select: none;
+}
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #fff;
+    padding: 1rem;
+    cursor: pointer;
+    opacity: 0.7;
+    z-index: 2;
+    transition: opacity 0.2s;
+}
+.lightbox-nav:hover {
+    opacity: 1;
+}
+.lightbox-prev {
+    left: 0;
+}
+.lightbox-next {
+    right: 0;
+}
+
 /* ── Shadow tweaks ──────────────────────────────────────────── */
 .shadow-sm {
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.06) !important;
