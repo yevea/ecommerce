@@ -1,7 +1,7 @@
 {# Fixed site header – edit this single file to update the header on all pages #}
 <header id="ecommerce-header">
     <div class="container d-flex align-items-center">
-        <a href="/">{{ trans('sawmill') }} <img style="width:100px;height:25px;" src="https://yevea.com/001-vectores/logo-yevea-white.svg" alt="madera olivo - logo"><sup>®</sup></a>
+        <a href="/"><img style="width:100px;height:25px;" src="https://yevea.com/001-vectores/logo-yevea-white.svg" alt="madera olivo - logo"><sup>®</sup></a>
         <nav class="header-nav ms-auto d-flex align-items-center">
             {% if fsc.cartItemCount is defined and fsc.cartItemCount > 0 %}
             <a href="{{ asset('Presupuesto') }}" class="d-md-none me-3" title="{{ trans('view-presupuesto') }}" aria-label="{{ trans('view-presupuesto') }} ({{ fsc.cartItemCount }})">
