@@ -21,19 +21,16 @@ namespace FacturaScripts\Plugins\ecommerce\Extension\Controller;
 
 use Closure;
 use FacturaScripts\Core\Model\Familia;
+use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
+use FacturaScripts\Dinamic\Model\AttachedFile;
 use FacturaScripts\Dinamic\Model\AttachedFileRelation;
 use FacturaScripts\Dinamic\Model\ProductoImagen;
 
 /**
- * Extension for EditProducto controller to fix observations on product images
+ * Extension for EditProducto controller to fix observations on product images,
+ * save short descriptions (alt text) and rename uploaded files for SEO,
  * and hide dimension fields (largo, ancho, espesor) for non-tablones families.
- *
- * Fixes two issues:
- * 1. When images are uploaded via the Imágenes tab, their AttachedFileRelation records
- *    have modelid set but modelcode = null. This causes editFileAction() to fail the
- *    permission check when editing observations in the Archivos tab.
- * 2. There was no way to add observations when uploading a new image in the Imágenes tab.
  */
 class EditProducto
 {
@@ -79,6 +76,8 @@ class EditProducto
             }
 
             $observations = $this->request->input('observations', '');
+            $descripcionCorta = $this->request->input('descripcion_corta', '');
+            $nombreArchivo = trim($this->request->input('nombre_archivo', ''));
 
             // Find newly created file relations that have no modelcode yet (created by addImageAction)
             $fileRelation = new AttachedFileRelation();
@@ -88,19 +87,96 @@ class EditProducto
                 Where::eq('modelid', $idproducto),
                 Where::isNull('modelcode'),
             ];
+            $counter = 0;
             foreach ($fileRelation->all($where, [], 0, 0) as $relation) {
                 $relation->modelcode = (string)$idproducto;
                 $relation->observations = $observations;
                 $relation->save();
 
-                // Also save observations directly on the ProductoImagen record
-                if (!empty($observations) && $imgModel !== null) {
+                // Save observations and descripcion_corta on the ProductoImagen record
+                if ($imgModel !== null) {
                     $imgWhere = [Where::eq('idfile', $relation->idfile)];
                     foreach ($imgModel->all($imgWhere, [], 0, 0) as $img) {
-                        $img->observaciones = $observations;
+                        if (!empty($observations)) {
+                            $img->observaciones = $observations;
+                        }
+                        if (!empty($descripcionCorta)) {
+                            $img->descripcion_corta = $descripcionCorta;
+                        }
                         $img->save();
                     }
                 }
+
+                // Rename the uploaded file if a new name was provided
+                if (!empty($nombreArchivo)) {
+                    $this->renameAttachedFile($relation->idfile, $nombreArchivo, $counter);
+                    $counter++;
+                }
+            }
+        };
+    }
+
+    /**
+     * Rename an attached file to a keyword-rich SEO-friendly name.
+     */
+    protected function renameAttachedFile(): Closure
+    {
+        return function (int $idfile, string $newName, int $counter = 0) {
+            $attachedFile = new AttachedFile();
+            if (!$attachedFile->loadFromCode($idfile)) {
+                return;
+            }
+
+            // Sanitize the new name: lowercase, replace spaces with hyphens, remove special chars
+            $newName = strtolower(trim($newName));
+            $newName = str_replace(' ', '-', $newName);
+            $newName = preg_replace('/[^a-z0-9\-]/', '', $newName);
+            $newName = preg_replace('/-+/', '-', $newName);
+            $newName = trim($newName, '-');
+
+            if (empty($newName)) {
+                return;
+            }
+
+            // Get the original extension from the current path
+            $currentPath = $attachedFile->path;
+            $extension = pathinfo($currentPath, PATHINFO_EXTENSION);
+            $directory = pathinfo($currentPath, PATHINFO_DIRNAME);
+
+            // Add counter suffix for multiple files
+            $baseName = $counter > 0 ? $newName . '-' . ($counter + 1) : $newName;
+            $targetFilename = $baseName . '.' . $extension;
+            $targetPath = $directory . '/' . $targetFilename;
+
+            // Check if target path is already taken
+            $fullTargetPath = FS_FOLDER . '/' . $targetPath;
+            if (file_exists($fullTargetPath)) {
+                // Try with incrementing suffix
+                for ($i = 2; $i <= 100; $i++) {
+                    $targetFilename = $baseName . '-' . $i . '.' . $extension;
+                    $targetPath = $directory . '/' . $targetFilename;
+                    $fullTargetPath = FS_FOLDER . '/' . $targetPath;
+                    if (!file_exists($fullTargetPath)) {
+                        break;
+                    }
+                }
+                // If still exists after 100 attempts, skip rename
+                if (file_exists($fullTargetPath)) {
+                    Tools::log()->warning('Could not rename file to ' . $baseName . ': all name variants taken');
+                    return;
+                }
+            }
+
+            // Rename the physical file
+            $fullCurrentPath = FS_FOLDER . '/' . $currentPath;
+            if (!file_exists($fullCurrentPath)) {
+                return;
+            }
+
+            if (rename($fullCurrentPath, $fullTargetPath)) {
+                $attachedFile->path = $targetPath;
+                $attachedFile->filename = $targetFilename;
+                $attachedFile->save();
             }
         };
     }

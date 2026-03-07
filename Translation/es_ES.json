@@ -128,6 +128,10 @@
     "close": "Cerrar",
     "previous": "Anterior",
     "next": "Siguiente",
+    "short-description": "Descripción Corta (alt)",
+    "short-description-placeholder": "Descripción breve con palabras clave para SEO",
+    "rename-file": "Renombrar",
+    "rename-file-placeholder": "nombre-seo-con-palabras-clave (sin extensión)"
     "category-content": "Contenido de la Categoría",
     "category-custom-css": "Estilos Personalizados",
     "category-intro": "Introducción de la Categoría",

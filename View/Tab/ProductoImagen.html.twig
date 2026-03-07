@@ -38,6 +38,20 @@
                                 {{ trans('observations') }}
                                 <textarea name="observations" class="form-control mb-2"
                                           placeholder="{{ trans('observations') }}"></textarea>
+                                <div class="row g-2 mb-2">
+                                    <div class="col">
+                                        {{ trans('short-description') }}
+                                        <input type="text" name="descripcion_corta" class="form-control"
+                                               maxlength="300"
+                                               placeholder="{{ trans('short-description-placeholder') }}"/>
+                                    </div>
+                                    <div class="col">
+                                        {{ trans('rename-file') }}
+                                        <input type="text" name="nombre_archivo" class="form-control"
+                                               maxlength="90"
+                                               placeholder="{{ trans('rename-file-placeholder') }}"/>
+                                    </div>
+                                </div>
                                 {{ trans('images') }}
                                 <input type="file" name="newfiles[]" class="form-control" multiple=""
                                        accept="image/png, image/jpeg, image/gif" required/>
@@ -64,8 +78,11 @@
                 {% set border = image.referencia ? '' : 'border-primary' %}
                 <div class="card {{ border }} shadow">
                     <img src="{{ asset(image.url('download')) }}" class="card-img-top"
-                         alt="{{ image.referencia }}" loading="lazy">
+                         alt="{{ image.descripcion_corta is defined and image.descripcion_corta is not empty ? image.descripcion_corta : image.referencia }}" loading="lazy">
                     <div class="card-body">
+                        {% if image.descripcion_corta is defined and image.descripcion_corta is not empty %}
+                        <p class="card-text small mb-1"><strong>Alt:</strong> {{ image.descripcion_corta }}</p>
+                        {% endif %}
                         {% if image.observaciones is not empty %}
                         <p class="card-text small text-muted mb-0">{{ image.observaciones }}</p>
                         {% endif %}

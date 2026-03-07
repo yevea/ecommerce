@@ -96,8 +96,15 @@
                     {% for img in fsc.productImages %}
                     <div class="carousel-item {% if loop.first %}active{% endif %}" data-idvariante="{{ img.idvariante ?? '' }}">
                         <img src="{{ img.url }}" class="d-block w-100 rounded" alt="{{ img.alt }}"
+                             {% if img.description is not empty %}longdesc="{{ img.description | e('html_attr') }}"{% endif %}
                              style="max-height: 400px; object-fit: contain; background:#f8f9fa; cursor: zoom-in;"
                              onclick="openLightbox(this.src, this.alt)">
+                        {% if img.referencia is not empty %}
+                        <h5 class="text-center mt-2 mb-0">{{ img.referencia }}</h5>
+                        {% endif %}
+                        {% if img.description is not empty %}
+                        <p class="text-center text-muted small mb-0">{{ img.description }}</p>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
