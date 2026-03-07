@@ -53,20 +53,7 @@ class Tableros extends StoreFront
             $this->categorySlug = $this->slugMap[$this->selectedCategory] ?? null;
         }
 
-        // Ensure per-category template files exist
-        $this->ensureAllCategoryTemplates();
-
-        // Render: use per-category template if a category is selected, else base template
-        $template = 'Tableros.html.twig';
-        if ($this->categorySlug !== null) {
-            $categoryTemplate = 'Tableros/' . $this->categorySlug . '.html.twig';
-            $templatePath = $this->getCategoryTemplatePath($this->categorySlug);
-            if (file_exists($templatePath)) {
-                $this->deployCategoryTemplate($this->categorySlug);
-                $template = $categoryTemplate;
-            }
-        }
-        $this->view($template);
+        $this->view('Tableros.html.twig');
     }
 
     /**
@@ -77,7 +64,7 @@ class Tableros extends StoreFront
     {
         $familia = new Familia();
         foreach ($familia->all([], ['descripcion' => 'ASC'], 0, 0) as $fam) {
-            $familySlug = parent::generateSlug($fam->descripcion);
+            $familySlug = self::generateSlug($fam->descripcion);
             if ($familySlug === $slug) {
                 $this->request()->query->set('category', $fam->codfamilia);
                 break;
@@ -92,172 +79,9 @@ class Tableros extends StoreFront
     {
         $this->slugMap = [];
         foreach ($this->categories as $cat) {
-            $slug = parent::generateSlug($cat->descripcion);
+            $slug = self::generateSlug($cat->descripcion);
             $this->slugMap[$cat->codfamilia] = $slug;
         }
-    }
-
-    /**
-     * Ensure a Twig template file exists for every loaded category.
-     * Creates the View/Tableros/ directory and per-category files as needed.
-     */
-    private function ensureAllCategoryTemplates(): void
-    {
-        foreach ($this->categories as $cat) {
-            $slug = $this->slugMap[$cat->codfamilia] ?? parent::generateSlug($cat->descripcion);
-            $path = $this->getCategoryTemplatePath($slug);
-            if (!file_exists($path)) {
-                self::createCategoryTemplate($slug, $cat->descripcion);
-            }
-        }
-    }
-
-    /**
-     * Deploy a category template from the plugin View directory to the
-     * Dinamic/View directory so the Twig loader picks up the latest content.
-     * This ensures that edits to files in Plugins/ecommerce/View/Tableros/
-     * are reflected on the rendered page.
-     */
-    private function deployCategoryTemplate(string $slug): void
-    {
-        $sourcePath = $this->getCategoryTemplatePath($slug);
-        if (!file_exists($sourcePath)) {
-            return;
-        }
-
-        $dinamicDir = self::ensureDinamicViewDir();
-        if ($dinamicDir === null) {
-            return;
-        }
-
-        $dinamicPath = $dinamicDir . '/' . $slug . '.html.twig';
-
-        if (!file_exists($dinamicPath)) {
-            copy($sourcePath, $dinamicPath);
-            return;
-        }
-
-        // Clear PHP's stat cache to ensure we get fresh file modification times
-        clearstatcache(true, $sourcePath);
-        clearstatcache(true, $dinamicPath);
-
-        // Copy if the source file is newer or the file contents differ
-        if (filemtime($sourcePath) > filemtime($dinamicPath)
-            || filesize($sourcePath) !== filesize($dinamicPath)
-            || md5_file($sourcePath) !== md5_file($dinamicPath)) {
-            copy($sourcePath, $dinamicPath);
-        }
-    }
-
-    /**
-     * Ensure the Dinamic/View/Tableros directory exists and return its path.
-     * Returns null if the directory could not be created.
-     */
-    private static function ensureDinamicViewDir(): ?string
-    {
-        $dinamicDir = FS_FOLDER . '/Dinamic/View/Tableros';
-        if (!is_dir($dinamicDir) && !mkdir($dinamicDir, 0750, true)) {
-            return null;
-        }
-        return $dinamicDir;
-    }
-
-    /**
-     * Get the filesystem path for a category template.
-     */
-    private function getCategoryTemplatePath(string $slug): string
-    {
-        return self::getCategoryTemplateDir() . '/' . $slug . '.html.twig';
-    }
-
-    /**
-     * Get the directory where category templates are stored.
-     */
-    public static function getCategoryTemplateDir(): string
-    {
-        return FS_FOLDER . '/Plugins/ecommerce/View/Tableros';
-    }
-
-    /**
-     * Create a per-category Twig template file.
-     * The template extends Tableros.html.twig and provides override blocks
-     * that the user can edit to customize each category's appearance.
-     */
-    public static function createCategoryTemplate(string $slug, string $categoryName): bool
-    {
-        if (empty($slug)) {
-            return false;
-        }
-
-        $dir = self::getCategoryTemplateDir();
-        if (!is_dir($dir)) {
-            mkdir($dir, 0750, true);
-        }
-
-        $path = $dir . '/' . $slug . '.html.twig';
-        if (file_exists($path)) {
-            return false;
-        }
-
-        $safeName = htmlspecialchars($categoryName, ENT_QUOTES);
-
-        $content = <<<TWIG
-{#
-    ---------------------------------------------------------------
-    Category page: $safeName
-    ---------------------------------------------------------------
-    Edit this file to customize the appearance of this category.
-    You can override the following blocks:
-
-    category_custom_css  - Add custom CSS styles for this category
-    category_header      - Customize the page title area
-    category_intro       - Add custom HTML before the product grid
-    category_outro       - Add custom HTML after the product grid
-
-    The product grid, navigation bar and dimension filters are
-    inherited automatically from the base Tableros template.
-    ---------------------------------------------------------------
-#}
-{% extends "Tableros.html.twig" %}
-
-{# -- Uncomment and edit any block below to customize this page -- #}
-
-{#
-{% block category_custom_css %}
-<style>
-    /* Custom styles for $safeName */
-</style>
-{% endblock %}
-#}
-
-{#
-{% block category_intro %}
-<div class="mb-4">
-    <p>Custom introduction for $safeName.</p>
-</div>
-{% endblock %}
-#}
-
-{#
-{% block category_outro %}
-<div class="mt-4">
-    <p>Additional content for $safeName.</p>
-</div>
-{% endblock %}
-#}
-TWIG;
-
-        $result = (bool) file_put_contents($path, $content);
-
-        // Deploy to Dinamic/View so the Twig loader can find it immediately
-        if ($result) {
-            $dinamicDir = self::ensureDinamicViewDir();
-            if ($dinamicDir !== null) {
-                copy($path, $dinamicDir . '/' . $slug . '.html.twig');
-            }
-        }
-
-        return $result;
     }
 
     protected function loadProducts(): void
@@ -266,11 +90,6 @@ TWIG;
 
         // Apply dimension filtering for Tablones categories
         if ($this->selectedCategoryType !== 'tablones') {
-            return;
-        }
-
-        $varianteClass = '\FacturaScripts\Core\Model\Variante';
-        if (!class_exists($varianteClass)) {
             return;
         }
 
@@ -286,27 +105,35 @@ TWIG;
             return;
         }
 
-        $filtered = [];
-        foreach ($this->products as $product) {
-            // Check if any variant of this product matches the dimension filters
-            $variante = new $varianteClass();
-            $varWhere = [Where::eq('idproducto', $product->idproducto)];
-            $variants = $variante->all($varWhere, [], 0, 0);
+        $varianteClass = '\FacturaScripts\Core\Model\Variante';
+        if (!class_exists($varianteClass)) {
+            return;
+        }
 
-            $matches = false;
-            foreach ($variants as $v) {
-                if ($this->variantMatchesDimensionFilters($v)) {
-                    $matches = true;
-                    break;
-                }
+        // Batch-load all variants for the current product set in a single query
+        $productIds = array_map(fn($p) => $p->idproducto, $this->products);
+        if (empty($productIds)) {
+            return;
+        }
+
+        $variante = new $varianteClass();
+        $allVariants = $variante->all([Where::in('idproducto', $productIds)], [], 0, 0);
+
+        // Group variants by idproducto and check dimension filters
+        $matchingProductIds = [];
+        foreach ($allVariants as $v) {
+            if (isset($matchingProductIds[$v->idproducto])) {
+                continue; // already matched
             }
-
-            if ($matches) {
-                $filtered[] = $product;
+            if ($this->variantMatchesDimensionFilters($v)) {
+                $matchingProductIds[$v->idproducto] = true;
             }
         }
 
-        $this->products = $filtered;
+        $this->products = array_values(array_filter(
+            $this->products,
+            fn($p) => isset($matchingProductIds[$p->idproducto])
+        ));
     }
 
     private function variantMatchesDimensionFilters(object $variant): bool
