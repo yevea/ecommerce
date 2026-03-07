@@ -118,6 +118,8 @@ class EditProducto
 
     /**
      * Rename an attached file to a keyword-rich SEO-friendly name.
+     * Uses a direct DB update to avoid triggering onChange('path') in AttachedFile
+     * which would try to re-process the file and corrupt the path.
      */
     protected function renameAttachedFile(): Closure
     {
@@ -174,9 +176,11 @@ class EditProducto
             }
 
             if (rename($fullCurrentPath, $fullTargetPath)) {
-                $attachedFile->path = $targetPath;
-                $attachedFile->filename = $targetFilename;
-                $attachedFile->save();
+                // Use direct DB update to avoid triggering onChange('path') in AttachedFile,
+                // which would try to re-process/move the file and corrupt the path.
+                AttachedFile::table()
+                    ->whereEq('idfile', $idfile)
+                    ->update(['path' => $targetPath, 'filename' => $targetFilename]);
             }
         };
     }
