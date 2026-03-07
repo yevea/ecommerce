@@ -41,9 +41,9 @@
                                 <div class="row g-2 mb-2">
                                     <div class="col">
                                         {{ trans('short-description') }}
-                                        <input type="text" name="descripcion_corta" class="form-control"
-                                               maxlength="300"
-                                               placeholder="{{ trans('short-description-placeholder') }}"/>
+                                        <textarea name="descripcion_corta" class="form-control" rows="3"
+                                                  maxlength="300"
+                                                  placeholder="{{ trans('short-description-placeholder') }}"></textarea>
                                     </div>
                                     <div class="col">
                                         {{ trans('rename-file') }}
