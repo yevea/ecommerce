@@ -332,7 +332,7 @@
     {% endif %}
 
     {% if fsc.cartItemCount > 0 %}
-    <div class="fixed-bottom mb-3 me-3 text-end">
+    <div class="fixed-bottom mb-3 me-3 text-end d-none d-md-block">
         <a href="{{ asset('Presupuesto') }}" class="btn btn-success btn-lg shadow">
             <i class="fa-solid fa-file-invoice"></i>
             {{ trans('view-presupuesto') }} ({{ fsc.cartItemCount }})
