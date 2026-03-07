@@ -322,27 +322,6 @@
         </div>
     </div>
 
-    {# Vertical image gallery with descriptions #}
-    {% if fsc.productImages | length > 1 %}
-    <div class="row mt-2 mb-4">
-        <div class="col-12">
-            <h5>{{ trans('product-images') }}</h5>
-            <div id="product-gallery" class="d-flex flex-column gap-3">
-                {% for img in fsc.productImages %}
-                <div class="gallery-item" data-idvariante="{{ img.idvariante ?? '' }}" style="max-width: 400px;">
-                    <img src="{{ img.url }}" class="img-thumbnail w-100" alt="{{ img.alt }}"
-                         style="object-fit: cover; cursor: zoom-in;"
-                         onclick="openLightbox(this.src, this.alt)">
-                    {% if img.description is not empty %}
-                    <p class="mt-1 mb-0 text-muted small">{{ img.description }}</p>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
     {% else %}
     <div class="alert alert-warning">
         <i class="fa-solid fa-exclamation-triangle"></i> {{ trans('product-not-found') }}
@@ -419,18 +398,6 @@ function updateCarouselForVariant(idvariante) {
     if (prevBtn) prevBtn.style.display = visibleCount > 1 ? '' : 'none';
     if (nextBtn) nextBtn.style.display = visibleCount > 1 ? '' : 'none';
 
-    // Update gallery items
-    var galleryItems = document.querySelectorAll('.gallery-item');
-    galleryItems.forEach(function (gi) {
-        var giVariante = gi.dataset.idvariante;
-        var show;
-        if (hasVariantImages) {
-            show = giVariante === idvarianteStr;
-        } else {
-            show = true;
-        }
-        gi.style.display = show ? '' : 'none';
-    });
 }
 
 function updateProductTitle(description) {
