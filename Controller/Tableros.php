@@ -111,7 +111,7 @@ class Tableros extends StoreFront
         }
 
         // Batch-load all variants for the current product set in a single query
-        $productIds = array_map(fn($p) => $p->idproducto, $this->products);
+        $productIds = array_map(fn(object $p) => $p->idproducto, $this->products);
         if (empty($productIds)) {
             return;
         }
@@ -132,7 +132,7 @@ class Tableros extends StoreFront
 
         $this->products = array_values(array_filter(
             $this->products,
-            fn($p) => isset($matchingProductIds[$p->idproducto])
+            fn(object $p) => isset($matchingProductIds[$p->idproducto])
         ));
     }
 
