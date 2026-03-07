@@ -4,7 +4,11 @@
 
 {% block body %}
 {% include 'Header.html.twig' %}
-{% block category_custom_css %}{% endblock %}
+{% block category_custom_css %}
+{% if fsc.selectedCategoryFamily and fsc.selectedCategoryFamily.category_custom_css is not empty %}
+<style>{{ fsc.selectedCategoryFamily.category_custom_css | replace({'</style>': '', '</STYLE>': ''}) | raw }}</style>
+{% endif %}
+{% endblock %}
 
 {# Schema.org structured data for AI agents and search engines #}
 <script type="application/ld+json">
@@ -80,7 +84,11 @@
     {% endif %}
     {% endblock %}
 
-    {% block category_intro %}{% endblock %}
+    {% block category_intro %}
+    {% if fsc.selectedCategoryFamily and fsc.selectedCategoryFamily.category_intro is not empty %}
+    {{ fsc.selectedCategoryFamily.category_intro | raw }}
+    {% endif %}
+    {% endblock %}
 
     {% block category_filters %}
     {# Dimension filters for Tablones category #}
@@ -185,7 +193,11 @@
     </div>
     {% endblock %}
 
-    {% block category_outro %}{% endblock %}
+    {% block category_outro %}
+    {% if fsc.selectedCategoryFamily and fsc.selectedCategoryFamily.category_outro is not empty %}
+    {{ fsc.selectedCategoryFamily.category_outro | raw }}
+    {% endif %}
+    {% endblock %}
 
     {% if fsc.cartItemCount > 0 %}
     <div class="fixed-bottom mb-3 me-3 text-end d-none d-md-block">
