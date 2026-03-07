@@ -480,11 +480,18 @@ class StoreFront extends Controller
             return false;
         }
 
-        $familia = new Familia();
-        if ($familia->loadFromCode($codfamilia)) {
-            return !empty($familia->publica);
+        static $cache = [];
+        if (isset($cache[$codfamilia])) {
+            return $cache[$codfamilia];
         }
 
+        $familia = new Familia();
+        if ($familia->loadFromCode($codfamilia)) {
+            $cache[$codfamilia] = !empty($familia->publica);
+            return $cache[$codfamilia];
+        }
+
+        $cache[$codfamilia] = false;
         return false;
     }
 }
