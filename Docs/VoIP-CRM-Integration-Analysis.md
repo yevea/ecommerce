@@ -4,6 +4,8 @@
 **Context:** Solo olive wood business in an isolated mountain area with Starlink internet, no mobile coverage, no staff for phone calls.  
 **Goal:** Integrate a geo-specific virtual phone number with the FacturaScripts ecommerce plugin to manage incoming calls, voicemail, and callbacks through simple CRM functionality.
 
+> **Decision taken:** Solution A (Cloud PBX with Zadarma) will be implemented as a **separate FacturaScripts plugin**. See [Architecture Decision: VoIP Plugin](Architecture-Decision-VoIP-Plugin.md) for the full rationale.
+
 ---
 
 ## Table of Contents
