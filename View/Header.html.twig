@@ -2,11 +2,32 @@
 <header id="ecommerce-header">
     <div class="container d-flex align-items-center">
         <a href="{{ asset('StoreFront') }}">{{ trans('sawmill') }} <img style="width:100px;height:25px;" src="https://yevea.com/001-vectores/logo-yevea-white.svg" alt="madera olivo - logo"><sup>®</sup></a>
-        {% if fsc.cartItemCount is defined and fsc.cartItemCount > 0 %}
-        <a href="{{ asset('Presupuesto') }}" class="d-md-none ms-auto" title="{{ trans('view-presupuesto') }}" aria-label="{{ trans('view-presupuesto') }} ({{ fsc.cartItemCount }})">
-            <i class="fa-solid fa-file-invoice" aria-hidden="true"></i>
-            <span class="badge bg-success rounded-pill">{{ fsc.cartItemCount }}</span>
-        </a>
-        {% endif %}
+        <nav class="header-nav ms-auto d-flex align-items-center">
+            {% if fsc.cartItemCount is defined and fsc.cartItemCount > 0 %}
+            <a href="{{ asset('Presupuesto') }}" class="d-md-none me-3" title="{{ trans('view-presupuesto') }}" aria-label="{{ trans('view-presupuesto') }} ({{ fsc.cartItemCount }})">
+                <i class="fa-solid fa-file-invoice" aria-hidden="true"></i>
+                <span class="badge bg-success rounded-pill">{{ fsc.cartItemCount }}</span>
+            </a>
+            {% endif %}
+            <button class="hamburger-toggle" id="hamburger-toggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="hamburger-menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </nav>
+    </div>
+    <div id="hamburger-menu" class="hamburger-dropdown">
+        <ul>
+            <li><a href="#placeholder-home">Home</a></li>
+            <li><a href="#placeholder-products">Products</a></li>
+            <li><a href="#placeholder-about">About</a></li>
+            <li><a href="#placeholder-contact">Contact</a></li>
+            <li><a href="#placeholder-faq">FAQ</a></li>
+        </ul>
     </div>
 </header>
+<script>
+document.getElementById('hamburger-toggle').addEventListener('click', function () {
+    this.classList.toggle('open');
+    document.getElementById('hamburger-menu').classList.toggle('show');
+    this.setAttribute('aria-expanded', this.classList.contains('open'));
+});
+</script>
