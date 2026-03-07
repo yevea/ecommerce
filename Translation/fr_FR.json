@@ -132,4 +132,8 @@
     "short-description-placeholder": "Description brève avec mots-clés SEO",
     "rename-file": "Renommer",
     "rename-file-placeholder": "nom-seo-avec-mots-cles (sans extension)"
+    "category-content": "Contenu de la Catégorie",
+    "category-custom-css": "Styles Personnalisés",
+    "category-intro": "Introduction de la Catégorie",
+    "category-outro": "Notes Finales"
 }

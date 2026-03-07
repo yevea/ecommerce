@@ -132,4 +132,8 @@
     "short-description-placeholder": "Brief keyword-rich description for SEO",
     "rename-file": "Rename",
     "rename-file-placeholder": "seo-keyword-rich-name (no extension)"
+    "category-content": "Category Content",
+    "category-custom-css": "Custom Styles",
+    "category-intro": "Category Introduction",
+    "category-outro": "Final Notes"
 }
