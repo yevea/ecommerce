@@ -127,5 +127,9 @@
     "natural-material": "Matériau naturel",
     "close": "Fermer",
     "previous": "Précédent",
-    "next": "Suivant"
+    "next": "Suivant",
+    "short-description": "Description Courte (alt)",
+    "short-description-placeholder": "Description brève avec mots-clés SEO",
+    "rename-file": "Renommer",
+    "rename-file-placeholder": "nom-seo-avec-mots-cles (sans extension)"
 }

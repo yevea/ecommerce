@@ -27,6 +27,10 @@
         <name>observaciones</name>
         <type>text</type>
     </column>
+    <column>
+        <name>descripcion_corta</name>
+        <type>character varying(300)</type>
+    </column>
 
     <!-- Constraints -->
     <constraint>

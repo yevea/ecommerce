@@ -177,8 +177,9 @@ class ProductoDetalle extends StoreFront
                 }
                 $imgObj = (object) [
                     'url' => $img->url('download-permanent'),
-                    'alt' => $p->descripcion,
+                    'alt' => !empty($img->descripcion_corta) ? $img->descripcion_corta : $p->descripcion,
                     'description' => $img->observaciones ?? '',
+                    'referencia' => $img->referencia ?? '',
                     'idvariante' => $idvariante,
                 ];
                 $this->productImages[] = $imgObj;
@@ -194,6 +195,7 @@ class ProductoDetalle extends StoreFront
                 'url' => $p->imagen,
                 'alt' => $p->descripcion,
                 'description' => '',
+                'referencia' => '',
                 'idvariante' => null,
             ];
         }

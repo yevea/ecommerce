@@ -127,5 +127,9 @@
     "natural-material": "Natural material",
     "close": "Close",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "short-description": "Short Description (alt)",
+    "short-description-placeholder": "Brief keyword-rich description for SEO",
+    "rename-file": "Rename",
+    "rename-file-placeholder": "seo-keyword-rich-name (no extension)"
 }
