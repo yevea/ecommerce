@@ -162,7 +162,7 @@ class EditProducto
                 }
                 // If still exists after 100 attempts, skip rename
                 if (file_exists($fullTargetPath)) {
-                    Tools::log()->warning('Could not rename file: all name variants taken');
+                    Tools::log()->warning('Could not rename file to ' . $baseName . ': all name variants taken');
                     return;
                 }
             }
