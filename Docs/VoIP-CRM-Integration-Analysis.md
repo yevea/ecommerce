@@ -5,6 +5,8 @@
 **Goal:** Integrate a geo-specific virtual phone number with the FacturaScripts ecommerce plugin to manage incoming calls, voicemail, and callbacks through simple CRM functionality.
 
 > **Decision taken:** Solution A (Cloud PBX with Zadarma) will be implemented as a **separate FacturaScripts plugin**. See [Architecture Decision: VoIP Plugin](Architecture-Decision-VoIP-Plugin.md) for the full rationale.
+>
+> **Follow-up analysis:** The cost and feature differences between Solution A and C largely disappear when using Zadarma specifically — their free Standard plan includes Cloud PBX + webhooks + API. Calls can ring on a mobile phone via WiFi using a SIP softphone app (not WhatsApp). See [Solution A vs. C Deep Dive](Solution-A-vs-C-Deep-Dive.md) for full details.
 
 ---
 
@@ -220,12 +222,16 @@ Control:     LOW ◄────────────────────
 
 ## 6. Solution Comparison Matrix
 
+> **Note (updated March 2026):** The cost estimates below assumed generic providers at different tiers. With Zadarma specifically, Solutions A and C cost the same (~€4/month) because Zadarma's free Standard plan includes Cloud PBX + webhooks + API. See [Solution A vs. C Deep Dive](Solution-A-vs-C-Deep-Dive.md) for detailed analysis.
+
 | Feature | D: Minimal | C: Hybrid API | A: Cloud PBX | B: Self-hosted PBX |
 |---|:---:|:---:|:---:|:---:|
 | **Monthly cost** | €5–10 | €10–25 | €15–40 | €10–20 + server |
+| **Monthly cost (Zadarma)** | ~€4 | ~€4 | ~€4 (Standard) or €22 (Office) | N/A |
 | **Setup difficulty** | ★☆☆☆☆ | ★★☆☆☆ | ★★★☆☆ | ★★★★★ |
 | **Maintenance** | None | Low | Low | High |
 | **Answer calls on computer** | No | Yes | Yes | Yes |
+| **Answer calls on mobile (WiFi)** | No | Yes (SIP app) | Yes (SIP app) | Yes (SIP app) |
 | **Voicemail** | Yes (provider) | Yes | Yes | Yes |
 | **Call back from business number** | Maybe | Yes | Yes | Yes |
 | **Auto-log calls in FacturaScripts** | No (manual) | Yes | Yes | Yes |
