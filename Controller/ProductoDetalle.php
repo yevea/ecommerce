@@ -59,10 +59,29 @@ class ProductoDetalle extends StoreFront
     private function loadProductBySlug(string $slug): void
     {
         $product = new Producto();
+
+        // First try individually-public products
         foreach ($product->all([Where::eq('publico', true)], [], 0, 0) as $p) {
             if (self::generateProductSlug($p->descripcion) === $slug) {
                 $this->loadProduct($p->referencia);
                 return;
+            }
+        }
+
+        // Also try products visible via their public family (publica=true)
+        $publicFamilyCodes = [];
+        $familia = new Familia();
+        foreach ($familia->all([Where::eq('publica', true)], [], 0, 0) as $fam) {
+            $publicFamilyCodes[] = $fam->codfamilia;
+        }
+
+        if (!empty($publicFamilyCodes)) {
+            $where = [Where::in('codfamilia', $publicFamilyCodes)];
+            foreach ($product->all($where, [], 0, 0) as $p) {
+                if (self::generateProductSlug($p->descripcion) === $slug) {
+                    $this->loadProduct($p->referencia);
+                    return;
+                }
             }
         }
     }
@@ -71,7 +90,12 @@ class ProductoDetalle extends StoreFront
     {
         $p = new Producto();
         $where = [Where::eq('referencia', $referencia)];
-        if (!$p->loadWhere($where) || !$p->publico) {
+        if (!$p->loadWhere($where)) {
+            return;
+        }
+
+        // Product is visible if individually public OR belongs to a public family
+        if (!$p->publico && !$this->isFamilyPublic($p->codfamilia)) {
             return;
         }
 
