@@ -82,6 +82,7 @@
     "stripe-secret-key": "Stripe Secret Key (sk_...)",
     "stripe-public-key": "Stripe Public Key (pk_...)",
     "settings-ecommerce": "E-Commerce Settings",
+    "publica": "Public (visible on storefront)",
     "family-type": "Family Type",
     "mercancia": "Merchandise",
     "artesania": "Craftsmanship",

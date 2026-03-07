@@ -82,6 +82,7 @@
     "stripe-secret-key": "Clave Secreta de Stripe (sk_...)",
     "stripe-public-key": "Clave Pública de Stripe (pk_...)",
     "settings-ecommerce": "Configuración",
+    "publica": "Pública (visible en la tienda)",
     "family-type": "Tipo de Familia",
     "mercancia": "Mercancía",
     "artesania": "Artesanía",

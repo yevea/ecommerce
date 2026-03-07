@@ -125,7 +125,7 @@ class StoreFront extends Controller
         $product = new Producto();
         $where = [Where::eq('referencia', $productReferencia)];
         if ($product->loadWhere($where)) {
-            $isPublic = $product->publico;
+            $isPublic = $product->publico || $this->isFamilyPublic($product->codfamilia);
             $familyType = $this->getFamilyTypeForProduct($product);
         } else {
             // Product not found by referencia — try looking up via Variante for non-primary variants
@@ -136,7 +136,7 @@ class StoreFront extends Controller
                 if ($variante->loadWhere($varWhere)) {
                     $parent = new Producto();
                     if ($parent->loadFromCode($variante->idproducto)) {
-                        $isPublic = $parent->publico;
+                        $isPublic = $parent->publico || $this->isFamilyPublic($parent->codfamilia);
                         $familyType = $this->getFamilyTypeForProduct($parent);
                     }
                 }
@@ -281,11 +281,11 @@ class StoreFront extends Controller
 
     protected function loadCategories(): void
     {
-        // Only show families that contain at least one public product
+        // Collect family codes that should be shown on the storefront:
+        // 1. Families that contain at least one individually-public product
         $product = new Producto();
         $publicProducts = $product->all([Where::eq('publico', true)], [], 0, 0);
 
-        // collect unique family codes from public products
         $familyCodes = [];
         foreach ($publicProducts as $p) {
             if (!empty($p->codfamilia)) {
@@ -293,12 +293,18 @@ class StoreFront extends Controller
             }
         }
 
+        // 2. Families explicitly marked as publica (visible on storefront)
+        $familia = new Familia();
+        $publicFamilies = $familia->all([Where::eq('publica', true)], [], 0, 0);
+        foreach ($publicFamilies as $fam) {
+            $familyCodes[$fam->codfamilia] = true;
+        }
+
         if (empty($familyCodes)) {
             $this->categories = [];
             return;
         }
 
-        $familia = new Familia();
         $this->categories = $familia->all(
             [Where::in('codfamilia', array_keys($familyCodes))],
             ['descripcion' => 'ASC'],
@@ -335,13 +341,61 @@ class StoreFront extends Controller
     protected function loadProducts(): void
     {
         $product = new Producto();
-        $where = [Where::eq('publico', true)];
 
-        if ($this->selectedCategory !== null) {
-            $where[] = Where::eq('codfamilia', $this->selectedCategory);
+        // Build set of public family codes (families with publica = true)
+        $publicFamilyCodes = [];
+        foreach ($this->categories as $cat) {
+            if (!empty($cat->publica)) {
+                $publicFamilyCodes[] = $cat->codfamilia;
+            }
         }
 
-        $nativeProducts = $product->all($where, ['descripcion' => 'ASC'], 0, 0);
+        if ($this->selectedCategory !== null) {
+            // Loading products for a specific category
+            $isPublicFamily = in_array($this->selectedCategory, $publicFamilyCodes, true);
+
+            if ($isPublicFamily) {
+                // Show ALL products from this public family
+                $where = [Where::eq('codfamilia', $this->selectedCategory)];
+            } else {
+                // Only show individually-public products from this family
+                $where = [
+                    Where::eq('publico', true),
+                    Where::eq('codfamilia', $this->selectedCategory),
+                ];
+            }
+
+            $nativeProducts = $product->all($where, ['descripcion' => 'ASC'], 0, 0);
+        } else {
+            // Loading all products (no category selected)
+            // Include individually-public products
+            $publicoProducts = $product->all([Where::eq('publico', true)], ['descripcion' => 'ASC'], 0, 0);
+
+            // Also include all products from public families
+            $familyProducts = [];
+            if (!empty($publicFamilyCodes)) {
+                $familyProducts = $product->all(
+                    [Where::in('codfamilia', $publicFamilyCodes)],
+                    ['descripcion' => 'ASC'],
+                    0,
+                    0
+                );
+            }
+
+            // Merge and deduplicate by idproducto
+            $merged = [];
+            foreach ($publicoProducts as $p) {
+                $merged[$p->idproducto] = $p;
+            }
+            foreach ($familyProducts as $p) {
+                if (!isset($merged[$p->idproducto])) {
+                    $merged[$p->idproducto] = $p;
+                }
+            }
+
+            $nativeProducts = array_values($merged);
+            usort($nativeProducts, fn($a, $b) => strcmp($a->descripcion, $b->descripcion));
+        }
 
         // Build a map of family codes to types for efficient lookup
         $familyTypeMap = [];
@@ -418,5 +472,26 @@ class StoreFront extends Controller
         }
 
         return 'mercancia';
+    }
+
+    protected function isFamilyPublic(?string $codfamilia): bool
+    {
+        if (empty($codfamilia)) {
+            return false;
+        }
+
+        static $cache = [];
+        if (isset($cache[$codfamilia])) {
+            return $cache[$codfamilia];
+        }
+
+        $familia = new Familia();
+        if ($familia->loadFromCode($codfamilia)) {
+            $cache[$codfamilia] = !empty($familia->publica);
+            return $cache[$codfamilia];
+        }
+
+        $cache[$codfamilia] = false;
+        return false;
     }
 }
