@@ -80,6 +80,10 @@
     background-color: #343a40;
     color: #fff;
 }
+.hamburger-divider {
+    border-color: #495057;
+    margin: 0.25rem 1rem;
+}
 
 /* ── Base ───────────────────────────────────────────────────── */
 body {
@@ -413,16 +417,7 @@ a:hover {
         max-width: 100%;
     }
 
-    /* Category button group: scrollable on mobile */
-    .btn-group.flex-wrap {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.25rem;
-    }
-    .btn-group.flex-wrap .btn {
-        flex: 0 0 auto;
-        font-size: 0.875rem;
-    }
+
 }
 
 /* Small spacing adjustments for extra-small screens */
