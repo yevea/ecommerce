@@ -63,6 +63,57 @@ class EditProducto
         return function ($action) {
             if ($action === 'add-image') {
                 $this->fixImageFileRelations();
+            } elseif ($action === 'edit-image') {
+                $this->editImageData();
+            }
+        };
+    }
+
+    /**
+     * Update editable fields on an existing product image: variant, observations,
+     * short description (alt text) and optionally rename the file.
+     */
+    protected function editImageData(): Closure
+    {
+        return function () {
+            $idimage = (int) $this->request->input('idimage');
+            if ($idimage <= 0) {
+                return;
+            }
+
+            $imgModel = new ProductoImagen();
+            if (false === $imgModel->loadFromCode($idimage)) {
+                return;
+            }
+
+            // Update variant reference
+            $referencia = $this->request->input('referencia', '');
+            $imgModel->referencia = empty($referencia) ? null : $referencia;
+
+            // Update observations and short description
+            $imgModel->observaciones = $this->request->input('observations', '');
+            $imgModel->descripcion_corta = $this->request->input('descripcion_corta', '');
+            $imgModel->save();
+
+            // Sync observations to the AttachedFileRelation
+            $fileRelation = new AttachedFileRelation();
+            $where = [
+                Where::eq('model', 'Producto'),
+                Where::eq('idfile', $imgModel->idfile),
+            ];
+            foreach ($fileRelation->all($where, [], 0, 1) as $relation) {
+                $relation->observations = $imgModel->observaciones;
+                $relation->save();
+            }
+
+            // Rename the physical file if a new name was provided
+            $nombreArchivo = trim($this->request->input('nombre_archivo', ''));
+            if (!empty($nombreArchivo)) {
+                // Strip any extension the user may have typed
+                $nombreArchivo = pathinfo($nombreArchivo, PATHINFO_FILENAME);
+                if (!empty($nombreArchivo)) {
+                    $this->renameAttachedFile($imgModel->idfile, $nombreArchivo);
+                }
             }
         };
     }

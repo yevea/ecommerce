@@ -153,8 +153,8 @@ class ProductoDetalle extends StoreFront
         $this->productImages = [];
         $this->variantImages = [];
 
-        // Try loading from ProductoImagen model if available
-        $modelClass = '\FacturaScripts\Core\Model\ProductoImagen';
+        // Try loading from ProductoImagen model if available (use Dinamic to include plugin columns)
+        $modelClass = '\FacturaScripts\Dinamic\Model\ProductoImagen';
         if (class_exists($modelClass)) {
             // Build a map: referencia -> idvariante from the Variante table
             $refToIdvariante = [];

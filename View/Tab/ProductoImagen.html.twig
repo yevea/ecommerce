@@ -79,33 +79,56 @@
                 <div class="card {{ border }} shadow">
                     <img src="{{ asset(image.url('download')) }}" class="card-img-top"
                          alt="{{ image.descripcion_corta is defined and image.descripcion_corta is not empty ? image.descripcion_corta : image.referencia }}" loading="lazy">
-                    <div class="card-body">
-                        {% if image.descripcion_corta is defined and image.descripcion_corta is not empty %}
-                        <p class="card-text small mb-1"><strong>Alt:</strong> {{ image.descripcion_corta }}</p>
-                        {% endif %}
-                        {% if image.observaciones is not empty %}
-                        <p class="card-text small text-muted mb-0">{{ image.observaciones }}</p>
-                        {% endif %}
-                    </div>
-                    <div class="card-footer">
-                        {% set formName = currentView.getViewName() ~ (counter + 1) %}
-                        <form id="{{ 'form' ~ formName }}" action="{{ product.url() }}" method="post"
-                              enctype="multipart/form-data" onsubmit="animateSpinner('add')">
-                            {{ formToken() }}
-                            <input type="hidden" name="action" value=""/>
-                            <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
-                            <input type="hidden" name="idproducto" value="{{ image.idproducto }}"/>
-                            <input type="hidden" name="idimage" value="{{ image.id }}"/>
-                            <div class="row align-items-center">
-                                <div class="col text-muted">
-                                    {{ image.referencia ? image.referencia : trans('all-variants') }}
-                                </div>
-                                <div class="col-auto">
-                                    {{ _self.buttonDelete(formName) }}
+                    {% set formName = currentView.getViewName() ~ (counter + 1) %}
+                    <form id="{{ 'form' ~ formName }}" action="{{ product.url() }}" method="post"
+                          enctype="multipart/form-data" onsubmit="animateSpinner('add')">
+                        {{ formToken() }}
+                        <input type="hidden" name="action" value=""/>
+                        <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+                        <input type="hidden" name="idproducto" value="{{ image.idproducto }}"/>
+                        <input type="hidden" name="idimage" value="{{ image.id }}"/>
+                        <div class="card-body p-2">
+                            <div class="mb-1">
+                                <select name="referencia" class="form-select form-select-sm">
+                                    <option value="">{{ trans('all-variants') }}</option>
+                                    {% for variant in product.getVariants() %}
+                                        <option value="{{ variant.referencia }}"
+                                            {% if image.referencia == variant.referencia %} selected{% endif %}>
+                                            {{ variant.referencia }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-1">
+                                <textarea name="observations" class="form-control form-control-sm" rows="2"
+                                          placeholder="{{ trans('observations') }}">{{ image.observaciones }}</textarea>
+                            </div>
+                            <div class="mb-1">
+                                <input type="text" name="descripcion_corta" class="form-control form-control-sm"
+                                       maxlength="300" value="{{ image.descripcion_corta is defined ? image.descripcion_corta : '' }}"
+                                       placeholder="{{ trans('short-description') }}"/>
+                            </div>
+                            <div class="mb-1">
+                                {% set file = image.getFile() %}
+                                {% set baseName = file.filename | split('.') | slice(0, -1) | join('.') %}
+                                {% set ext = '.' ~ file.filename | split('.') | last %}
+                                <div class="input-group input-group-sm">
+                                    <input type="text" name="nombre_archivo" class="form-control"
+                                           value="{{ baseName }}" placeholder="{{ trans('rename-file') }}"/>
+                                    <span class="input-group-text">{{ ext }}</span>
                                 </div>
                             </div>
-                        </form>
-                    </div>
+                        </div>
+                        <div class="card-footer p-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button type="button" class="btn btn-sm btn-primary"
+                                        onclick="document.querySelector('#form{{ formName }} [name=action]').value='edit-image'; document.getElementById('form{{ formName }}').submit();">
+                                    <i class="fa-solid fa-save fa-fw" aria-hidden="true"></i>
+                                </button>
+                                {{ _self.buttonDelete(formName) }}
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         {% endfor %}
