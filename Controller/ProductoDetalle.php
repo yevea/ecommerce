@@ -154,11 +154,11 @@ class ProductoDetalle extends StoreFront
         $this->variantImages = [];
 
         // Try loading from ProductoImagen model if available
-        $modelClass = '\FacturaScripts\Core\Model\ProductoImagen';
+        $modelClass = '\FacturaScripts\Dinamic\Model\ProductoImagen';
         if (class_exists($modelClass)) {
             // Build a map: referencia -> idvariante from the Variante table
             $refToIdvariante = [];
-            $varianteClass = '\FacturaScripts\Core\Model\Variante';
+            $varianteClass = '\FacturaScripts\Dinamic\Model\Variante';
             if (class_exists($varianteClass)) {
                 $varianteModel = new $varianteClass();
                 $varWhere = [Where::eq('idproducto', $p->idproducto)];
@@ -207,8 +207,8 @@ class ProductoDetalle extends StoreFront
         $this->productAttributes = [];
         $this->defaultVariant = null;
 
-        $varianteClass = '\FacturaScripts\Core\Model\Variante';
-        $attrValClass = '\FacturaScripts\Core\Model\AtributoValor';
+        $varianteClass = '\FacturaScripts\Dinamic\Model\Variante';
+        $attrValClass = '\FacturaScripts\Dinamic\Model\AtributoValor';
         if (!class_exists($varianteClass)) {
             return;
         }

@@ -45,12 +45,6 @@
                                                   maxlength="300"
                                                   placeholder="{{ trans('short-description-placeholder') }}"></textarea>
                                     </div>
-                                    <div class="col">
-                                        {{ trans('rename-file') }}
-                                        <input type="text" name="nombre_archivo" class="form-control"
-                                               maxlength="90"
-                                               placeholder="{{ trans('rename-file-placeholder') }}"/>
-                                    </div>
                                 </div>
                                 {{ trans('images') }}
                                 <input type="file" name="newfiles[]" class="form-control" multiple=""
@@ -77,7 +71,6 @@
             <div class="col mb-4 images-item" data-image-id="{{ image.id }}">
                 {% set border = image.referencia ? '' : 'border-primary' %}
                 {% set formName = currentView.getViewName() ~ (counter + 1) %}
-                {% set fullFileName = image.url('download') | split('/') | last %}
                 <div class="card {{ border }} shadow">
                     <img src="{{ asset(image.url('download')) }}" class="card-img-top"
                          alt="{{ image.descripcion_corta is defined and image.descripcion_corta is not empty ? image.descripcion_corta : image.referencia }}" loading="lazy">
@@ -103,18 +96,8 @@
                             </div>
                             <div class="mb-1">
                                 <input type="text" name="descripcion_corta" class="form-control form-control-sm"
-                                       maxlength="300" placeholder="{{ trans('short-description') }}"
-                                       value="{{ image.descripcion_corta is defined ? image.descripcion_corta : '' }}">
-                            </div>
-                            <div class="mb-1">
-                                {% set fileExt = fullFileName | split('.') | last %}
-                                {% set fileBase = fullFileName | slice(0, -(fileExt | length + 1)) %}
-                                <div class="input-group input-group-sm">
-                                    <input type="text" name="nombre_archivo" class="form-control"
-                                           maxlength="90" placeholder="{{ trans('rename-file') }}"
-                                           value="{{ fileBase }}">
-                                    <span class="input-group-text">.{{ fileExt }}</span>
-                                </div>
+                                       maxlength="300" placeholder="{{ product.descripcion }}"
+                                       value="{{ image.descripcion_corta is defined and image.descripcion_corta is not empty ? image.descripcion_corta : '' }}">
                             </div>
                         </div>
                         <div class="card-footer">

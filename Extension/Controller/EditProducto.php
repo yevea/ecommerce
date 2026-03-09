@@ -21,15 +21,13 @@ namespace FacturaScripts\Plugins\ecommerce\Extension\Controller;
 
 use Closure;
 use FacturaScripts\Core\Model\Familia;
-use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
-use FacturaScripts\Dinamic\Model\AttachedFile;
 use FacturaScripts\Dinamic\Model\AttachedFileRelation;
 use FacturaScripts\Dinamic\Model\ProductoImagen;
 
 /**
  * Extension for EditProducto controller to fix observations on product images,
- * save short descriptions (alt text) and rename uploaded files for SEO,
+ * save short descriptions (alt text),
  * and hide dimension fields (largo, ancho, espesor) for non-tablones families.
  */
 class EditProducto
@@ -79,7 +77,6 @@ class EditProducto
 
             $observations = $this->request->input('observations', '');
             $descripcionCorta = $this->request->input('descripcion_corta', '');
-            $nombreArchivo = trim($this->request->input('nombre_archivo', ''));
 
             // Find newly created file relations that have no modelcode yet (created by addImageAction)
             $fileRelation = new AttachedFileRelation();
@@ -89,7 +86,6 @@ class EditProducto
                 Where::eq('modelid', $idproducto),
                 Where::isNull('modelcode'),
             ];
-            $counter = 0;
             foreach ($fileRelation->all($where, [], 0, 0) as $relation) {
                 $relation->modelcode = (string)$idproducto;
                 $relation->observations = $observations;
@@ -108,19 +104,13 @@ class EditProducto
                         $img->save();
                     }
                 }
-
-                // Rename the uploaded file if a new name was provided
-                if (!empty($nombreArchivo)) {
-                    $this->renameAttachedFile($relation->idfile, $nombreArchivo, $counter);
-                    $counter++;
-                }
             }
         };
     }
 
     /**
      * Edit metadata of an existing product image (variant, observations,
-     * short description) and optionally rename the underlying file.
+     * short description).
      */
     protected function editImageData(): Closure
     {
@@ -135,91 +125,11 @@ class EditProducto
                 return;
             }
 
-            $imgModel->referencia = $this->request->input('referencia', '');
+            $referencia = $this->request->input('referencia', '');
+            $imgModel->referencia = empty($referencia) ? null : $referencia;
             $imgModel->observaciones = $this->request->input('observaciones', '');
             $imgModel->descripcion_corta = $this->request->input('descripcion_corta', '');
             $imgModel->save();
-
-            // Handle file rename if the name was changed
-            $nombreArchivo = trim($this->request->input('nombre_archivo', ''));
-            if (!empty($nombreArchivo)) {
-                $attachedFile = new AttachedFile();
-                if ($attachedFile->loadFromCode($imgModel->idfile)) {
-                    $currentBase = pathinfo($attachedFile->filename, PATHINFO_FILENAME);
-                    if ($nombreArchivo !== $currentBase) {
-                        $this->renameAttachedFile($imgModel->idfile, $nombreArchivo);
-                    }
-                }
-            }
-        };
-    }
-
-    /**
-     * Rename an attached file to a keyword-rich SEO-friendly name.
-     * Uses a direct DB update to avoid triggering onChange('path') in AttachedFile
-     * which would try to re-process the file and corrupt the path.
-     */
-    protected function renameAttachedFile(): Closure
-    {
-        return function (int $idfile, string $newName, int $counter = 0) {
-            $attachedFile = new AttachedFile();
-            if (!$attachedFile->loadFromCode($idfile)) {
-                return;
-            }
-
-            // Sanitize the new name: lowercase, replace spaces with hyphens, remove special chars
-            $newName = strtolower(trim($newName));
-            $newName = str_replace(' ', '-', $newName);
-            $newName = preg_replace('/[^a-z0-9\-]/', '', $newName);
-            $newName = preg_replace('/-+/', '-', $newName);
-            $newName = trim($newName, '-');
-
-            if (empty($newName)) {
-                return;
-            }
-
-            // Get the original extension from the current path
-            $currentPath = $attachedFile->path;
-            $extension = pathinfo($currentPath, PATHINFO_EXTENSION);
-            $directory = pathinfo($currentPath, PATHINFO_DIRNAME);
-
-            // Add counter suffix for multiple files
-            $baseName = $counter > 0 ? $newName . '-' . ($counter + 1) : $newName;
-            $targetFilename = $baseName . '.' . $extension;
-            $targetPath = $directory . '/' . $targetFilename;
-
-            // Check if target path is already taken
-            $fullTargetPath = FS_FOLDER . '/' . $targetPath;
-            if (file_exists($fullTargetPath)) {
-                // Try with incrementing suffix
-                for ($i = 2; $i <= 100; $i++) {
-                    $targetFilename = $baseName . '-' . $i . '.' . $extension;
-                    $targetPath = $directory . '/' . $targetFilename;
-                    $fullTargetPath = FS_FOLDER . '/' . $targetPath;
-                    if (!file_exists($fullTargetPath)) {
-                        break;
-                    }
-                }
-                // If still exists after 100 attempts, skip rename
-                if (file_exists($fullTargetPath)) {
-                    Tools::log()->warning('Could not rename file to ' . $baseName . ': all name variants taken');
-                    return;
-                }
-            }
-
-            // Rename the physical file
-            $fullCurrentPath = FS_FOLDER . '/' . $currentPath;
-            if (!file_exists($fullCurrentPath)) {
-                return;
-            }
-
-            if (rename($fullCurrentPath, $fullTargetPath)) {
-                // Use direct DB update to avoid triggering onChange('path') in AttachedFile,
-                // which would try to re-process/move the file and corrupt the path.
-                AttachedFile::table()
-                    ->whereEq('idfile', $idfile)
-                    ->update(['path' => $targetPath, 'filename' => $targetFilename]);
-            }
         };
     }
 }
