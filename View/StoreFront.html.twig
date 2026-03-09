@@ -59,23 +59,6 @@
         <i class="fa-solid fa-store"></i> {{ trans('storefront') }}
     </h1>
 
-    {% if fsc.categories is not empty %}
-    <nav class="row mb-3" aria-label="{{ trans('categories') }}">
-        <div class="col-12">
-            <div class="btn-group flex-wrap" role="group">
-                <a href="{{ asset('StoreFront') }}" class="btn btn-outline-primary {% if fsc.selectedCategory is null %}active{% endif %}">
-                    {{ trans('all') }}
-                </a>
-                {% for cat in fsc.categories %}
-                <a href="{{ asset('StoreFront') }}?category={{ cat.codfamilia }}" class="btn btn-outline-primary {% if fsc.selectedCategory == cat.codfamilia %}active{% endif %}">
-                    {{ cat.descripcion }}
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-    </nav>
-    {% endif %}
-
     <div class="row" itemprop="hasOfferCatalog" itemscope itemtype="https://schema.org/OfferCatalog">
         {% for product in fsc.products %}
         <div class="col-6 col-md-4 col-lg-3 mb-4">

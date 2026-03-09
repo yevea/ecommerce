@@ -65,24 +65,7 @@
     </h1>
     {% endblock %}
 
-    {% block category_nav %}
-    {% if fsc.categories is not empty %}
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="btn-group flex-wrap" role="group">
-                <a href="{{ asset('Tableros') }}" class="btn btn-outline-primary {% if fsc.selectedCategory is null %}active{% endif %}">
-                    {{ trans('all') }}
-                </a>
-                {% for cat in fsc.categories %}
-                <a href="{{ asset('Tableros') }}?cat={{ fsc.slugMap[cat.codfamilia] | default(cat.codfamilia) }}" class="btn btn-outline-primary {% if fsc.selectedCategory == cat.codfamilia %}active{% endif %}">
-                    {{ cat.descripcion }}
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endif %}
-    {% endblock %}
+    {% block category_nav %}{% endblock %}
 
     {% block category_intro %}
     {% if fsc.selectedCategoryFamily and fsc.selectedCategoryFamily.category_intro is not empty %}

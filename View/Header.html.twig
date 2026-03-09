@@ -12,6 +12,15 @@
             <li><a href="#placeholder-contact">Contact</a></li>
             <li><a href="#placeholder-faq">FAQ</a></li>
         </ul>
+        {% if fsc.categories is defined and fsc.categories is not empty %}
+        <hr class="hamburger-divider">
+        <ul>
+            <li><a href="{{ asset('Tableros') }}">{{ trans('all') }}</a></li>
+            {% for cat in fsc.categories %}
+            <li><a href="{{ asset('Tableros') }}?cat={{ fsc.slugMap[cat.codfamilia] | default(cat.codfamilia) }}">{{ cat.descripcion }}</a></li>
+            {% endfor %}
+        </ul>
+        {% endif %}
     </div>
 </header>
 
