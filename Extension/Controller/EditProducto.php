@@ -145,10 +145,9 @@ class EditProducto
             if (!empty($nombreArchivo)) {
                 $attachedFile = new AttachedFile();
                 if ($attachedFile->loadFromCode($imgModel->idfile)) {
-                    $submittedBase = pathinfo($nombreArchivo, PATHINFO_FILENAME);
                     $currentBase = pathinfo($attachedFile->filename, PATHINFO_FILENAME);
-                    if ($submittedBase !== $currentBase) {
-                        $this->renameAttachedFile($imgModel->idfile, $submittedBase);
+                    if ($nombreArchivo !== $currentBase) {
+                        $this->renameAttachedFile($imgModel->idfile, $nombreArchivo);
                     }
                 }
             }
