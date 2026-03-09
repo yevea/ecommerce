@@ -63,6 +63,8 @@ class EditProducto
         return function ($action) {
             if ($action === 'add-image') {
                 $this->fixImageFileRelations();
+            } elseif ($action === 'edit-image') {
+                $this->editImageData();
             }
         };
     }
@@ -111,6 +113,42 @@ class EditProducto
                 if (!empty($nombreArchivo)) {
                     $this->renameAttachedFile($relation->idfile, $nombreArchivo, $counter);
                     $counter++;
+                }
+            }
+        };
+    }
+
+    /**
+     * Edit metadata of an existing product image (variant, observations,
+     * short description) and optionally rename the underlying file.
+     */
+    protected function editImageData(): Closure
+    {
+        return function () {
+            $idimage = (int)$this->request->input('idimage');
+            if ($idimage <= 0) {
+                return;
+            }
+
+            $imgModel = new ProductoImagen();
+            if (!$imgModel->loadFromCode($idimage)) {
+                return;
+            }
+
+            $imgModel->referencia = $this->request->input('referencia', '');
+            $imgModel->observaciones = $this->request->input('observaciones', '');
+            $imgModel->descripcion_corta = $this->request->input('descripcion_corta', '');
+            $imgModel->save();
+
+            // Handle file rename if the name was changed
+            $nombreArchivo = trim($this->request->input('nombre_archivo', ''));
+            if (!empty($nombreArchivo)) {
+                $attachedFile = new AttachedFile();
+                if ($attachedFile->loadFromCode($imgModel->idfile)) {
+                    $currentBase = pathinfo($attachedFile->filename, PATHINFO_FILENAME);
+                    if ($nombreArchivo !== $currentBase) {
+                        $this->renameAttachedFile($imgModel->idfile, $nombreArchivo);
+                    }
                 }
             }
         };

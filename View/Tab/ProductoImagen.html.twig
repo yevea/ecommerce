@@ -76,36 +76,61 @@
         {% for counter, image in currentView.cursor %}
             <div class="col mb-4 images-item" data-image-id="{{ image.id }}">
                 {% set border = image.referencia ? '' : 'border-primary' %}
+                {% set formName = currentView.getViewName() ~ (counter + 1) %}
+                {% set fullFileName = image.url('download') | split('/') | last %}
                 <div class="card {{ border }} shadow">
                     <img src="{{ asset(image.url('download')) }}" class="card-img-top"
                          alt="{{ image.descripcion_corta is defined and image.descripcion_corta is not empty ? image.descripcion_corta : image.referencia }}" loading="lazy">
-                    <div class="card-body">
-                        {% if image.descripcion_corta is defined and image.descripcion_corta is not empty %}
-                        <p class="card-text small mb-1"><strong>Alt:</strong> {{ image.descripcion_corta }}</p>
-                        {% endif %}
-                        {% if image.observaciones is not empty %}
-                        <p class="card-text small text-muted mb-0">{{ image.observaciones }}</p>
-                        {% endif %}
-                    </div>
-                    <div class="card-footer">
-                        {% set formName = currentView.getViewName() ~ (counter + 1) %}
-                        <form id="{{ 'form' ~ formName }}" action="{{ product.url() }}" method="post"
-                              enctype="multipart/form-data" onsubmit="animateSpinner('add')">
-                            {{ formToken() }}
-                            <input type="hidden" name="action" value=""/>
-                            <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
-                            <input type="hidden" name="idproducto" value="{{ image.idproducto }}"/>
-                            <input type="hidden" name="idimage" value="{{ image.id }}"/>
+                    <form id="{{ 'form' ~ formName }}" action="{{ product.url() }}" method="post"
+                          onsubmit="animateSpinner('add')">
+                        {{ formToken() }}
+                        <input type="hidden" name="action" value=""/>
+                        <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+                        <input type="hidden" name="idproducto" value="{{ image.idproducto }}"/>
+                        <input type="hidden" name="idimage" value="{{ image.id }}"/>
+                        <div class="card-body p-2">
+                            <div class="mb-1">
+                                <select name="referencia" class="form-select form-select-sm">
+                                    <option value="">{{ trans('all-variants') }}</option>
+                                    {% for variant in product.getVariants() %}
+                                        <option value="{{ variant.referencia }}" {% if variant.referencia == image.referencia %}selected{% endif %}>{{ variant.referencia }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-1">
+                                <textarea name="observaciones" class="form-control form-control-sm" rows="2"
+                                          placeholder="{{ trans('observations') }}">{{ image.observaciones }}</textarea>
+                            </div>
+                            <div class="mb-1">
+                                <input type="text" name="descripcion_corta" class="form-control form-control-sm"
+                                       maxlength="300" placeholder="{{ trans('short-description') }}"
+                                       value="{{ image.descripcion_corta is defined ? image.descripcion_corta : '' }}">
+                            </div>
+                            <div class="mb-1">
+                                {% set fileExt = fullFileName | split('.') | last %}
+                                {% set fileBase = fullFileName | slice(0, -(fileExt | length + 1)) %}
+                                <div class="input-group input-group-sm">
+                                    <input type="text" name="nombre_archivo" class="form-control"
+                                           maxlength="90" placeholder="{{ trans('rename-file') }}"
+                                           value="{{ fileBase }}">
+                                    <span class="input-group-text">.{{ fileExt }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
                             <div class="row align-items-center">
-                                <div class="col text-muted">
-                                    {{ image.referencia ? image.referencia : trans('all-variants') }}
+                                <div class="col">
+                                    <button type="button" class="btn btn-sm btn-primary"
+                                            onclick="submitEditImage('{{ formName }}');">
+                                        <i class="fa-solid fa-save fa-fw" aria-hidden="true"></i>
+                                    </button>
                                 </div>
                                 <div class="col-auto">
                                     {{ _self.buttonDelete(formName) }}
                                 </div>
                             </div>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         {% endfor %}
@@ -114,6 +139,13 @@
         <div class="alert alert-info">{{ trans('you-can-sort-images') }}</div>
     {% endif %}
 </div>
+<script>
+function submitEditImage(formName) {
+    var form = document.getElementById('form' + formName);
+    form.querySelector('[name="action"]').value = 'edit-image';
+    form.submit();
+}
+</script>
 
 {% macro buttonDelete(formName) %}
     {% set label = trans('delete-file') %}
