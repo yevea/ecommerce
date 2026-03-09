@@ -60,76 +60,58 @@ class EditProducto
     {
         return function ($action) {
             if ($action === 'add-image') {
-                $this->fixImageFileRelations();
-            } elseif ($action === 'edit-image') {
-                $this->editImageData();
-            }
-        };
-    }
+                $idproducto = (int)$this->request->input('idproducto');
+                if ($idproducto <= 0) {
+                    return;
+                }
 
-    protected function fixImageFileRelations(): Closure
-    {
-        return function () {
-            $idproducto = (int)$this->request->input('idproducto');
-            if ($idproducto <= 0) {
-                return;
-            }
+                $observations = $this->request->input('observations', '');
+                $descripcionCorta = $this->request->input('descripcion_corta', '');
 
-            $observations = $this->request->input('observations', '');
-            $descripcionCorta = $this->request->input('descripcion_corta', '');
+                // Find newly created file relations that have no modelcode yet (created by addImageAction)
+                $fileRelation = new AttachedFileRelation();
+                $imgModel = class_exists(ProductoImagen::class) ? new ProductoImagen() : null;
+                $where = [
+                    Where::eq('model', 'Producto'),
+                    Where::eq('modelid', $idproducto),
+                    Where::isNull('modelcode'),
+                ];
+                foreach ($fileRelation->all($where, [], 0, 0) as $relation) {
+                    $relation->modelcode = (string)$idproducto;
+                    $relation->observations = $observations;
+                    $relation->save();
 
-            // Find newly created file relations that have no modelcode yet (created by addImageAction)
-            $fileRelation = new AttachedFileRelation();
-            $imgModel = class_exists(ProductoImagen::class) ? new ProductoImagen() : null;
-            $where = [
-                Where::eq('model', 'Producto'),
-                Where::eq('modelid', $idproducto),
-                Where::isNull('modelcode'),
-            ];
-            foreach ($fileRelation->all($where, [], 0, 0) as $relation) {
-                $relation->modelcode = (string)$idproducto;
-                $relation->observations = $observations;
-                $relation->save();
-
-                // Save observations and descripcion_corta on the ProductoImagen record
-                if ($imgModel !== null) {
-                    $imgWhere = [Where::eq('idfile', $relation->idfile)];
-                    foreach ($imgModel->all($imgWhere, [], 0, 0) as $img) {
-                        if (!empty($observations)) {
-                            $img->observaciones = $observations;
+                    // Save observations and descripcion_corta on the ProductoImagen record
+                    if ($imgModel !== null) {
+                        $imgWhere = [Where::eq('idfile', $relation->idfile)];
+                        foreach ($imgModel->all($imgWhere, [], 0, 0) as $img) {
+                            if (!empty($observations)) {
+                                $img->observaciones = $observations;
+                            }
+                            if (!empty($descripcionCorta)) {
+                                $img->descripcion_corta = $descripcionCorta;
+                            }
+                            $img->save();
                         }
-                        if (!empty($descripcionCorta)) {
-                            $img->descripcion_corta = $descripcionCorta;
-                        }
-                        $img->save();
                     }
                 }
-            }
-        };
-    }
+            } elseif ($action === 'edit-image') {
+                $idimage = (int)$this->request->input('idimage');
+                if ($idimage <= 0) {
+                    return;
+                }
 
-    /**
-     * Edit metadata of an existing product image (variant, observations,
-     * short description).
-     */
-    protected function editImageData(): Closure
-    {
-        return function () {
-            $idimage = (int)$this->request->input('idimage');
-            if ($idimage <= 0) {
-                return;
-            }
+                $imgModel = new ProductoImagen();
+                if (!$imgModel->loadFromCode($idimage)) {
+                    return;
+                }
 
-            $imgModel = new ProductoImagen();
-            if (!$imgModel->loadFromCode($idimage)) {
-                return;
+                $referencia = $this->request->input('referencia', '');
+                $imgModel->referencia = empty($referencia) ? null : $referencia;
+                $imgModel->observaciones = $this->request->input('observaciones', '');
+                $imgModel->descripcion_corta = $this->request->input('descripcion_corta', '');
+                $imgModel->save();
             }
-
-            $referencia = $this->request->input('referencia', '');
-            $imgModel->referencia = empty($referencia) ? null : $referencia;
-            $imgModel->observaciones = $this->request->input('observaciones', '');
-            $imgModel->descripcion_corta = $this->request->input('descripcion_corta', '');
-            $imgModel->save();
         };
     }
 }
