@@ -113,6 +113,61 @@ ecommerce/
 └── README.md
 ```
 
+## Storefront Templates — StoreFront vs Tableros
+
+The plugin ships two public-facing catalogue pages that share a controller inheritance chain:
+
+```
+Controller (FacturaScripts core)
+  └─ StoreFront          → renders StoreFront.html.twig
+       └─ Tableros       → renders Tableros.html.twig
+```
+
+### StoreFront (`/StoreFront`)
+
+The **general-purpose storefront**.  It loads every public product (individually-public products plus all products belonging to public families) and renders a simple product grid.
+
+| Aspect | Detail |
+|--------|--------|
+| **Controller** | `Controller/StoreFront.php` |
+| **Template** | `View/StoreFront.html.twig` |
+| **Category param** | `?category=CODFAMILIA` (numeric family code) |
+| **Dimension filters** | None |
+| **Price display** | Fixed (`€XX.XX`) |
+| **Product states** | 2 — *in-stock* (green) / *out-of-stock* (red) |
+| **Custom CSS / Intro / Outro** | None |
+| **Schema.org** | `Store` + `OfferCatalog` with basic product entries |
+
+`StoreFront.php` also contains all shared logic for loading categories, building product data, adding items to the cart, and handling Stripe checkout — so any controller that extends it inherits the full shopping-cart flow.
+
+### Tableros (`/Tableros`)
+
+A **specialised catalogue** for the wood-product categories (boards, planks, crafts).  `Tableros.php` extends `StoreFront.php`, reuses all of its data-loading and cart logic, but disables auto-rendering (`autoRenderView = false`) and renders its own richer template.
+
+| Aspect | Detail |
+|--------|--------|
+| **Controller** | `Controller/Tableros.php` (extends `StoreFront`) |
+| **Template** | `View/Tableros.html.twig` |
+| **Category param** | `?cat=SlugName` (human-readable PascalCase slug, converted to family code internally) |
+| **Dimension filters** | Yes — `largo`, `ancho`, `espesor` min/max inputs shown for *tablones* categories |
+| **Price display** | Dynamic — appends `/m²` for *tableros* products |
+| **Product states** | 3 — *in-stock* / *out-of-stock* / *sold* (with `border-warning` card styling) |
+| **Custom CSS / Intro / Outro** | Yes — `category_custom_css`, `category_intro`, `category_outro` blocks populated from family DB fields |
+| **Schema.org** | `Store` + `OfferCatalog` with enhanced `category` field mapping each product's family type to a translated name |
+
+### Key differences at a glance
+
+| Feature | StoreFront | Tableros |
+|---------|-----------|----------|
+| Category URL style | Numeric `?category=CODE` | Slug-based `?cat=Slug` |
+| Dimension filtering | ✗ | ✓ (for *tablones*) |
+| Per-category CSS / intro / outro | ✗ | ✓ |
+| `/m²` price suffix | ✗ | ✓ (for *tableros*) |
+| "Sold" badge | ✗ | ✓ |
+| Twig blocks | `navbar`, `body` | `navbar`, `body`, `category_custom_css`, `category_header`, `category_nav`, `category_intro`, `category_filters`, `product_grid`, `category_outro` |
+
+Both templates extend `Master/MenuTemplate.html.twig` and share the same floating cart button that links to `/Presupuesto`.
+
 ## Installation
 
 1. Copy the `ecommerce` folder into your FacturaScripts `Plugins/` directory
