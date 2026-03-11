@@ -71,7 +71,7 @@
             <div class="col mb-4 images-item" data-image-id="{{ image.id }}">
                 {% set border = image.referencia ? '' : 'border-primary' %}
                 {% set formName = currentView.getViewName() ~ (counter + 1) %}
-                {% set fullFileName = image.url('download') | split('/') | last %}
+                {% set fullFileName = (image.url('download') | split('/') | last) | split('?') | first %}
                 <div class="card {{ border }} shadow">
                     <img src="{{ asset(image.url('download')) }}" class="card-img-top"
                          alt="{{ image.descripcion_corta is defined and image.descripcion_corta is not empty ? image.descripcion_corta : image.referencia }}" loading="lazy">
