@@ -61,7 +61,7 @@
 <div class="container mt-4">
     {% block category_header %}
     <h1 class="mb-4">
-        <i class="fa-solid fa-store"></i> {% if fsc.selectedCategoryFamily %}{{ fsc.selectedCategoryFamily.descripcion }}{% else %}{{ trans('tableros') }}{% endif %}
+        {% if fsc.selectedCategoryFamily %}{{ fsc.selectedCategoryFamily.descripcion }}{% else %}{{ trans('tableros') }}{% endif %}
     </h1>
     {% endblock %}
 
