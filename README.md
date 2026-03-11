@@ -89,7 +89,7 @@ ecommerce/
 │   ├── ecommerce_cart_items.xml     # Cart items table
 │   ├── ecommerce_order_lines.xml    # Order lines table
 │   ├── ecommerce_orders.xml         # Orders table
-│   └── ProductoImagen.xml           # Product images table
+│   └── productos_imagenes.xml       # Product images table
 ├── Translation/
 │   ├── de_DE.json                   # German translations
 │   ├── en_EN.json                   # English translations
