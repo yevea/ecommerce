@@ -76,10 +76,13 @@ class EditProducto
             }
 
             $referencia = $this->request->input('referencia', '');
-            $imgModel->referencia = empty($referencia) ? null : $referencia;
-            $imgModel->observaciones = $this->request->input('observaciones', '');
-            $imgModel->descripcion_corta = $this->request->input('descripcion_corta', '');
-            $imgModel->save();
+            ProductoImagen::table()
+                ->whereEq('id', $idimage)
+                ->update([
+                    'referencia' => empty($referencia) ? null : $referencia,
+                    'observaciones' => $this->request->input('observaciones', ''),
+                    'descripcion_corta' => $this->request->input('descripcion_corta', ''),
+                ]);
 
             // Handle file rename if the name was changed
             $nombreArchivo = trim($this->request->input('nombre_archivo', ''));
