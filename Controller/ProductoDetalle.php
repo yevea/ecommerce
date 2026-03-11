@@ -107,11 +107,14 @@ class ProductoDetalle extends StoreFront
             $isSold = true;
         }
 
+        // Translate product name/description via translation keys (fallback to DB Spanish)
+        $translated = $this->translateProduct($p->referencia, $p->descripcion, $p->observaciones ?? '');
+
         $this->product = (object) [
             'referencia' => $p->referencia,
             'slug' => self::generateProductSlug($p->descripcion),
-            'name' => $p->descripcion,
-            'description' => $p->observaciones ?? '',
+            'name' => $translated['name'],
+            'description' => $translated['description'],
             'price' => $p->precio,
             'stock' => $p->stockfis,
             'nostock' => (bool) ($p->nostock ?? false),

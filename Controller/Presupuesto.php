@@ -6,12 +6,15 @@ use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
+use FacturaScripts\Plugins\ecommerce\Lib\LanguageTrait;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrder;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrderLine;
 
 class Presupuesto extends Controller
 {
+    use LanguageTrait;
+
     protected $requiresAuth = false;
 
     private const CLIENTE_CLASS = 'FacturaScripts\\Dinamic\\Model\\Cliente';
@@ -51,6 +54,7 @@ class Presupuesto extends Controller
     public function run(): void
     {
         parent::run();
+        $this->detectAndSetLanguage();
 
         $cssPath = FS_FOLDER . '/Plugins/ecommerce/Assets/CSS/ecommerce.css';
         if (file_exists($cssPath)) {
@@ -678,7 +682,10 @@ class Presupuesto extends Controller
                 $parent = new Producto();
                 if ($parent->loadFromCode($variante->idproducto)) {
                     $attrDesc = method_exists($variante, 'description') ? $variante->description(true) : '';
-                    $name = empty($attrDesc) ? $parent->descripcion : $parent->descripcion . ' – ' . $attrDesc;
+                    $translated = $this->translateProduct($parent->referencia, $parent->descripcion, '');
+                    $name = empty($attrDesc)
+                        ? $translated['name']
+                        : $translated['name'] . ' – ' . $attrDesc;
                     return (object) [
                         'name' => $name,
                         'price' => $variante->precio,
@@ -693,8 +700,9 @@ class Presupuesto extends Controller
         $product = new Producto();
         $where = [Where::eq('referencia', $referencia)];
         if ($product->loadWhere($where)) {
+            $translated = $this->translateProduct($product->referencia, $product->descripcion, '');
             return (object) [
-                'name' => $product->descripcion,
+                'name' => $translated['name'],
                 'price' => $product->precio,
                 'referencia' => $product->referencia,
                 'tax_rate' => $this->getTaxRate($product->codimpuesto ?? ''),
