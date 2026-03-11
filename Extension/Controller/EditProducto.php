@@ -21,13 +21,15 @@ namespace FacturaScripts\Plugins\ecommerce\Extension\Controller;
 
 use Closure;
 use FacturaScripts\Core\Model\Familia;
+use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
+use FacturaScripts\Dinamic\Model\AttachedFile;
 use FacturaScripts\Dinamic\Model\AttachedFileRelation;
 use FacturaScripts\Dinamic\Model\ProductoImagen;
 
 /**
  * Extension for EditProducto controller to fix observations on product images,
- * save short descriptions (alt text),
+ * save short descriptions (alt text) and rename uploaded files for SEO,
  * and hide dimension fields (largo, ancho, espesor) for non-tablones families.
  */
 class EditProducto
@@ -78,6 +80,55 @@ class EditProducto
             $imgModel->observaciones = $this->request->input('observaciones', '');
             $imgModel->descripcion_corta = $this->request->input('descripcion_corta', '');
             $imgModel->save();
+
+            // Handle file rename if the name was changed
+            $nombreArchivo = trim($this->request->input('nombre_archivo', ''));
+            if (!empty($nombreArchivo)) {
+                $attachedFile = new AttachedFile();
+                if ($attachedFile->loadFromCode($imgModel->idfile)) {
+                    $currentBase = pathinfo($attachedFile->filename, PATHINFO_FILENAME);
+                    if ($nombreArchivo !== $currentBase) {
+                        // Sanitize the new name
+                        $newName = strtolower(trim($nombreArchivo));
+                        $newName = str_replace(' ', '-', $newName);
+                        $newName = preg_replace('/[^a-z0-9\-]/', '', $newName);
+                        $newName = preg_replace('/-+/', '-', $newName);
+                        $newName = trim($newName, '-');
+
+                        if (!empty($newName)) {
+                            $currentPath = $attachedFile->path;
+                            $extension = pathinfo($currentPath, PATHINFO_EXTENSION);
+                            $directory = pathinfo($currentPath, PATHINFO_DIRNAME);
+
+                            $targetFilename = $newName . '.' . $extension;
+                            $targetPath = $directory . '/' . $targetFilename;
+                            $fullTargetPath = FS_FOLDER . '/' . $targetPath;
+
+                            if (file_exists($fullTargetPath)) {
+                                for ($i = 2; $i <= 100; $i++) {
+                                    $targetFilename = $newName . '-' . $i . '.' . $extension;
+                                    $targetPath = $directory . '/' . $targetFilename;
+                                    $fullTargetPath = FS_FOLDER . '/' . $targetPath;
+                                    if (!file_exists($fullTargetPath)) {
+                                        break;
+                                    }
+                                }
+                                if (file_exists($fullTargetPath)) {
+                                    Tools::log()->warning('Could not rename file: all name variants taken');
+                                    return;
+                                }
+                            }
+
+                            $fullCurrentPath = FS_FOLDER . '/' . $currentPath;
+                            if (file_exists($fullCurrentPath) && rename($fullCurrentPath, $fullTargetPath)) {
+                                AttachedFile::table()
+                                    ->whereEq('idfile', $imgModel->idfile)
+                                    ->update(['path' => $targetPath, 'filename' => $targetFilename]);
+                            }
+                        }
+                    }
+                }
+            }
         };
     }
 
