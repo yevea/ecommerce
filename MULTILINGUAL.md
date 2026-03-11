@@ -604,7 +604,11 @@ public $currentLang = 'es_ES';
 /** @var string Short label for the current language (e.g., 'ES') */
 public $currentLangLabel = 'ES';
 
-/** @var array Available languages: code => display label */
+/** @var array Available languages: code => display label
+ *  Note: locale codes (es_ES, en_EN, fr_FR, de_DE) follow the existing
+ *  FacturaScripts convention used by the Translation/*.json files in this
+ *  plugin. en_EN is non-standard (ISO would be en_GB or en_US) but matches
+ *  the file already shipped as Translation/en_EN.json. */
 public $availableLanguages = [
     'es_ES' => 'ES',
     'en_EN' => 'EN',
@@ -678,6 +682,13 @@ public function run(): void
 - Direct manipulation of the translation engine's internal state
 
 This is a **critical implementation risk** — the exact API must be verified against the installed FacturaScripts version. If `Tools::lang()` does not expose a public method to change the language at runtime, a workaround would be needed (e.g., creating a new `Translator` instance or using `$_SESSION` to influence the language selection).
+
+**Verification steps before implementation:**
+1. Inspect `vendor/facturascripts/*/Core/Translation/` or `Core/Lib/Lang/` for the `Translator` class source code.
+2. Check if `Tools::lang()` returns a singleton or creates new instances per call.
+3. Search for `setLang`, `setDefaultLang`, or `setLanguage` methods in the `Translator` class.
+4. If no public method exists, test whether setting `$_SESSION['fsLang']` or similar session keys before `parent::run()` influences the language. FacturaScripts' `Controller` base class may read the language from the session during initialisation.
+5. As a last resort, the `Translator` class can be extended in the plugin's `Dinamic` layer to add a `setLang()` method.
 
 #### B. Helper Method for Language-Switched URLs
 
@@ -818,7 +829,7 @@ public function localizedAsset(string $controller): string
 |---|---|---|---|
 | `Tools::lang()->setLang()` not available | Cannot change language at runtime | HIGH | Research FacturaScripts Translator API; fallback to session-based approach |
 | Crawlers ignoring cookies | See only default language | LOW | SEO URLs solve this — crawlers follow language-prefixed links |
-| Visitor with JS disabled | Bootstrap dropdown may not work | MEDIUM | Use a simple `<select>` with `onchange` as fallback |
+| Visitor with JS disabled | Bootstrap dropdown may not work | MEDIUM | Implement language switcher as a `<form>` with `<select>` and a submit button that works without JS; enhance with Bootstrap dropdown styling via progressive enhancement. The no-JS form should `GET` to the current page with `?lang=` parameter |
 | Language prefix in POST form actions | Forms may break | MEDIUM | Ensure `<form action="...">` includes the language prefix |
 | Admin panel (logged-in users) | Admin should use their own language, not the public cookie | LOW | `detectAndSetLanguage()` should only apply when `$requiresAuth === false` |
 | Browser Accept-Language header | Not used for initial detection | LOW | Could enhance later; currently defaults to Spanish |
