@@ -135,5 +135,7 @@
     "category-content": "Kategorieinhalt",
     "category-custom-css": "Benutzerdefinierte Stile",
     "category-intro": "Kategorieeinführung",
-    "category-outro": "Abschlusshinweise"
+    "category-outro": "Abschlusshinweise",
+    "language": "Sprache",
+    "select-language": "Sprache auswählen"
 }

@@ -135,5 +135,7 @@
     "category-content": "Contenu de la Catégorie",
     "category-custom-css": "Styles Personnalisés",
     "category-intro": "Introduction de la Catégorie",
-    "category-outro": "Notes Finales"
+    "category-outro": "Notes Finales",
+    "language": "Langue",
+    "select-language": "Sélectionner la langue"
 }

@@ -4,6 +4,7 @@
 
 {% block body %}
 {% include 'Header.html.twig' %}
+{% include 'Hreflang.html.twig' %}
 <div class="container mt-4">
 
     {% if fsc.product is not null %}
@@ -16,6 +17,7 @@
         "description": "{{ fsc.product.description | e('js') }}",
         "sku": "{{ fsc.product.referencia }}",
         "material": "{{ trans('olive-wood') }}",
+        {% if fsc.currentLang is defined %}"inLanguage": "{{ fsc.currentLang[:2] }}",{% endif %}
         "url": "{{ asset('ProductoDetalle') }}?url={{ fsc.product.slug }}",
         {% if fsc.productImages is not empty %}"image": "{{ fsc.productImages[0].url }}",{% endif %}
         "brand": {
