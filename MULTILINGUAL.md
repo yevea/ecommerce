@@ -135,7 +135,7 @@ Store language-specific slugs (either in the translation table from Gap 1 or as 
 ```
 es: mesa-de-olivo
 en: olive-wood-table
-fr: table-en-bois-dolivier
+fr: table-en-bois-d-olivier
 de: olivenholztisch
 ```
 
@@ -148,7 +148,7 @@ Add `<link rel="alternate" hreflang="..." href="...">` tags in the `<head>` of e
 ```html
 <link rel="alternate" hreflang="es" href="https://example.com/es/ProductoDetalle/mesa-de-olivo" />
 <link rel="alternate" hreflang="en" href="https://example.com/en/ProductoDetalle/olive-wood-table" />
-<link rel="alternate" hreflang="fr" href="https://example.com/fr/ProductoDetalle/table-en-bois-dolivier" />
+<link rel="alternate" hreflang="fr" href="https://example.com/fr/ProductoDetalle/table-en-bois-d-olivier" />
 <link rel="alternate" hreflang="de" href="https://example.com/de/ProductoDetalle/olivenholztisch" />
 <link rel="alternate" hreflang="x-default" href="https://example.com/ProductoDetalle/mesa-de-olivo" />
 ```
