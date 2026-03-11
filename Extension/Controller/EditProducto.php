@@ -91,7 +91,7 @@ class EditProducto
                         // Sanitize the new name
                         $newName = strtolower(trim($nombreArchivo));
                         $newName = str_replace(' ', '-', $newName);
-                        $newName = preg_replace('/[^a-z0-9\-]/', '', $newName);
+                        $newName = preg_replace('/[^a-z0-9-]/', '', $newName);
                         $newName = preg_replace('/-+/', '-', $newName);
                         $newName = trim($newName, '-');
 
