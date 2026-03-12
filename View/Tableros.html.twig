@@ -140,12 +140,13 @@
                     {% endif %}
                     <div class="card-body d-flex flex-column">
                         <h2 class="card-title h5" itemprop="name">{{ product.name }}</h2>
-                        {% if product.familyType is defined and product.familyType == 'tablones' and (product.largo is defined and product.largo is not null or product.ancho is defined and product.ancho is not null or product.espesor is defined and product.espesor is not null) %}
+                        {% set hasDimensions = product.familyType is defined and product.familyType == 'tablones' and (product.largo is not null or product.ancho is not null or product.espesor is not null) %}
+                        {% if hasDimensions %}
                         <p class="card-text small mb-1">
                             <i class="fa-solid fa-ruler-combined"></i>
-                            {% if product.largo is defined and product.largo is not null %}{{ product.largo }}{% endif %}
-                            {% if product.ancho is defined and product.ancho is not null %}×{{ product.ancho }}{% endif %}
-                            {% if product.espesor is defined and product.espesor is not null %}×{{ product.espesor }}{% endif %}
+                            {% if product.largo is not null %}{{ product.largo }}{% endif %}
+                            {% if product.ancho is not null %}×{{ product.ancho }}{% endif %}
+                            {% if product.espesor is not null %}×{{ product.espesor }}{% endif %}
                             cm
                         </p>
                         {% endif %}

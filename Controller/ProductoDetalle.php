@@ -103,10 +103,7 @@ class ProductoDetalle extends StoreFront
         $this->loadFamilyType($p);
 
         $isSold = false;
-        if ($this->familyType === 'artesania' && $p->stockfis <= 0) {
-            $isSold = true;
-        }
-        if ($this->familyType === 'tablones' && $p->stockfis <= 0) {
+        if (($this->familyType === 'artesania' || $this->familyType === 'tablones') && $p->stockfis <= 0) {
             $isSold = true;
         }
 
