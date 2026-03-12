@@ -15,18 +15,18 @@ trait LanguageTrait
     /** @var string Current language code (e.g. 'es_ES') */
     public $currentLang = 'es_ES';
 
-    /** @var string Short display label for the current language (e.g. 'ES') */
-    public $currentLangLabel = 'ES';
+    /** @var string Display label for the current language (e.g. 'español') */
+    public $currentLangLabel = 'español';
 
     /**
-     * Available languages: locale code => short display label.
+     * Available languages: locale code => display label.
      * Locale codes match the Translation/*.json file names shipped with this plugin.
      */
     public $availableLanguages = [
-        'es_ES' => 'ES',
-        'en_EN' => 'EN',
-        'fr_FR' => 'FR',
-        'de_DE' => 'DE',
+        'es_ES' => 'español',
+        'en_EN' => 'English',
+        'fr_FR' => 'français',
+        'de_DE' => 'Deutsch',
     ];
 
     /**
