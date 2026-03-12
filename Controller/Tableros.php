@@ -2,7 +2,6 @@
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Model\Familia;
-use FacturaScripts\Core\Where;
 
 class Tableros extends StoreFront
 {
@@ -105,57 +104,37 @@ class Tableros extends StoreFront
             return;
         }
 
-        $varianteClass = '\FacturaScripts\Core\Model\Variante';
-        if (!class_exists($varianteClass)) {
-            return;
-        }
-
-        // Batch-load all variants for the current product set in a single query
-        $productIds = array_map(fn(object $p) => $p->idproducto, $this->products);
-        if (empty($productIds)) {
-            return;
-        }
-
-        $variante = new $varianteClass();
-        $allVariants = $variante->all([Where::in('idproducto', $productIds)], [], 0, 0);
-
-        // Group variants by idproducto and check dimension filters
-        $matchingProductIds = [];
-        foreach ($allVariants as $v) {
-            if (isset($matchingProductIds[$v->idproducto])) {
-                continue; // already matched
-            }
-            if ($this->variantMatchesDimensionFilters($v)) {
-                $matchingProductIds[$v->idproducto] = true;
-            }
-        }
-
+        // Filter products by their dimensions (stored on the product itself)
         $this->products = array_values(array_filter(
             $this->products,
-            fn(object $p) => isset($matchingProductIds[$p->idproducto])
+            fn(object $p) => $this->productMatchesDimensionFilters($p)
         ));
     }
 
-    private function variantMatchesDimensionFilters(object $variant): bool
+    private function productMatchesDimensionFilters(object $product): bool
     {
         $filters = $this->dimensionFilters;
 
-        if ($filters['largo_min'] !== '' && ($variant->largo === null || $variant->largo < (float) $filters['largo_min'])) {
+        $largo = $product->largo ?? null;
+        $ancho = $product->ancho ?? null;
+        $espesor = $product->espesor ?? null;
+
+        if ($filters['largo_min'] !== '' && ($largo === null || $largo < (float) $filters['largo_min'])) {
             return false;
         }
-        if ($filters['largo_max'] !== '' && ($variant->largo === null || $variant->largo > (float) $filters['largo_max'])) {
+        if ($filters['largo_max'] !== '' && ($largo === null || $largo > (float) $filters['largo_max'])) {
             return false;
         }
-        if ($filters['ancho_min'] !== '' && ($variant->ancho === null || $variant->ancho < (float) $filters['ancho_min'])) {
+        if ($filters['ancho_min'] !== '' && ($ancho === null || $ancho < (float) $filters['ancho_min'])) {
             return false;
         }
-        if ($filters['ancho_max'] !== '' && ($variant->ancho === null || $variant->ancho > (float) $filters['ancho_max'])) {
+        if ($filters['ancho_max'] !== '' && ($ancho === null || $ancho > (float) $filters['ancho_max'])) {
             return false;
         }
-        if ($filters['espesor_min'] !== '' && ($variant->espesor === null || $variant->espesor < (float) $filters['espesor_min'])) {
+        if ($filters['espesor_min'] !== '' && ($espesor === null || $espesor < (float) $filters['espesor_min'])) {
             return false;
         }
-        if ($filters['espesor_max'] !== '' && ($variant->espesor === null || $variant->espesor > (float) $filters['espesor_max'])) {
+        if ($filters['espesor_max'] !== '' && ($espesor === null || $espesor > (float) $filters['espesor_max'])) {
             return false;
         }
 

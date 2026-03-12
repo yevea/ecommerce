@@ -121,8 +121,8 @@ class StoreFront extends Controller
 
         $qty = max(1, (int) $this->request()->request->get('quantity', 1));
 
-        // For Artesanía, quantity is always 1
-        if ($familyType === 'artesania') {
+        // For Artesanía and Tablones, quantity is always 1 (unique pieces)
+        if ($familyType === 'artesania' || $familyType === 'tablones') {
             $qty = 1;
         }
 
@@ -151,8 +151,8 @@ class StoreFront extends Controller
         if ($familyType !== 'tableros') {
             $existing = $cartItem->all($where);
             if (!empty($existing)) {
-                if ($familyType === 'artesania') {
-                    // Artesanía: don't add more, quantity stays at 1
+                if ($familyType === 'artesania' || $familyType === 'tablones') {
+                    // Artesanía / Tablones: unique pieces, don't add more, quantity stays at 1
                     return;
                 }
                 $existing[0]->quantity += $qty;
@@ -417,6 +417,11 @@ class StoreFront extends Controller
                 $isSold = true;
             }
 
+            // For Tablones: determine if slab is sold (stock <= 0)
+            if ($familyType === 'tablones' && $p->stockfis <= 0) {
+                $isSold = true;
+            }
+
             // Translate product name/description via translation keys (fallback to DB Spanish)
             $translated = $this->translateProduct($p->referencia, $p->descripcion, $p->observaciones ?? '');
 
@@ -432,6 +437,9 @@ class StoreFront extends Controller
                 'familyType' => $familyType,
                 'isSold' => $isSold,
                 'idproducto' => $p->idproducto,
+                'largo' => $p->largo ?? null,
+                'ancho' => $p->ancho ?? null,
+                'espesor' => $p->espesor ?? null,
             ];
 
             $this->products[] = $productObj;

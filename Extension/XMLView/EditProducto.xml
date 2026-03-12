@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <view>
     <columns>
+        <group name="dimensions" id="tablones-dimensions" numcolumns="12" title="dimensions" order="200">
+            <column name="largo" order="200">
+                <widget type="number" fieldname="largo" decimal="2" min="0"/>
+            </column>
+            <column name="ancho" order="201">
+                <widget type="number" fieldname="ancho" decimal="2" min="0"/>
+            </column>
+            <column name="espesor" order="202">
+                <widget type="number" fieldname="espesor" decimal="2" min="0"/>
+            </column>
+        </group>
     </columns>
 </view>
