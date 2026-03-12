@@ -2,7 +2,28 @@
 <header id="ecommerce-header">
     <div class="container d-flex align-items-center justify-content-between">
         <a href="/"><img style="width:100px;height:25px;" src="https://yevea.com/001-vectores/logo-yevea-white.svg" alt="madera olivo - logo"><sup>®</sup></a>
-        <button type="button" id="hamburger-toggle" class="hamburger-toggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+        <div class="d-flex align-items-center gap-2">
+            {# Language switcher dropdown #}
+            {% if fsc.availableLanguages is defined %}
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-light dropdown-toggle lang-switcher-btn" type="button"
+                        id="lang-switcher" data-bs-toggle="dropdown" aria-expanded="false">
+                    {{ fsc.currentLangLabel }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="lang-switcher">
+                    {% for code, label in fsc.availableLanguages %}
+                    <li>
+                        <a class="dropdown-item {% if code == fsc.currentLang %}active{% endif %}"
+                           href="{{ fsc.langSwitchUrl(code) }}">
+                            {{ label }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            <button type="button" id="hamburger-toggle" class="hamburger-toggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+        </div>
     </div>
     <div id="hamburger-menu" class="hamburger-dropdown">
         <ul>
@@ -11,7 +32,7 @@
         {% if fsc.categories is defined and fsc.categories is not empty %}
             <li><a href="{{ asset('Tableros') }}">{{ trans('all') }}</a></li>
             {% for cat in fsc.categories %}
-            <li><a href="{{ asset('Tableros') }}?cat={{ fsc.slugMap[cat.codfamilia] | default(cat.codfamilia) }}">{{ cat.descripcion }}</a></li>
+            <li><a href="{{ asset('Tableros') }}?cat={{ fsc.slugMap[cat.codfamilia] | default(cat.codfamilia) }}">{{ fsc.categoryNames[cat.codfamilia] | default(cat.descripcion) }}</a></li>
             {% endfor %}
         {% endif %}
 

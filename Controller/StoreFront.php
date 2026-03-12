@@ -7,11 +7,13 @@ use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
+use FacturaScripts\Plugins\ecommerce\Lib\LanguageTrait;
 use FacturaScripts\Plugins\ecommerce\Lib\SlugTrait;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 
 class StoreFront extends Controller
 {
+    use LanguageTrait;
     use SlugTrait;
 
     protected $requiresAuth = false;
@@ -37,6 +39,9 @@ class StoreFront extends Controller
     /** @var int */
     public $cartItemCount = 0;
 
+    /** @var array Map of codfamilia => translated category name */
+    public $categoryNames = [];
+
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
@@ -50,6 +55,7 @@ class StoreFront extends Controller
     public function run(): void
     {
         parent::run();
+        $this->detectAndSetLanguage();
 
         $cssPath = FS_FOLDER . '/Plugins/ecommerce/Assets/CSS/ecommerce.css';
         if (file_exists($cssPath)) {
@@ -277,6 +283,16 @@ class StoreFront extends Controller
             0,
             0
         );
+
+        // Build a map of codfamilia => translated category name for templates
+        $this->categoryNames = [];
+        foreach ($this->categories as $cat) {
+            $nameKey = 'family-' . $cat->codfamilia . '-name';
+            $translatedName = Tools::lang()->trans($nameKey);
+            $this->categoryNames[$cat->codfamilia] = ($translatedName !== $nameKey)
+                ? $translatedName
+                : $cat->descripcion;
+        }
     }
 
     protected function loadSelectedCategoryType(): void
@@ -292,17 +308,26 @@ class StoreFront extends Controller
         if ($familia->loadFromCode($this->selectedCategory)) {
             $tipo = $familia->tipofamilia ?? 'mercancia';
             $this->selectedCategoryType = $tipo;
+
+            // Translate category content via translation keys (fallback to DB Spanish)
+            $translated = $this->translateCategory(
+                $familia->codfamilia,
+                $familia->descripcion,
+                $familia->category_intro ?? '',
+                $familia->category_outro ?? ''
+            );
+
             $this->selectedCategoryFamily = (object) [
                 'codfamilia' => $familia->codfamilia,
-                'descripcion' => $familia->descripcion,
+                'descripcion' => $translated['descripcion'],
                 'tipofamilia' => $tipo,
                 'largo_min' => (float) ($familia->largo_min ?? 0),
                 'largo_max' => (float) ($familia->largo_max ?? 0),
                 'ancho_min' => (float) ($familia->ancho_min ?? 0),
                 'ancho_max' => (float) ($familia->ancho_max ?? 0),
                 'category_custom_css' => $familia->category_custom_css ?? '',
-                'category_intro' => $familia->category_intro ?? '',
-                'category_outro' => $familia->category_outro ?? '',
+                'category_intro' => $translated['category_intro'],
+                'category_outro' => $translated['category_outro'],
             ];
         }
     }
@@ -392,11 +417,14 @@ class StoreFront extends Controller
                 $isSold = true;
             }
 
+            // Translate product name/description via translation keys (fallback to DB Spanish)
+            $translated = $this->translateProduct($p->referencia, $p->descripcion, $p->observaciones ?? '');
+
             $productObj = (object) [
                 'referencia' => $p->referencia,
                 'slug' => self::generateProductSlug($p->descripcion),
-                'name' => $p->descripcion,
-                'description' => $p->observaciones ?? '',
+                'name' => $translated['name'],
+                'description' => $translated['description'],
                 'price' => $p->precio,
                 'stock' => $p->stockfis,
                 'nostock' => (bool) ($p->nostock ?? false),

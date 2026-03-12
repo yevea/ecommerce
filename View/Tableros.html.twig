@@ -4,6 +4,7 @@
 
 {% block body %}
 {% include 'Header.html.twig' %}
+{% include 'Hreflang.html.twig' %}
 {% block category_custom_css %}
 {% if fsc.selectedCategoryFamily and fsc.selectedCategoryFamily.category_custom_css is not empty %}
 <style>{{ fsc.selectedCategoryFamily.category_custom_css | replace({'</style>': '', '</STYLE>': ''}) | raw }}</style>
@@ -18,6 +19,7 @@
     "name": "{{ trans('sawmill') }}",
     "description": "{{ trans('sawmill-desc') }}",
     "url": "{{ asset('Tableros') }}",
+    {% if fsc.currentLang is defined %}"inLanguage": "{{ fsc.currentLang[:2] }}",{% endif %}
     "areaServed": [
         {"@type": "Country", "name": "Spain"},
         {"@type": "Country", "name": "France"},

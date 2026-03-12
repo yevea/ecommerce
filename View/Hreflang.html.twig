@@ -1,0 +1,7 @@
+{# hreflang alternate-language links for SEO — included in public-facing templates #}
+{% if fsc.availableLanguages is defined %}
+{% for code, label in fsc.availableLanguages %}
+<link rel="alternate" hreflang="{{ code[:2] }}" href="{{ fsc.langSwitchUrl(code) }}">
+{% endfor %}
+<link rel="alternate" hreflang="x-default" href="{{ fsc.langSwitchUrl('es_ES') }}">
+{% endif %}

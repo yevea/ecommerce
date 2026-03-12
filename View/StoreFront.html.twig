@@ -4,6 +4,7 @@
 
 {% block body %}
 {% include 'Header.html.twig' %}
+{% include 'Hreflang.html.twig' %}
 {# Schema.org structured data for AI agents and search engines #}
 <script type="application/ld+json">
 {
@@ -12,6 +13,7 @@
     "name": "{{ trans('sawmill') }}",
     "description": "{{ trans('sawmill-desc') }}",
     "url": "{{ asset('StoreFront') }}",
+    {% if fsc.currentLang is defined %}"inLanguage": "{{ fsc.currentLang[:2] }}",{% endif %}
     "areaServed": [
         {"@type": "Country", "name": "Spain"},
         {"@type": "Country", "name": "France"},
