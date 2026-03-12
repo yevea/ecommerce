@@ -46,8 +46,28 @@
 
 <script>
 document.getElementById('hamburger-toggle').addEventListener('click', function () {
+    // Close the language dropdown if it is open
+    var langBtn = document.getElementById('lang-switcher');
+    if (langBtn) {
+        var bsDropdown = bootstrap.Dropdown.getInstance(langBtn);
+        if (bsDropdown) {
+            bsDropdown.hide();
+        }
+    }
     this.classList.toggle('open');
     document.getElementById('hamburger-menu').classList.toggle('show');
     this.setAttribute('aria-expanded', this.classList.contains('open'));
 });
+
+// When the language dropdown opens, close the hamburger menu
+var langSwitcher = document.getElementById('lang-switcher');
+if (langSwitcher) {
+    langSwitcher.addEventListener('show.bs.dropdown', function () {
+        var toggle = document.getElementById('hamburger-toggle');
+        var menu = document.getElementById('hamburger-menu');
+        toggle.classList.remove('open');
+        menu.classList.remove('show');
+        toggle.setAttribute('aria-expanded', 'false');
+    });
+}
 </script>
