@@ -11,9 +11,6 @@ class Tableros extends StoreFront
     /** @var string|null Current category slug (e.g. "TablerosMesa") */
     public $categorySlug = null;
 
-    /** @var array Map of codfamilia => slug for all categories */
-    public $slugMap = [];
-
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
@@ -44,9 +41,6 @@ class Tableros extends StoreFront
         $this->autoRenderView = false;
         parent::run();
 
-        // Build slug maps from the loaded categories
-        $this->buildSlugMaps();
-
         // Set the current category slug
         if ($this->selectedCategory !== null) {
             $this->categorySlug = $this->slugMap[$this->selectedCategory] ?? null;
@@ -68,18 +62,6 @@ class Tableros extends StoreFront
                 $this->request()->query->set('category', $fam->codfamilia);
                 break;
             }
-        }
-    }
-
-    /**
-     * Build maps: codfamilia => slug for URL generation in templates.
-     */
-    private function buildSlugMaps(): void
-    {
-        $this->slugMap = [];
-        foreach ($this->categories as $cat) {
-            $slug = self::generateSlug($cat->descripcion);
-            $this->slugMap[$cat->codfamilia] = $slug;
         }
     }
 
