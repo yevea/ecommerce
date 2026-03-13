@@ -58,6 +58,9 @@ class TablonPrecio extends ModelClass
         if ($this->espesor <= 0) {
             return false;
         }
+        if ($this->precio_m2 <= 0) {
+            return false;
+        }
 
         return parent::test();
     }
