@@ -144,6 +144,36 @@ class EditProducto
     protected function execAfterAction(): Closure
     {
         return function ($action) {
+            // Set default stock to 1 for new tablones products (each slab is a unique piece)
+            if ($action === 'insert') {
+                $idproducto = $this->getViewModelValue('EditProducto', 'idproducto');
+                $codfamilia = $this->getViewModelValue('EditProducto', 'codfamilia');
+
+                if (!empty($codfamilia) && !empty($idproducto)) {
+                    $familia = new Familia();
+                    if ($familia->loadFromCode($codfamilia) && ($familia->tipofamilia ?? '') === 'tablones') {
+                        $varianteClass = '\FacturaScripts\Dinamic\Model\Variante';
+                        if (class_exists($varianteClass)) {
+                            $variante = new $varianteClass();
+                            $varWhere = [Where::eq('idproducto', (int)$idproducto)];
+                            foreach ($variante->all($varWhere, [], 0, 0) as $v) {
+                                if ($v->stockfis <= 0) {
+                                    $v->stockfis = 1;
+                                    $v->save();
+                                }
+                            }
+                        }
+
+                        $productoClass = '\FacturaScripts\Core\Model\Producto';
+                        $producto = new $productoClass();
+                        if ($producto->loadFromCode($idproducto) && $producto->stockfis <= 0) {
+                            $producto->stockfis = 1;
+                            $producto->save();
+                        }
+                    }
+                }
+            }
+
             if ($action !== 'add-image') {
                 return;
             }
