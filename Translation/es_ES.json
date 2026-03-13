@@ -152,5 +152,12 @@
     "tablon-added-successfully": "¡Tablón añadido y publicado correctamente!",
     "tablon-save-failed": "Error al guardar el tablón.",
     "tablon-price-not-found": "No se encontró un precio para esta combinación.",
-    "tablon-family-not-found": "No se encontró la familia de tablones."
+    "tablon-family-not-found": "No se encontró la familia de tablones.",
+    "tablon-offline": "Sin conexión — los tablones se guardarán localmente",
+    "tablon-saved-offline": "Tablón guardado localmente. Se publicará automáticamente cuando vuelva la conexión.",
+    "tablon-syncing": "Sincronizando {n} tablón(es) pendiente(s)…",
+    "tablon-sync-done": "{n} tablón(es) sincronizado(s) correctamente.",
+    "tablon-sync-partial": "{ok} sincronizado(s), {fail} fallido(s). Se reintentará.",
+    "tablon-sync-now": "Sincronizar",
+    "tablon-pending": "Tablones pendientes de sincronizar"
 }

@@ -152,5 +152,12 @@
     "tablon-added-successfully": "Planche ajoutée et publiée avec succès !",
     "tablon-save-failed": "Erreur lors de l'enregistrement de la planche.",
     "tablon-price-not-found": "Aucun prix trouvé pour cette combinaison.",
-    "tablon-family-not-found": "Famille de planches introuvable."
+    "tablon-family-not-found": "Famille de planches introuvable.",
+    "tablon-offline": "Hors ligne — les planches seront enregistrées localement",
+    "tablon-saved-offline": "Planche enregistrée localement. Elle sera publiée automatiquement au retour de la connexion.",
+    "tablon-syncing": "Synchronisation de {n} planche(s) en attente…",
+    "tablon-sync-done": "{n} planche(s) synchronisée(s) avec succès.",
+    "tablon-sync-partial": "{ok} synchronisée(s), {fail} échouée(s). Nouvelle tentative prévue.",
+    "tablon-sync-now": "Synchroniser",
+    "tablon-pending": "Planches en attente de synchronisation"
 }

@@ -152,5 +152,12 @@
     "tablon-added-successfully": "Slab added and published successfully!",
     "tablon-save-failed": "Failed to save the slab.",
     "tablon-price-not-found": "No price found for this combination.",
-    "tablon-family-not-found": "Tablones family not found."
+    "tablon-family-not-found": "Tablones family not found.",
+    "tablon-offline": "Offline — slabs will be saved locally",
+    "tablon-saved-offline": "Slab saved locally. It will be published automatically when back online.",
+    "tablon-syncing": "Syncing {n} pending slab(s)…",
+    "tablon-sync-done": "{n} slab(s) synced successfully.",
+    "tablon-sync-partial": "{ok} synced, {fail} failed. Will retry.",
+    "tablon-sync-now": "Sync",
+    "tablon-pending": "Slabs pending sync"
 }

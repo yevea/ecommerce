@@ -1,16 +1,22 @@
 /**
  * Service Worker for the "Añadir Tablón" PWA.
- * Provides basic caching of the app shell for faster repeat loads.
+ * Caches the app shell so the page loads fully offline.
+ * POST submissions are handled client-side via IndexedDB queue.
  */
-var CACHE_NAME = 'tablon-pwa-v1';
+var CACHE_NAME = 'tablon-pwa-v2';
 var SHELL_URLS = [
-    '/AddTablon'
+    '/AddTablon',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.woff2'
 ];
 
 self.addEventListener('install', function (event) {
     event.waitUntil(
         caches.open(CACHE_NAME).then(function (cache) {
-            return cache.addAll(SHELL_URLS);
+            return cache.addAll(SHELL_URLS).catch(function () {
+                // If CDN URLs fail (e.g. during build), cache what we can
+                return cache.add('/AddTablon');
+            });
         })
     );
     self.skipWaiting();
@@ -29,14 +35,13 @@ self.addEventListener('activate', function (event) {
 });
 
 self.addEventListener('fetch', function (event) {
-    // Only cache GET requests; let POSTs (form submissions) go to network
+    // Let POSTs go to network — offline queue is handled client-side
     if (event.request.method !== 'GET') {
         return;
     }
 
     event.respondWith(
         fetch(event.request).then(function (response) {
-            // Cache successful responses
             if (response.ok) {
                 var clone = response.clone();
                 caches.open(CACHE_NAME).then(function (cache) {

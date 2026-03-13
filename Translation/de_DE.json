@@ -152,5 +152,12 @@
     "tablon-added-successfully": "Bohle erfolgreich hinzugefügt und veröffentlicht!",
     "tablon-save-failed": "Fehler beim Speichern der Bohle.",
     "tablon-price-not-found": "Kein Preis für diese Kombination gefunden.",
-    "tablon-family-not-found": "Bohlen-Familie nicht gefunden."
+    "tablon-family-not-found": "Bohlen-Familie nicht gefunden.",
+    "tablon-offline": "Offline — Bohlen werden lokal gespeichert",
+    "tablon-saved-offline": "Bohle lokal gespeichert. Sie wird automatisch veröffentlicht, sobald die Verbindung wiederhergestellt ist.",
+    "tablon-syncing": "Synchronisierung von {n} ausstehende(n) Bohle(n)…",
+    "tablon-sync-done": "{n} Bohle(n) erfolgreich synchronisiert.",
+    "tablon-sync-partial": "{ok} synchronisiert, {fail} fehlgeschlagen. Wird erneut versucht.",
+    "tablon-sync-now": "Synchronisieren",
+    "tablon-pending": "Bohlen warten auf Synchronisierung"
 }

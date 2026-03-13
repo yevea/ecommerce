@@ -1,12 +1,12 @@
 /**
  * AddTablon PWA - Client-side logic for the "Añadir Tablón" PWA page.
- * Handles photo preview, price calculation from the embedded price table,
- * and form submission via AJAX.
+ * Handles photo preview, price calculation, AJAX form submission,
+ * IndexedDB offline queue, and automatic sync when back online.
  */
 (function () {
     'use strict';
 
-    // DOM references
+    // ── DOM references ──────────────────────────────────────────────────
     var form = document.getElementById('tablonForm');
     var imageInput = document.getElementById('imageInput');
     var photoArea = document.getElementById('photoArea');
@@ -20,25 +20,79 @@
     var priceDetail = document.getElementById('priceDetail');
     var btnPublish = document.getElementById('btnPublish');
     var alertBox = document.getElementById('alertBox');
+    var offlineBanner = document.getElementById('offlineBanner');
+    var pendingBadge = document.getElementById('pendingBadge');
+    var btnSync = document.getElementById('btnSync');
 
     // Price table is injected by the Twig template as a global variable
     var prices = window.priceTable || [];
 
-    // Photo preview handler
+    // Current photo as base64 dataURL (kept in memory for offline queue)
+    var currentPhotoDataURL = '';
+
+    // ── IndexedDB helpers ───────────────────────────────────────────────
+    var DB_NAME = 'tablonPWA';
+    var DB_VERSION = 1;
+    var STORE_NAME = 'pendingSlabs';
+
+    function openDB(callback) {
+        var request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = function (e) {
+            var db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+            }
+        };
+        request.onsuccess = function (e) { callback(null, e.target.result); };
+        request.onerror = function (e) { callback(e.target.error, null); };
+    }
+
+    function savePending(entry, callback) {
+        openDB(function (err, db) {
+            if (err) { callback(err); return; }
+            var tx = db.transaction(STORE_NAME, 'readwrite');
+            tx.objectStore(STORE_NAME).add(entry);
+            tx.oncomplete = function () { callback(null); };
+            tx.onerror = function (e) { callback(e.target.error); };
+        });
+    }
+
+    function getAllPending(callback) {
+        openDB(function (err, db) {
+            if (err) { callback(err, []); return; }
+            var tx = db.transaction(STORE_NAME, 'readonly');
+            var req = tx.objectStore(STORE_NAME).getAll();
+            req.onsuccess = function () { callback(null, req.result || []); };
+            req.onerror = function (e) { callback(e.target.error, []); };
+        });
+    }
+
+    function deletePending(id, callback) {
+        openDB(function (err, db) {
+            if (err) { callback(err); return; }
+            var tx = db.transaction(STORE_NAME, 'readwrite');
+            tx.objectStore(STORE_NAME).delete(id);
+            tx.oncomplete = function () { callback(null); };
+            tx.onerror = function (e) { callback(e.target.error); };
+        });
+    }
+
+    // ── Photo preview handler ───────────────────────────────────────────
     imageInput.addEventListener('change', function () {
         var file = this.files[0];
         if (!file) return;
 
         var reader = new FileReader();
         reader.onload = function (e) {
-            photoPreview.src = e.target.result;
+            currentPhotoDataURL = e.target.result;
+            photoPreview.src = currentPhotoDataURL;
             photoArea.classList.add('has-photo');
         };
         reader.readAsDataURL(file);
         recalculate();
     });
 
-    // Recalculate price when any input changes
+    // ── Price calculation ───────────────────────────────────────────────
     [tipoMadera, tipoTablon, largoInput, anchoInput, espesorInput].forEach(function (el) {
         el.addEventListener('change', recalculate);
         el.addEventListener('input', recalculate);
@@ -61,7 +115,7 @@
         var precioM2 = lookupPrice(wood, slab, espesor);
         if (precioM2 === null) {
             priceAmount.textContent = '— €';
-            priceDetail.textContent = 'No hay precio definido para esta combinación';
+            priceDetail.textContent = window.TABLON_I18N.noPriceDefined;
             btnPublish.disabled = true;
             return;
         }
@@ -99,50 +153,208 @@
         return closest ? closest.precio_m2 : null;
     }
 
-    // Form submission via AJAX
+    // ── Form submission ─────────────────────────────────────────────────
     form.addEventListener('submit', function (e) {
         e.preventDefault();
         hideAlert();
 
+        var entry = collectFormData();
+        if (!entry) return;
+
         btnPublish.disabled = true;
         btnPublish.classList.add('loading');
 
-        var formData = new FormData(form);
-        var url = window.location.pathname;
+        if (!navigator.onLine) {
+            // Offline → save to queue
+            saveToQueue(entry);
+            return;
+        }
+
+        // Online → try to submit
+        submitEntry(entry, function (ok, message) {
+            btnPublish.classList.remove('loading');
+            if (ok) {
+                showAlert('success', message);
+                resetForm();
+            } else {
+                // Network error during submit → save to queue
+                if (message === '__network_error__') {
+                    saveToQueue(entry);
+                } else {
+                    showAlert('error', message);
+                    btnPublish.disabled = false;
+                }
+            }
+        });
+    });
+
+    function collectFormData() {
+        return {
+            tipo_madera: tipoMadera.value,
+            tipo_tablon: tipoTablon.value,
+            largo: largoInput.value,
+            ancho: anchoInput.value,
+            espesor: espesorInput.value,
+            imageDataURL: currentPhotoDataURL || '',
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    function submitEntry(entry, callback) {
+        var formData = new FormData();
+        formData.append('action', 'add-tablon');
+        formData.append('tipo_madera', entry.tipo_madera);
+        formData.append('tipo_tablon', entry.tipo_tablon);
+        formData.append('largo', entry.largo);
+        formData.append('ancho', entry.ancho);
+        formData.append('espesor', entry.espesor);
+
+        // Convert base64 dataURL back to a Blob for file upload
+        if (entry.imageDataURL) {
+            var blob = dataURLtoBlob(entry.imageDataURL);
+            if (blob) {
+                formData.append('image', blob, 'tablon-photo.jpg');
+            }
+        }
 
         var xhr = new XMLHttpRequest();
-        xhr.open('POST', url, true);
+        xhr.open('POST', window.location.pathname, true);
+        xhr.timeout = 30000;
         xhr.onreadystatechange = function () {
             if (xhr.readyState !== 4) return;
-
-            btnPublish.classList.remove('loading');
-
             if (xhr.status === 200) {
                 try {
                     var resp = JSON.parse(xhr.responseText);
-                    if (resp.result === 'ok') {
-                        showAlert('success', resp.message || 'Tablón añadido correctamente');
-                        form.reset();
-                        photoArea.classList.remove('has-photo');
-                        photoPreview.src = '';
-                        priceAmount.textContent = '— €';
-                        priceDetail.textContent = '';
-                        btnPublish.disabled = true;
-                    } else {
-                        showAlert('error', resp.message || 'Error al añadir el tablón');
-                        btnPublish.disabled = false;
-                    }
+                    callback(resp.result === 'ok', resp.message || 'OK');
                 } catch (ex) {
-                    showAlert('error', 'Error de comunicación con el servidor');
-                    btnPublish.disabled = false;
+                    callback(false, window.TABLON_I18N.serverError);
                 }
             } else {
-                showAlert('error', 'Error de red (' + xhr.status + ')');
-                btnPublish.disabled = false;
+                callback(false, '__network_error__');
             }
         };
+        xhr.ontimeout = function () { callback(false, '__network_error__'); };
+        xhr.onerror = function () { callback(false, '__network_error__'); };
         xhr.send(formData);
+    }
+
+    function saveToQueue(entry) {
+        savePending(entry, function (err) {
+            btnPublish.classList.remove('loading');
+            if (err) {
+                showAlert('error', window.TABLON_I18N.serverError);
+                btnPublish.disabled = false;
+            } else {
+                showAlert('success', window.TABLON_I18N.savedOffline);
+                resetForm();
+                refreshPendingCount();
+            }
+        });
+    }
+
+    // ── Sync pending items ──────────────────────────────────────────────
+    function syncPending() {
+        if (!navigator.onLine) return;
+
+        getAllPending(function (err, items) {
+            if (err || items.length === 0) return;
+
+            showAlert('success', window.TABLON_I18N.syncing.replace('{n}', items.length));
+            if (btnSync) { btnSync.disabled = true; }
+
+            var idx = 0;
+            var ok = 0;
+            var fail = 0;
+
+            function next() {
+                if (idx >= items.length) {
+                    finishSync(ok, fail);
+                    return;
+                }
+                var item = items[idx];
+                idx++;
+                submitEntry(item, function (success) {
+                    if (success) {
+                        ok++;
+                        deletePending(item.id, function () { next(); });
+                    } else {
+                        fail++;
+                        next();
+                    }
+                });
+            }
+            next();
+        });
+    }
+
+    function finishSync(ok, fail) {
+        if (btnSync) { btnSync.disabled = false; }
+        refreshPendingCount();
+        if (fail === 0 && ok > 0) {
+            showAlert('success', window.TABLON_I18N.syncDone.replace('{n}', ok));
+        } else if (fail > 0) {
+            showAlert('error', window.TABLON_I18N.syncPartial.replace('{ok}', ok).replace('{fail}', fail));
+        }
+    }
+
+    // ── Pending count badge ─────────────────────────────────────────────
+    function refreshPendingCount() {
+        getAllPending(function (err, items) {
+            var count = (err || !items) ? 0 : items.length;
+            if (pendingBadge) {
+                pendingBadge.textContent = count;
+                pendingBadge.style.display = count > 0 ? 'inline-flex' : 'none';
+            }
+            if (btnSync) {
+                btnSync.style.display = count > 0 ? 'inline-flex' : 'none';
+            }
+        });
+    }
+
+    // ── Online / offline detection ──────────────────────────────────────
+    function updateOnlineStatus() {
+        if (offlineBanner) {
+            offlineBanner.style.display = navigator.onLine ? 'none' : 'flex';
+        }
+    }
+
+    window.addEventListener('online', function () {
+        updateOnlineStatus();
+        syncPending();
     });
+    window.addEventListener('offline', updateOnlineStatus);
+
+    if (btnSync) {
+        btnSync.addEventListener('click', function () {
+            syncPending();
+        });
+    }
+
+    // ── Helpers ─────────────────────────────────────────────────────────
+    function dataURLtoBlob(dataURL) {
+        try {
+            var parts = dataURL.split(',');
+            var mime = parts[0].match(/:(.*?);/)[1];
+            var b64 = atob(parts[1]);
+            var arr = new Uint8Array(b64.length);
+            for (var i = 0; i < b64.length; i++) {
+                arr[i] = b64.charCodeAt(i);
+            }
+            return new Blob([arr], { type: mime });
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function resetForm() {
+        form.reset();
+        photoArea.classList.remove('has-photo');
+        photoPreview.src = '';
+        currentPhotoDataURL = '';
+        priceAmount.textContent = '— €';
+        priceDetail.textContent = '';
+        btnPublish.disabled = true;
+    }
 
     function showAlert(type, message) {
         alertBox.className = 'alert alert-' + type;
@@ -155,4 +367,8 @@
         alertBox.style.display = 'none';
         alertBox.className = 'alert';
     }
+
+    // ── Init ────────────────────────────────────────────────────────────
+    updateOnlineStatus();
+    refreshPendingCount();
 })();
