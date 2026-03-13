@@ -103,7 +103,7 @@ class ProductoDetalle extends StoreFront
         $this->loadFamilyType($p);
 
         $isSold = false;
-        if ($this->familyType === 'artesania' && $p->stockfis <= 0) {
+        if (($this->familyType === 'artesania' || $this->familyType === 'tablones') && $p->stockfis <= 0) {
             $isSold = true;
         }
 
@@ -121,6 +121,9 @@ class ProductoDetalle extends StoreFront
             'image' => $p->imagen ?? null,
             'familyType' => $this->familyType,
             'isSold' => $isSold,
+            'largo' => $p->largo ?? null,
+            'ancho' => $p->ancho ?? null,
+            'espesor' => $p->espesor ?? null,
         ];
 
         $this->loadProductImages($p);
@@ -224,10 +227,10 @@ class ProductoDetalle extends StoreFront
         $isTablones = $this->familyType === 'tablones';
         $isTableros = $this->familyType === 'tableros';
 
-        // Single-variant product: no selector needed (unless Tableros/Tablones)
-        if (count($variants) <= 1 && !$isTableros) {
-            // For single-variant Tablones, still expose dimensions
-            if ($isTablones && count($variants) === 1) {
+        // Tablones: each slab is unique, no variant selectors needed.
+        // Dimensions are stored on the product, not the variant.
+        if ($isTablones) {
+            if (count($variants) >= 1) {
                 $v = $variants[0];
                 $this->defaultVariant = (object) [
                     'referencia' => $v->referencia,
@@ -236,11 +239,13 @@ class ProductoDetalle extends StoreFront
                     'price' => $v->precio,
                     'stock' => $v->stockfis,
                     'attributes' => [],
-                    'largo' => $v->largo ?? null,
-                    'ancho' => $v->ancho ?? null,
-                    'espesor' => $v->espesor ?? null,
                 ];
             }
+            return;
+        }
+
+        // Single-variant product: no selector needed (unless Tableros)
+        if (count($variants) <= 1 && !$isTableros) {
             return;
         }
 

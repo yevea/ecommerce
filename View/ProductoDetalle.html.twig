@@ -36,7 +36,7 @@
             "priceCurrency": "EUR",
             {% if fsc.familyType == 'tableros' %}"unitCode": "MTK",
             "unitText": "m²",{% endif %}
-            "availability": "{% if fsc.familyType == 'artesania' and fsc.product.isSold %}https://schema.org/SoldOut{% elseif fsc.product.nostock %}https://schema.org/InStock{% elseif (fsc.defaultVariant ? fsc.defaultVariant.stock : fsc.product.stock) > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+            "availability": "{% if (fsc.familyType == 'artesania' or fsc.familyType == 'tablones') and fsc.product.isSold %}https://schema.org/SoldOut{% elseif fsc.product.nostock %}https://schema.org/InStock{% elseif (fsc.defaultVariant ? fsc.defaultVariant.stock : fsc.product.stock) > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
             "areaServed": [
                 {"@type": "Country", "name": "Spain"},
                 {"@type": "Country", "name": "France"},
@@ -162,7 +162,7 @@
                     <small class="text-muted">/m²</small>
                     {% endif %}
                 </span>
-                {% if fsc.familyType == 'artesania' and fsc.product.isSold %}
+                {% if (fsc.familyType == 'artesania' or fsc.familyType == 'tablones') and fsc.product.isSold %}
                 <span id="variant-stock-badge" class="badge bg-warning text-dark fs-6">{{ trans('sold') }}</span>
                 {% elseif fsc.product.nostock %}
                 <span id="variant-stock-badge"></span>
@@ -180,21 +180,20 @@
             </div>
             {% endif %}
 
-            {# Tablones: Show variant dimensions (non-editable) #}
+            {# Tablones: Show product dimensions (non-editable) #}
             {% if fsc.familyType == 'tablones' %}
             <div class="mb-3" id="tablones-dimensions">
                 <h6>{{ trans('dimensions') }}</h6>
-                {% set dimVariant = fsc.defaultVariant %}
-                {% if dimVariant %}
+                {% if fsc.product.largo is not null or fsc.product.ancho is not null or fsc.product.espesor is not null %}
                 <table class="table table-sm table-bordered" style="max-width: 300px;" id="dimensions-table">
-                    {% if dimVariant.largo is not null %}
-                    <tr><td class="fw-semibold">{{ trans('largo') }}</td><td id="dim-largo">{{ dimVariant.largo }}</td></tr>
+                    {% if fsc.product.largo is not null %}
+                    <tr><td class="fw-semibold">{{ trans('largo') }}</td><td>{{ fsc.product.largo }}</td></tr>
                     {% endif %}
-                    {% if dimVariant.ancho is not null %}
-                    <tr><td class="fw-semibold">{{ trans('ancho') }}</td><td id="dim-ancho">{{ dimVariant.ancho }}</td></tr>
+                    {% if fsc.product.ancho is not null %}
+                    <tr><td class="fw-semibold">{{ trans('ancho') }}</td><td>{{ fsc.product.ancho }}</td></tr>
                     {% endif %}
-                    {% if dimVariant.espesor is not null %}
-                    <tr><td class="fw-semibold">{{ trans('espesor') }}</td><td id="dim-espesor">{{ dimVariant.espesor }}</td></tr>
+                    {% if fsc.product.espesor is not null %}
+                    <tr><td class="fw-semibold">{{ trans('espesor') }}</td><td>{{ fsc.product.espesor }}</td></tr>
                     {% endif %}
                 </table>
                 {% endif %}
@@ -238,8 +237,8 @@
             </div>
             {% endif %}
 
-            {# === ARTESANÍA: sold overlay === #}
-            {% if fsc.familyType == 'artesania' and fsc.product.isSold %}
+            {# === ARTESANÍA / TABLONES: sold overlay === #}
+            {% if (fsc.familyType == 'artesania' or fsc.familyType == 'tablones') and fsc.product.isSold %}
             <div class="alert alert-warning">
                 <i class="fa-solid fa-tag"></i> {{ trans('sold') }}
             </div>
@@ -298,7 +297,28 @@
             </button>
             {% endif %}
 
-            {# === NORMAL / MERCANCÍA / TABLONES: standard add to cart === #}
+            {# === TABLONES: unique slab, quantity always 1 === #}
+            {% elseif fsc.familyType == 'tablones' %}
+            {% set showForm = fsc.product.stock > 0 or fsc.product.nostock %}
+            {% if showForm %}
+            <form method="post" action="{{ asset('ProductoDetalle') }}?url={{ fsc.product.slug }}">
+                <input type="hidden" name="action" value="add-to-cart">
+                <input type="hidden" name="product_referencia" id="add-referencia"
+                    value="{{ fsc.defaultVariant ? fsc.defaultVariant.referencia : fsc.product.referencia }}">
+                <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
+                <input type="hidden" name="quantity" value="1">
+
+                <button type="submit" id="add-to-cart-btn" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-cart-plus"></i> {{ trans('add-to-presupuesto') }}
+                </button>
+            </form>
+            {% else %}
+            <button class="btn btn-secondary btn-lg" disabled>
+                <i class="fa-solid fa-ban"></i> {{ trans('out-of-stock') }}
+            </button>
+            {% endif %}
+
+            {# === NORMAL / MERCANCÍA: standard add to cart === #}
             {% else %}
             {% set showForm = fsc.productVariants is not empty or fsc.product.stock > 0 or fsc.product.nostock %}
             {% if showForm %}
@@ -418,13 +438,7 @@ function updateProductTitle(description) {
 }
 
 function updateDimensionsTable(variant) {
-    if (familyType !== 'tablones') return;
-    var largoEl = document.getElementById('dim-largo');
-    var anchoEl = document.getElementById('dim-ancho');
-    var espesorEl = document.getElementById('dim-espesor');
-    if (largoEl) largoEl.textContent = (variant.largo !== null && variant.largo !== '') ? variant.largo : '';
-    if (anchoEl) anchoEl.textContent = (variant.ancho !== null && variant.ancho !== '') ? variant.ancho : '';
-    if (espesorEl) espesorEl.textContent = (variant.espesor !== null && variant.espesor !== '') ? variant.espesor : '';
+    // No-op: tablones dimensions are displayed directly from the product, not the variant.
 }
 
 function updateVariantFromAttributes() {

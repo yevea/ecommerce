@@ -37,22 +37,28 @@ class EditProducto
     protected function loadData(): Closure
     {
         return function ($viewName, $view) {
-            if ($viewName !== 'EditVariante') {
-                return;
-            }
-
-            $codfamilia = $this->getViewModelValue('EditProducto', 'codfamilia');
-            if (empty($codfamilia)) {
+            // Hide dimension columns on EditVariante (dimensions live on the product for tablones)
+            if ($viewName === 'EditVariante') {
                 foreach (['largo', 'ancho', 'espesor'] as $col) {
                     $view->disableColumn($col);
                 }
                 return;
             }
 
-            $familia = new Familia();
-            if (!$familia->loadFromCode($codfamilia) || ($familia->tipofamilia ?? '') !== 'tablones') {
-                foreach (['largo', 'ancho', 'espesor'] as $col) {
-                    $view->disableColumn($col);
+            // Show/hide product-level dimension fields based on family type
+            if ($viewName === 'EditProducto') {
+                $codfamilia = $this->getViewModelValue('EditProducto', 'codfamilia');
+                $isTablones = false;
+                if (!empty($codfamilia)) {
+                    $familia = new Familia();
+                    if ($familia->loadFromCode($codfamilia) && ($familia->tipofamilia ?? '') === 'tablones') {
+                        $isTablones = true;
+                    }
+                }
+                if (!$isTablones) {
+                    foreach (['largo', 'ancho', 'espesor'] as $col) {
+                        $view->disableColumn($col);
+                    }
                 }
             }
         };
