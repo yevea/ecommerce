@@ -83,7 +83,7 @@
     transition: background-color 0.15s;
 }
 .hamburger-dropdown li a:hover {
-    background-color: #343a40;
+    background-color: #000;
     color: #fff;
 }
 .hamburger-divider {
