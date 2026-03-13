@@ -8,6 +8,7 @@ use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
 use FacturaScripts\Plugins\ecommerce\Lib\LanguageTrait;
+use FacturaScripts\Plugins\ecommerce\Lib\SlugTrait;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrder;
 use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrderLine;
@@ -15,6 +16,7 @@ use FacturaScripts\Plugins\ecommerce\Model\EcommerceOrderLine;
 class Presupuesto extends Controller
 {
     use LanguageTrait;
+    use SlugTrait;
 
     protected $requiresAuth = false;
 
@@ -41,6 +43,15 @@ class Presupuesto extends Controller
 
     /** @var string */
     public $orderCode = '';
+
+    /** @var Familia[] */
+    public $categories = [];
+
+    /** @var array Map of codfamilia => translated category name */
+    public $categoryNames = [];
+
+    /** @var array Map of codfamilia => slug for all categories */
+    public $slugMap = [];
 
     public function getPageData(): array
     {
@@ -89,6 +100,7 @@ class Presupuesto extends Controller
         }
 
         $this->loadCartItems();
+        $this->loadCategories();
 
         $this->view('Presupuesto.html.twig');
     }
@@ -826,5 +838,47 @@ class Presupuesto extends Controller
             }
         }
         return $descripcion;
+    }
+
+    private function loadCategories(): void
+    {
+        $product = new Producto();
+        $publicProducts = $product->all([Where::eq('publico', true)], [], 0, 0);
+
+        $familyCodes = [];
+        foreach ($publicProducts as $p) {
+            if (!empty($p->codfamilia)) {
+                $familyCodes[$p->codfamilia] = true;
+            }
+        }
+
+        $familia = new Familia();
+        $publicFamilies = $familia->all([Where::eq('publica', true)], [], 0, 0);
+        foreach ($publicFamilies as $fam) {
+            $familyCodes[$fam->codfamilia] = true;
+        }
+
+        if (empty($familyCodes)) {
+            $this->categories = [];
+            return;
+        }
+
+        $this->categories = $familia->all(
+            [Where::in('codfamilia', array_keys($familyCodes))],
+            ['descripcion' => 'ASC'],
+            0,
+            0
+        );
+
+        $this->categoryNames = [];
+        $this->slugMap = [];
+        foreach ($this->categories as $cat) {
+            $nameKey = 'family-' . $cat->codfamilia . '-name';
+            $translatedName = Tools::lang()->trans($nameKey);
+            $this->categoryNames[$cat->codfamilia] = ($translatedName !== $nameKey)
+                ? $translatedName
+                : $cat->descripcion;
+            $this->slugMap[$cat->codfamilia] = self::generateSlug($cat->descripcion);
+        }
     }
 }

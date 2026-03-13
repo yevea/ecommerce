@@ -42,6 +42,9 @@ class StoreFront extends Controller
     /** @var array Map of codfamilia => translated category name */
     public $categoryNames = [];
 
+    /** @var array Map of codfamilia => slug for all categories */
+    public $slugMap = [];
+
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
@@ -286,12 +289,15 @@ class StoreFront extends Controller
 
         // Build a map of codfamilia => translated category name for templates
         $this->categoryNames = [];
+        // Build a map of codfamilia => slug for URL generation in templates
+        $this->slugMap = [];
         foreach ($this->categories as $cat) {
             $nameKey = 'family-' . $cat->codfamilia . '-name';
             $translatedName = Tools::lang()->trans($nameKey);
             $this->categoryNames[$cat->codfamilia] = ($translatedName !== $nameKey)
                 ? $translatedName
                 : $cat->descripcion;
+            $this->slugMap[$cat->codfamilia] = self::generateSlug($cat->descripcion);
         }
     }
 
