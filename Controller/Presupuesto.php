@@ -2,6 +2,7 @@
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Lib\AssetManager;
+use FacturaScripts\Core\Model\Familia;
 use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
@@ -355,6 +356,9 @@ class Presupuesto extends Controller
                     $linea->descripcion .= ' (' . $largoCm . 'x' . $anchoCm . ' cm)';
                 }
 
+                // For Tablones: append product dimensions to description
+                $linea->descripcion = $this->appendTablonesDimensions($linea->descripcion, $info);
+
                 $linea->cantidad = $ecommerceLine->quantity;
                 $lines[] = $linea;
             }
@@ -482,6 +486,9 @@ class Presupuesto extends Controller
                     $linea->descripcion .= ' (' . $largoCm . 'x' . $anchoCm . ' cm)';
                 }
 
+                // For Tablones: append product dimensions to description
+                $linea->descripcion = $this->appendTablonesDimensions($linea->descripcion, $info);
+
                 $linea->cantidad = $item->quantity;
                 $lines[] = $linea;
             }
@@ -536,6 +543,8 @@ class Presupuesto extends Controller
                         'quantity' => $item->quantity,
                     ];
                 } else {
+                    // For Tablones: append product dimensions to name
+                    $itemName = $this->appendTablonesDimensions($itemName, $info);
                     $lineItems[] = [
                         'price_data' => [
                             'currency' => 'eur',
@@ -652,6 +661,10 @@ class Presupuesto extends Controller
                     'largo_cm' => $largoCm,
                     'ancho_cm' => $anchoCm,
                     'isTableros' => $isTableros,
+                    'isTablones' => $info->familyType === 'tablones',
+                    'largo' => $info->largo,
+                    'ancho' => $info->ancho,
+                    'espesor' => $info->espesor,
                 ];
                 $this->cartNeto += $neto;
                 $this->cartTotal += $subtotal;
@@ -668,7 +681,7 @@ class Presupuesto extends Controller
      * products or when the Variante model is unavailable.
      *
      * @param string $referencia
-     * @return object|null with properties: name (string), price (float)
+     * @return object|null with properties: name, price, referencia, tax_rate, largo, ancho, espesor, familyType
      */
     private function resolveProductInfoByRef(string $referencia): ?object
     {
@@ -691,6 +704,10 @@ class Presupuesto extends Controller
                         'price' => $variante->precio,
                         'referencia' => $parent->referencia,
                         'tax_rate' => $this->getTaxRate($parent->codimpuesto ?? ''),
+                        'largo' => $parent->largo ?? null,
+                        'ancho' => $parent->ancho ?? null,
+                        'espesor' => $parent->espesor ?? null,
+                        'familyType' => $this->getFamilyType($parent->codfamilia),
                     ];
                 }
             }
@@ -706,6 +723,10 @@ class Presupuesto extends Controller
                 'price' => $product->precio,
                 'referencia' => $product->referencia,
                 'tax_rate' => $this->getTaxRate($product->codimpuesto ?? ''),
+                'largo' => $product->largo ?? null,
+                'ancho' => $product->ancho ?? null,
+                'espesor' => $product->espesor ?? null,
+                'familyType' => $this->getFamilyType($product->codfamilia),
             ];
         }
 
@@ -758,5 +779,52 @@ class Presupuesto extends Controller
             return $largoCm * $anchoCm / 10000;
         }
         return null;
+    }
+
+    private function getFamilyType(?string $codfamilia): string
+    {
+        if (empty($codfamilia)) {
+            return 'mercancia';
+        }
+
+        $familia = new Familia();
+        if ($familia->loadFromCode($codfamilia)) {
+            return $familia->tipofamilia ?? 'mercancia';
+        }
+
+        return 'mercancia';
+    }
+
+    /**
+     * Formats product dimensions (largo, ancho, espesor) into a display string.
+     * Returns empty string if no dimensions are available.
+     */
+    private function formatProductDimensions(?float $largo, ?float $ancho, ?float $espesor): string
+    {
+        $parts = [];
+        if ($largo !== null) {
+            $parts[] = $largo;
+        }
+        if ($ancho !== null) {
+            $parts[] = $ancho;
+        }
+        if ($espesor !== null) {
+            $parts[] = $espesor;
+        }
+        return empty($parts) ? '' : implode('x', $parts) . ' cm';
+    }
+
+    /**
+     * Appends tablones product dimensions to a description string.
+     */
+    private function appendTablonesDimensions(string $descripcion, object $info): string
+    {
+        if ($info->familyType === 'tablones') {
+            $dims = $this->formatProductDimensions($info->largo, $info->ancho, $info->espesor);
+            if ($dims !== '') {
+                $descripcion .= ' (' . $dims . ')';
+            }
+        }
+        return $descripcion;
     }
 }
