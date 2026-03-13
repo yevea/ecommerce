@@ -357,12 +357,7 @@ class Presupuesto extends Controller
                 }
 
                 // For Tablones: append product dimensions to description
-                if ($info->familyType === 'tablones') {
-                    $dims = $this->formatProductDimensions($info->largo, $info->ancho, $info->espesor);
-                    if ($dims !== '') {
-                        $linea->descripcion .= ' (' . $dims . ')';
-                    }
-                }
+                $linea->descripcion = $this->appendTablonesDimensions($linea->descripcion, $info);
 
                 $linea->cantidad = $ecommerceLine->quantity;
                 $lines[] = $linea;
@@ -492,12 +487,7 @@ class Presupuesto extends Controller
                 }
 
                 // For Tablones: append product dimensions to description
-                if ($info->familyType === 'tablones') {
-                    $dims = $this->formatProductDimensions($info->largo, $info->ancho, $info->espesor);
-                    if ($dims !== '') {
-                        $linea->descripcion .= ' (' . $dims . ')';
-                    }
-                }
+                $linea->descripcion = $this->appendTablonesDimensions($linea->descripcion, $info);
 
                 $linea->cantidad = $item->quantity;
                 $lines[] = $linea;
@@ -554,12 +544,7 @@ class Presupuesto extends Controller
                     ];
                 } else {
                     // For Tablones: append product dimensions to name
-                    if ($info->familyType === 'tablones') {
-                        $dims = $this->formatProductDimensions($info->largo, $info->ancho, $info->espesor);
-                        if ($dims !== '') {
-                            $itemName .= ' (' . $dims . ')';
-                        }
-                    }
+                    $itemName = $this->appendTablonesDimensions($itemName, $info);
                     $lineItems[] = [
                         'price_data' => [
                             'currency' => 'eur',
@@ -814,7 +799,7 @@ class Presupuesto extends Controller
      * Formats product dimensions (largo, ancho, espesor) into a display string.
      * Returns empty string if no dimensions are available.
      */
-    private function formatProductDimensions($largo, $ancho, $espesor): string
+    private function formatProductDimensions(?float $largo, ?float $ancho, ?float $espesor): string
     {
         $parts = [];
         if ($largo !== null) {
@@ -827,5 +812,19 @@ class Presupuesto extends Controller
             $parts[] = $espesor;
         }
         return empty($parts) ? '' : implode('x', $parts) . ' cm';
+    }
+
+    /**
+     * Appends tablones product dimensions to a description string.
+     */
+    private function appendTablonesDimensions(string $descripcion, object $info): string
+    {
+        if ($info->familyType === 'tablones') {
+            $dims = $this->formatProductDimensions($info->largo, $info->ancho, $info->espesor);
+            if ($dims !== '') {
+                $descripcion .= ' (' . $dims . ')';
+            }
+        }
+        return $descripcion;
     }
 }
