@@ -29,9 +29,8 @@
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>{{ trans('reference') }}</th>
-                            <th>{{ trans('description') }}</th>
-                            <th class="text-center" style="width: 150px;">{{ trans('quantity') }}</th>
+                            <th>{{ trans('reference') }} - {{ trans('description') }}</th>
+                            <th class="text-center" style="width: 100px;">{{ trans('quantity') }}</th>
                             <th class="text-end">{{ trans('price') }}</th>
                             <th class="text-end">{{ trans('neto') }}</th>
                             <th class="text-end">{{ trans('impuesto') }}</th>
@@ -42,9 +41,8 @@
                     <tbody>
                         {% for item in fsc.cartItems %}
                         <tr>
-                            <td>{{ item.referencia }}</td>
                             <td>
-                                {{ item.product_name }}
+                                {{ item.referencia }} - {{ item.product_name }}
                                 {% if item.isTableros is defined and item.isTableros %}
                                 <br><small class="text-muted">
                                     {{ trans('largo') }}: {{ item.largo_cm }} cm ×
@@ -90,17 +88,17 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="6" class="text-end">{{ trans('neto') }}:</td>
+                            <td colspan="5" class="text-end">{{ trans('neto') }}:</td>
                             <td class="text-end">{{ fsc.formatMoney(fsc.cartNeto) }}</td>
                             <td class="no-print"></td>
                         </tr>
                         <tr>
-                            <td colspan="6" class="text-end">{{ trans('impuestos') }}:</td>
+                            <td colspan="5" class="text-end">{{ trans('impuestos') }}:</td>
                             <td class="text-end">{{ fsc.formatMoney(fsc.cartImpuestos) }}</td>
                             <td class="no-print"></td>
                         </tr>
                         <tr class="table-active">
-                            <td colspan="6" class="text-end fw-bold">{{ trans('total') }}:</td>
+                            <td colspan="5" class="text-end fw-bold">{{ trans('total') }}:</td>
                             <td class="text-end fw-bold">{{ fsc.formatMoney(fsc.cartTotal) }}</td>
                             <td class="no-print"></td>
                         </tr>
