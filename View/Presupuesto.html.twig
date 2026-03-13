@@ -53,9 +53,7 @@
                                 </small>
                                 {% elseif item.isTablones is defined and item.isTablones and (item.largo is not null or item.ancho is not null or item.espesor is not null) %}
                                 <br><small class="text-muted">
-                                    {% if item.largo is not null %}{{ trans('largo') }}: {{ item.largo }} cm{% endif %}
-                                    {% if item.ancho is not null %}{% if item.largo is not null %} × {% endif %}{{ trans('ancho') }}: {{ item.ancho }} cm{% endif %}
-                                    {% if item.espesor is not null %}{% if item.largo is not null or item.ancho is not null %} × {% endif %}{{ trans('espesor') }}: {{ item.espesor }} cm{% endif %}
+                                    ({% if item.largo is not null %}{{ item.largo }}{% endif %}{% if item.ancho is not null %}{% if item.largo is not null %}×{% endif %}{{ item.ancho }}{% endif %}{% if item.espesor is not null %}{% if item.largo is not null or item.ancho is not null %}×{% endif %}{{ item.espesor }}{% endif %} cm)
                                 </small>
                                 {% endif %}
                             </td>
