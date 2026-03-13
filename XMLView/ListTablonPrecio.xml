@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="id" order="100">
+            <widget type="text" fieldname="id" />
+        </column>
+        <column name="tipo-madera" order="110">
+            <widget type="text" fieldname="tipo_madera" />
+        </column>
+        <column name="tipo-tablon" order="120">
+            <widget type="text" fieldname="tipo_tablon" />
+        </column>
+        <column name="espesor" order="130">
+            <widget type="number" fieldname="espesor" decimal="1" />
+        </column>
+        <column name="precio-m2" order="140">
+            <widget type="money" fieldname="precio_m2" />
+        </column>
+    </columns>
+</view>

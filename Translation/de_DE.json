@@ -137,5 +137,20 @@
     "category-intro": "Kategorieeinführung",
     "category-outro": "Abschlusshinweise",
     "language": "Sprache",
-    "select-language": "Sprache auswählen"
+    "select-language": "Sprache auswählen",
+    "add-tablon": "Bohle Hinzufügen",
+    "tablon-precio": "Bohlenpreis",
+    "tablon-precios": "Bohlenpreise",
+    "tipo-madera": "Holzart",
+    "tipo-tablon": "Bohlentyp",
+    "precio-m2": "Preis pro m²",
+    "tablon-photo": "Foto",
+    "tablon-tap-photo": "Tippen, um ein Foto aufzunehmen",
+    "tablon-type": "Typ",
+    "tablon-select": "Auswählen",
+    "tablon-publish": "Bohle Veröffentlichen",
+    "tablon-added-successfully": "Bohle erfolgreich hinzugefügt und veröffentlicht!",
+    "tablon-save-failed": "Fehler beim Speichern der Bohle.",
+    "tablon-price-not-found": "Kein Preis für diese Kombination gefunden.",
+    "tablon-family-not-found": "Bohlen-Familie nicht gefunden."
 }

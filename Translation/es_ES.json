@@ -137,5 +137,20 @@
     "category-intro": "Introducción de la Categoría",
     "category-outro": "Notas Finales",
     "language": "Idioma",
-    "select-language": "Seleccionar idioma"
+    "select-language": "Seleccionar idioma",
+    "add-tablon": "Añadir Tablón",
+    "tablon-precio": "Precio de Tablón",
+    "tablon-precios": "Precios de Tablones",
+    "tipo-madera": "Tipo de Madera",
+    "tipo-tablon": "Tipo de Tablón",
+    "precio-m2": "Precio por m²",
+    "tablon-photo": "Foto",
+    "tablon-tap-photo": "Toque para tomar una foto",
+    "tablon-type": "Tipo",
+    "tablon-select": "Seleccionar",
+    "tablon-publish": "Publicar Tablón",
+    "tablon-added-successfully": "¡Tablón añadido y publicado correctamente!",
+    "tablon-save-failed": "Error al guardar el tablón.",
+    "tablon-price-not-found": "No se encontró un precio para esta combinación.",
+    "tablon-family-not-found": "No se encontró la familia de tablones."
 }

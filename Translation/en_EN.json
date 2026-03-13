@@ -137,5 +137,20 @@
     "category-intro": "Category Introduction",
     "category-outro": "Final Notes",
     "language": "Language",
-    "select-language": "Select language"
+    "select-language": "Select language",
+    "add-tablon": "Add Slab",
+    "tablon-precio": "Slab Price",
+    "tablon-precios": "Slab Prices",
+    "tipo-madera": "Wood Type",
+    "tipo-tablon": "Slab Type",
+    "precio-m2": "Price per m²",
+    "tablon-photo": "Photo",
+    "tablon-tap-photo": "Tap to take a photo",
+    "tablon-type": "Type",
+    "tablon-select": "Select",
+    "tablon-publish": "Publish Slab",
+    "tablon-added-successfully": "Slab added and published successfully!",
+    "tablon-save-failed": "Failed to save the slab.",
+    "tablon-price-not-found": "No price found for this combination.",
+    "tablon-family-not-found": "Tablones family not found."
 }

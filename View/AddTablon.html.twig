@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Añadir Tablón">
+    <link rel="manifest" href="{{ asset('Plugins/ecommerce/Assets/manifest.json') }}">
+    <title>{{ trans('add-tablon') }}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #212529;
+            min-height: 100vh;
+        }
+        .header {
+            background: #2c3e50;
+            color: #fff;
+            padding: 14px 16px;
+            font-size: 18px;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header i { font-size: 20px; }
+        .container { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .photo-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .photo-area:hover, .photo-area.has-photo { border-color: #2c3e50; }
+        .photo-area i { font-size: 48px; color: #adb5bd; display: block; margin-bottom: 8px; }
+        .photo-area span { color: #6c757d; font-size: 14px; }
+        .photo-area img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            display: none;
+        }
+        .photo-area.has-photo i,
+        .photo-area.has-photo span { display: none; }
+        .photo-area.has-photo img { display: block; margin: 0 auto; }
+        #imageInput { display: none; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 4px;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            background: #fff;
+            color: #212529;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 10px center; background-size: 16px; padding-right: 36px; }
+        select:focus, input:focus { outline: none; border-color: #2c3e50; box-shadow: 0 0 0 2px rgba(44,62,80,0.15); }
+
+        .form-row { margin-bottom: 12px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+        .price-display {
+            background: #e8f5e9;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+        .price-display .label { font-size: 13px; color: #388e3c; font-weight: 600; text-transform: uppercase; }
+        .price-display .amount { font-size: 32px; font-weight: 700; color: #2e7d32; margin-top: 4px; }
+        .price-display .detail { font-size: 12px; color: #6c757d; margin-top: 4px; }
+
+        .btn-publish {
+            width: 100%;
+            padding: 14px;
+            background: #27ae60;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-publish:hover { background: #219a52; }
+        .btn-publish:disabled { background: #95a5a6; cursor: not-allowed; }
+        .btn-publish i { font-size: 18px; }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
+
+        .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading .spinner { display: inline-block; }
+        .loading .btn-text { display: none; }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <i class="fa-solid fa-plus-circle"></i>
+        {{ trans('add-tablon') }}
+    </div>
+
+    <div class="container">
+        <div id="alertBox" class="alert"></div>
+
+        <form id="tablonForm" enctype="multipart/form-data">
+            {# Photo capture #}
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-camera"></i> {{ trans('tablon-photo') }}</div>
+                <div class="photo-area" id="photoArea" onclick="document.getElementById('imageInput').click()">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>{{ trans('tablon-tap-photo') }}</span>
+                    <img id="photoPreview" alt="Preview">
+                </div>
+                <input type="file" id="imageInput" name="image" accept="image/*" capture="environment">
+            </div>
+
+            {# Wood type and slab type #}
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-tree"></i> {{ trans('tablon-type') }}</div>
+                <div class="form-row">
+                    <label for="tipo_madera">{{ trans('tipo-madera') }}</label>
+                    <select id="tipo_madera" name="tipo_madera" required>
+                        <option value="">— {{ trans('tablon-select') }} —</option>
+                        {% for wood in fsc.woodTypes %}
+                            <option value="{{ wood }}">{{ wood }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label for="tipo_tablon">{{ trans('tipo-tablon') }}</label>
+                    <select id="tipo_tablon" name="tipo_tablon" required>
+                        <option value="">— {{ trans('tablon-select') }} —</option>
+                        {% for slab in fsc.slabTypes %}
+                            <option value="{{ slab }}">{{ slab }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            {# Dimensions #}
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-ruler-combined"></i> {{ trans('dimensions') }}</div>
+                <div class="form-grid">
+                    <div class="form-row">
+                        <label for="largo">{{ trans('largo') }}</label>
+                        <input type="number" id="largo" name="largo" step="0.1" min="1" required placeholder="cm">
+                    </div>
+                    <div class="form-row">
+                        <label for="ancho">{{ trans('ancho') }}</label>
+                        <input type="number" id="ancho" name="ancho" step="0.1" min="1" required placeholder="cm">
+                    </div>
+                    <div class="form-row">
+                        <label for="espesor">{{ trans('espesor') }}</label>
+                        <input type="number" id="espesor" name="espesor" step="0.1" min="0.1" required placeholder="cm">
+                    </div>
+                </div>
+            </div>
+
+            {# Calculated price #}
+            <div class="card">
+                <div class="price-display">
+                    <div class="label">{{ trans('calculated-price') }}</div>
+                    <div class="amount" id="priceAmount">— €</div>
+                    <div class="detail" id="priceDetail"></div>
+                </div>
+            </div>
+
+            {# Publish button #}
+            <input type="hidden" name="action" value="add-tablon">
+            <button type="submit" class="btn-publish" id="btnPublish" disabled>
+                <span class="btn-text"><i class="fa-solid fa-upload"></i> {{ trans('tablon-publish') }}</span>
+                <span class="spinner"></span>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        var priceTable = {{ fsc.priceTable | json_encode | raw }};
+    </script>
+    <script src="{{ asset('Plugins/ecommerce/Assets/JS/AddTablon.js') }}"></script>
+
+    {% if 'serviceWorker' is defined %}
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('{{ asset("Plugins/ecommerce/Assets/service-worker.js") }}')
+                .catch(function() {});
+        }
+    </script>
+    {% endif %}
+</body>
+</html>
