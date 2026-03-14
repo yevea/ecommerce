@@ -9,6 +9,7 @@ use FacturaScripts\Core\Where;
 use FacturaScripts\Dinamic\Model\AttachedFile;
 use FacturaScripts\Dinamic\Model\AttachedFileRelation;
 use FacturaScripts\Dinamic\Model\ProductoImagen;
+use FacturaScripts\Dinamic\Model\User;
 use FacturaScripts\Plugins\ecommerce\Model\TablonPrecio;
 
 class AddTablon extends Controller
@@ -112,6 +113,10 @@ class AddTablon extends Controller
     private function serveServiceWorker(): void
     {
         $swPath = FS_FOLDER . '/Plugins/ecommerce/Assets/service-worker.js';
+        if (!file_exists($swPath)) {
+            http_response_code(404);
+            exit;
+        }
         header('Content-Type: application/javascript');
         header('Service-Worker-Allowed: /');
         readfile($swPath);
@@ -129,8 +134,7 @@ class AddTablon extends Controller
             return;
         }
 
-        $userClass = '\\FacturaScripts\\Dinamic\\Model\\User';
-        $user = new $userClass();
+        $user = new User();
         if (!$user->loadFromCode($nick) || !$user->enabled || !$user->verifyPassword($password)) {
             $this->loginError = Tools::lang()->trans('login-error');
             $this->view('AddTablon.html.twig');
@@ -154,8 +158,20 @@ class AddTablon extends Controller
         $cookiePath = Tools::config('route', '/');
         $secure = $this->request()->isSecure();
 
-        setcookie('fsNick', $user->nick, $expire, $cookiePath, '', $secure, true);
-        setcookie('fsLogkey', $user->logkey, $expire, $cookiePath, '', $secure, true);
+        setcookie('fsNick', $user->nick, [
+            'expires' => $expire,
+            'path' => $cookiePath,
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        setcookie('fsLogkey', $user->logkey, [
+            'expires' => $expire,
+            'path' => $cookiePath,
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
 
         header('Location: ' . $cookiePath . 'AddTablon');
         exit;
@@ -165,8 +181,15 @@ class AddTablon extends Controller
     {
         $cookiePath = Tools::config('route', '/');
 
-        setcookie('fsNick', '', time() - 3600, $cookiePath);
-        setcookie('fsLogkey', '', time() - 3600, $cookiePath);
+        // Invalidate the logkey in the database
+        $user = Session::get('user');
+        if ($user !== null) {
+            $user->logkey = Tools::randomString(99);
+            $user->save();
+        }
+
+        setcookie('fsNick', '', ['expires' => time() - 3600, 'path' => $cookiePath, 'samesite' => 'Lax']);
+        setcookie('fsLogkey', '', ['expires' => time() - 3600, 'path' => $cookiePath, 'samesite' => 'Lax']);
 
         header('Location: ' . $cookiePath . 'AddTablon');
         exit;
