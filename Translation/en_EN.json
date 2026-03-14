@@ -160,5 +160,13 @@
     "tablon-sync-partial": "{ok} synced, {fail} failed. Will retry.",
     "tablon-sync-now": "Sync",
     "tablon-pending": "Slabs pending sync",
-    "tablon-app-install": "Add Slabs App"
+    "tablon-app-install": "Add Slabs App",
+    "tablon-login-title": "Log in to add slabs",
+    "tablon-logout": "Log out",
+    "tablon-access-denied": "You do not have permission to access this page.",
+    "user": "User",
+    "password": "Password",
+    "login": "Log In",
+    "login-error": "Incorrect user or password.",
+    "login-required": "You must log in to perform this action."
 }

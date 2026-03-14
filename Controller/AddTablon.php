@@ -2,6 +2,7 @@
 namespace FacturaScripts\Plugins\ecommerce\Controller;
 
 use FacturaScripts\Core\Model\Familia;
+use FacturaScripts\Core\Session;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
@@ -12,6 +13,8 @@ use FacturaScripts\Plugins\ecommerce\Model\TablonPrecio;
 
 class AddTablon extends Controller
 {
+    protected $requiresAuth = false;
+
     /** @var string */
     public $result = '';
 
@@ -27,6 +30,12 @@ class AddTablon extends Controller
     /** @var array */
     public $slabTypes = [];
 
+    /** @var bool */
+    public $isAuthenticated = false;
+
+    /** @var string */
+    public $loginError = '';
+
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
@@ -40,15 +49,51 @@ class AddTablon extends Controller
     {
         parent::run();
 
+        $user = Session::get('user');
+        if ($user !== null && $user->enabled) {
+            $this->isAuthenticated = $user->admin || $user->can('AddTablon');
+        }
+
         $action = $this->request()->request->get('action', $this->request()->query->get('action', ''));
 
+        // Serve service worker (no auth needed — required for PWA registration)
+        if ($action === 'sw') {
+            $this->serveServiceWorker();
+            return;
+        }
+
+        // Handle login
+        if ($action === 'login') {
+            $this->handleLogin();
+            return;
+        }
+
+        // Handle logout
+        if ($action === 'logout') {
+            $this->handleLogout();
+            return;
+        }
+
+        // Actions that require authentication
         if ($action === 'add-tablon') {
+            if (!$this->isAuthenticated) {
+                $this->result = 'error';
+                $this->resultMessage = Tools::lang()->trans('login-required');
+                $this->jsonResponse();
+                return;
+            }
             $this->addTablon();
             $this->jsonResponse();
             return;
         }
 
         if ($action === 'get-options') {
+            if (!$this->isAuthenticated) {
+                $this->result = 'error';
+                $this->resultMessage = Tools::lang()->trans('login-required');
+                $this->jsonResponse();
+                return;
+            }
             $this->loadPriceData();
             $this->jsonResponse([
                 'priceTable' => $this->priceTable,
@@ -58,8 +103,73 @@ class AddTablon extends Controller
             return;
         }
 
-        $this->loadPriceData();
+        if ($this->isAuthenticated) {
+            $this->loadPriceData();
+        }
         $this->view('AddTablon.html.twig');
+    }
+
+    private function serveServiceWorker(): void
+    {
+        $swPath = FS_FOLDER . '/Plugins/ecommerce/Assets/service-worker.js';
+        header('Content-Type: application/javascript');
+        header('Service-Worker-Allowed: /');
+        readfile($swPath);
+        exit;
+    }
+
+    private function handleLogin(): void
+    {
+        $nick = trim($this->request()->request->get('fsNick', ''));
+        $password = $this->request()->request->get('fsPassword', '');
+
+        if (empty($nick) || empty($password)) {
+            $this->loginError = Tools::lang()->trans('login-error');
+            $this->view('AddTablon.html.twig');
+            return;
+        }
+
+        $userClass = '\\FacturaScripts\\Dinamic\\Model\\User';
+        $user = new $userClass();
+        if (!$user->loadFromCode($nick) || !$user->enabled || !$user->verifyPassword($password)) {
+            $this->loginError = Tools::lang()->trans('login-error');
+            $this->view('AddTablon.html.twig');
+            return;
+        }
+
+        // Check page permission
+        if (!$user->admin && !$user->can('AddTablon')) {
+            $this->loginError = Tools::lang()->trans('tablon-access-denied');
+            $this->view('AddTablon.html.twig');
+            return;
+        }
+
+        // Generate new logkey and set cookies
+        $ip = $this->request()->getClientIp() ?? '';
+        $browser = $this->request()->headers->get('User-Agent', '');
+        $user->newLogkey($ip, $browser);
+        $user->save();
+
+        $expire = time() + (int)Tools::config('cookies_expire', 31536000);
+        $cookiePath = Tools::config('route', '/');
+        $secure = $this->request()->isSecure();
+
+        setcookie('fsNick', $user->nick, $expire, $cookiePath, '', $secure, true);
+        setcookie('fsLogkey', $user->logkey, $expire, $cookiePath, '', $secure, true);
+
+        header('Location: ' . $cookiePath . 'AddTablon');
+        exit;
+    }
+
+    private function handleLogout(): void
+    {
+        $cookiePath = Tools::config('route', '/');
+
+        setcookie('fsNick', '', time() - 3600, $cookiePath);
+        setcookie('fsLogkey', '', time() - 3600, $cookiePath);
+
+        header('Location: ' . $cookiePath . 'AddTablon');
+        exit;
     }
 
     private function loadPriceData(): void

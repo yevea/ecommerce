@@ -160,5 +160,13 @@
     "tablon-sync-partial": "{ok} synchronisiert, {fail} fehlgeschlagen. Wird erneut versucht.",
     "tablon-sync-now": "Synchronisieren",
     "tablon-pending": "Bohlen warten auf Synchronisierung",
-    "tablon-app-install": "Bohlen App hinzufügen"
+    "tablon-app-install": "Bohlen App hinzufügen",
+    "tablon-login-title": "Anmelden, um Bohlen hinzuzufügen",
+    "tablon-logout": "Abmelden",
+    "tablon-access-denied": "Sie haben keine Berechtigung, auf diese Seite zuzugreifen.",
+    "user": "Benutzer",
+    "password": "Passwort",
+    "login": "Anmelden",
+    "login-error": "Falscher Benutzername oder Passwort.",
+    "login-required": "Sie müssen sich anmelden, um diese Aktion auszuführen."
 }

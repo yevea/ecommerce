@@ -59,6 +59,20 @@
         }
         .btn-sync:hover { background: rgba(255,255,255,0.3); }
         .btn-sync:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-logout:hover { background: rgba(255,255,255,0.3); }
         .offline-banner {
             display: none;
             background: #f39c12;
@@ -118,7 +132,7 @@
             color: #495057;
             margin-bottom: 4px;
         }
-        select, input[type="number"] {
+        select, input[type="number"], input[type="text"], input[type="password"] {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid #dee2e6;
@@ -165,6 +179,24 @@
         .btn-publish:disabled { background: #95a5a6; cursor: not-allowed; }
         .btn-publish i { font-size: 18px; }
 
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: #2c3e50;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-login:hover { background: #1a252f; }
+
         .alert {
             padding: 12px 16px;
             border-radius: 8px;
@@ -179,6 +211,8 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading .spinner { display: inline-block; }
         .loading .btn-text { display: none; }
+
+        .login-icon { font-size: 48px; color: #2c3e50; display: block; text-align: center; margin-bottom: 16px; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -187,13 +221,19 @@
         <i class="fa-solid fa-plus-circle"></i>
         {{ trans('add-tablon') }}
         <div class="header-right">
+            {% if fsc.isAuthenticated %}
             <span class="pending-badge" id="pendingBadge" title="{{ trans('tablon-pending') }}">0</span>
             <button class="btn-sync" id="btnSync" type="button" title="{{ trans('tablon-sync-now') }}">
                 <i class="fa-solid fa-rotate"></i> {{ trans('tablon-sync-now') }}
             </button>
+            <a href="?action=logout" class="btn-logout" title="{{ trans('tablon-logout') }}">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </a>
+            {% endif %}
         </div>
     </div>
 
+    {% if fsc.isAuthenticated %}
     <div class="offline-banner" id="offlineBanner">
         <i class="fa-solid fa-wifi-slash"></i>
         {{ trans('tablon-offline') }}
@@ -286,10 +326,34 @@
         };
     </script>
     <script src="{{ asset('Plugins/ecommerce/Assets/JS/AddTablon.js') }}"></script>
+    {% else %}
+    <div class="container">
+        {% if fsc.loginError %}
+        <div class="alert alert-error" style="margin-top: 16px;">{{ fsc.loginError }}</div>
+        {% endif %}
+
+        <form method="post" class="card" style="margin-top: 16px;">
+            <div class="login-icon"><i class="fa-solid fa-lock"></i></div>
+            <div class="card-title" style="text-align: center;">{{ trans('tablon-login-title') }}</div>
+            <input type="hidden" name="action" value="login">
+            <div class="form-row">
+                <label for="fsNick">{{ trans('user') }}</label>
+                <input type="text" id="fsNick" name="fsNick" required autocomplete="username">
+            </div>
+            <div class="form-row">
+                <label for="fsPassword">{{ trans('password') }}</label>
+                <input type="password" id="fsPassword" name="fsPassword" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn-login" style="margin-top: 8px;">
+                <i class="fa-solid fa-right-to-bracket"></i> {{ trans('login') }}
+            </button>
+        </form>
+    </div>
+    {% endif %}
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('{{ asset("Plugins/ecommerce/Assets/service-worker.js") }}')
+            navigator.serviceWorker.register(window.location.pathname + '?action=sw', {scope: '/'})
                 .catch(function() {});
         }
     </script>

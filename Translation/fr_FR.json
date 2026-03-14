@@ -160,5 +160,13 @@
     "tablon-sync-partial": "{ok} synchronisée(s), {fail} échouée(s). Nouvelle tentative prévue.",
     "tablon-sync-now": "Synchroniser",
     "tablon-pending": "Planches en attente de synchronisation",
-    "tablon-app-install": "Ajouter Planches App"
+    "tablon-app-install": "Ajouter Planches App",
+    "tablon-login-title": "Connectez-vous pour ajouter des planches",
+    "tablon-logout": "Déconnexion",
+    "tablon-access-denied": "Vous n'avez pas la permission d'accéder à cette page.",
+    "user": "Utilisateur",
+    "password": "Mot de passe",
+    "login": "Se Connecter",
+    "login-error": "Utilisateur ou mot de passe incorrect.",
+    "login-required": "Vous devez vous connecter pour effectuer cette action."
 }

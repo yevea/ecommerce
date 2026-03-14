@@ -160,5 +160,13 @@
     "tablon-sync-partial": "{ok} sincronizado(s), {fail} fallido(s). Se reintentará.",
     "tablon-sync-now": "Sincronizar",
     "tablon-pending": "Tablones pendientes de sincronizar",
-    "tablon-app-install": "Añadir Tablones App"
+    "tablon-app-install": "Añadir Tablones App",
+    "tablon-login-title": "Iniciar sesión para añadir tablones",
+    "tablon-logout": "Cerrar sesión",
+    "tablon-access-denied": "No tiene permiso para acceder a esta página.",
+    "user": "Usuario",
+    "password": "Contraseña",
+    "login": "Iniciar Sesión",
+    "login-error": "Usuario o contraseña incorrectos.",
+    "login-required": "Debe iniciar sesión para realizar esta acción."
 }
