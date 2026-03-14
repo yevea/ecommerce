@@ -13,7 +13,7 @@ class EditTablonPrecio extends EditController
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
-        $pageData['menu'] = 'ecommerce';
+        $pageData['menu'] = 'warehouse';
         $pageData['title'] = 'tablon-precio';
         $pageData['icon'] = 'fa-solid fa-money-bill';
         $pageData['showonmenu'] = false;

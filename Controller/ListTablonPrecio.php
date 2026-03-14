@@ -8,7 +8,7 @@ class ListTablonPrecio extends ListController
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
-        $pageData['menu'] = 'ecommerce';
+        $pageData['menu'] = 'warehouse';
         $pageData['title'] = 'tablon-precios';
         $pageData['icon'] = 'fa-solid fa-money-bill';
         return $pageData;
