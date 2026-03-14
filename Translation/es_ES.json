@@ -159,5 +159,6 @@
     "tablon-sync-done": "{n} tablón(es) sincronizado(s) correctamente.",
     "tablon-sync-partial": "{ok} sincronizado(s), {fail} fallido(s). Se reintentará.",
     "tablon-sync-now": "Sincronizar",
-    "tablon-pending": "Tablones pendientes de sincronizar"
+    "tablon-pending": "Tablones pendientes de sincronizar",
+    "tablon-app-install": "Añadir Tablones App"
 }

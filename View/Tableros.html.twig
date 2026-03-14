@@ -192,6 +192,14 @@
     {% if fsc.selectedCategoryFamily and fsc.selectedCategoryFamily.category_outro is not empty %}
     {{ fsc.selectedCategoryFamily.category_outro | raw }}
     {% endif %}
+
+    {% if fsc.user and fsc.selectedCategoryType == 'tablones' %}
+    <div class="text-center my-4">
+        <a href="{{ asset('AddTablon') }}" class="btn btn-lg btn-primary shadow">
+            <i class="fa-solid fa-mobile-screen-button"></i> {{ trans('tablon-app-install') }}
+        </a>
+    </div>
+    {% endif %}
     {% endblock %}
 
     {% if fsc.cartItemCount > 0 %}

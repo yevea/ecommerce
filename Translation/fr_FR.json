@@ -159,5 +159,6 @@
     "tablon-sync-done": "{n} planche(s) synchronisée(s) avec succès.",
     "tablon-sync-partial": "{ok} synchronisée(s), {fail} échouée(s). Nouvelle tentative prévue.",
     "tablon-sync-now": "Synchroniser",
-    "tablon-pending": "Planches en attente de synchronisation"
+    "tablon-pending": "Planches en attente de synchronisation",
+    "tablon-app-install": "Ajouter Planches App"
 }

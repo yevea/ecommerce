@@ -159,5 +159,6 @@
     "tablon-sync-done": "{n} Bohle(n) erfolgreich synchronisiert.",
     "tablon-sync-partial": "{ok} synchronisiert, {fail} fehlgeschlagen. Wird erneut versucht.",
     "tablon-sync-now": "Synchronisieren",
-    "tablon-pending": "Bohlen warten auf Synchronisierung"
+    "tablon-pending": "Bohlen warten auf Synchronisierung",
+    "tablon-app-install": "Bohlen App hinzufügen"
 }

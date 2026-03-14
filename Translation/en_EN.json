@@ -159,5 +159,6 @@
     "tablon-sync-done": "{n} slab(s) synced successfully.",
     "tablon-sync-partial": "{ok} synced, {fail} failed. Will retry.",
     "tablon-sync-now": "Sync",
-    "tablon-pending": "Slabs pending sync"
+    "tablon-pending": "Slabs pending sync",
+    "tablon-app-install": "Add Slabs App"
 }
