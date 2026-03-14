@@ -87,25 +87,25 @@
                     <div class="col-md-2">
                         <label class="form-label small">{{ trans('largo') }}</label>
                         <div class="input-group input-group-sm">
-                            <input type="number" name="largo_min" class="form-control" placeholder="{{ trans('min') }}" step="0.01" min="0" value="{{ fsc.dimensionFilters.largo_min }}">
+                            <input type="number" name="largo_min" class="form-control" placeholder="{{ trans('min') }}" step="1" min="0" value="{{ fsc.dimensionFilters.largo_min }}">
                             <span class="input-group-text">-</span>
-                            <input type="number" name="largo_max" class="form-control" placeholder="{{ trans('max') }}" step="0.01" min="0" value="{{ fsc.dimensionFilters.largo_max }}">
+                            <input type="number" name="largo_max" class="form-control" placeholder="{{ trans('max') }}" step="1" min="0" value="{{ fsc.dimensionFilters.largo_max }}">
                         </div>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small">{{ trans('ancho') }}</label>
                         <div class="input-group input-group-sm">
-                            <input type="number" name="ancho_min" class="form-control" placeholder="{{ trans('min') }}" step="0.01" min="0" value="{{ fsc.dimensionFilters.ancho_min }}">
+                            <input type="number" name="ancho_min" class="form-control" placeholder="{{ trans('min') }}" step="1" min="0" value="{{ fsc.dimensionFilters.ancho_min }}">
                             <span class="input-group-text">-</span>
-                            <input type="number" name="ancho_max" class="form-control" placeholder="{{ trans('max') }}" step="0.01" min="0" value="{{ fsc.dimensionFilters.ancho_max }}">
+                            <input type="number" name="ancho_max" class="form-control" placeholder="{{ trans('max') }}" step="1" min="0" value="{{ fsc.dimensionFilters.ancho_max }}">
                         </div>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small">{{ trans('espesor') }}</label>
                         <div class="input-group input-group-sm">
-                            <input type="number" name="espesor_min" class="form-control" placeholder="{{ trans('min') }}" step="0.01" min="0" value="{{ fsc.dimensionFilters.espesor_min }}">
+                            <input type="number" name="espesor_min" class="form-control" placeholder="{{ trans('min') }}" step="1" min="0" value="{{ fsc.dimensionFilters.espesor_min }}">
                             <span class="input-group-text">-</span>
-                            <input type="number" name="espesor_max" class="form-control" placeholder="{{ trans('max') }}" step="0.01" min="0" value="{{ fsc.dimensionFilters.espesor_max }}">
+                            <input type="number" name="espesor_max" class="form-control" placeholder="{{ trans('max') }}" step="1" min="0" value="{{ fsc.dimensionFilters.espesor_max }}">
                         </div>
                     </div>
                     <div class="col-md-auto">
@@ -193,7 +193,7 @@
     {{ fsc.selectedCategoryFamily.category_outro | raw }}
     {% endif %}
 
-    {% if fsc.user and fsc.selectedCategoryType == 'tablones' %}
+    {% if fsc.selectedCategoryType == 'tablones' %}
     <div class="text-center my-4">
         <a href="{{ asset('AddTablon') }}" class="btn btn-lg btn-primary shadow">
             <i class="fa-solid fa-mobile-screen-button"></i> {{ trans('tablon-app-install') }}
