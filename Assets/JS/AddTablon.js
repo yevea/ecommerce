@@ -99,12 +99,35 @@
             if (window.matchMedia('(display-mode: standalone)').matches) return; // Already installed
             if (navigator.standalone) return; // iOS standalone mode
 
-            var isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
-            if (isIOS) {
-                installTipText.innerHTML = '<b>Instalar:</b> Pulsa <i class="fa-solid fa-arrow-up-from-bracket"></i> Compartir y luego <b>Añadir a pantalla de inicio</b>';
-            } else {
-                installTipText.innerHTML = '<b>Instalar:</b> Abre el menú del navegador <i class="fa-solid fa-ellipsis-vertical"></i> y selecciona <b>Añadir a pantalla de inicio</b>';
+            // Build install instructions using DOM elements (no innerHTML)
+            while (installTipText.firstChild) {
+                installTipText.removeChild(installTipText.firstChild);
             }
+
+            var isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
+            var bold1 = document.createElement('b');
+            bold1.textContent = 'Instalar:';
+            installTipText.appendChild(bold1);
+            installTipText.appendChild(document.createTextNode(' '));
+
+            if (isIOS) {
+                installTipText.appendChild(document.createTextNode('Pulsa '));
+                var shareIcon = document.createElement('i');
+                shareIcon.className = 'fa-solid fa-arrow-up-from-bracket';
+                installTipText.appendChild(shareIcon);
+                installTipText.appendChild(document.createTextNode(' Compartir y luego '));
+            } else {
+                installTipText.appendChild(document.createTextNode('Abre el men\u00fa del navegador '));
+                var menuIcon = document.createElement('i');
+                menuIcon.className = 'fa-solid fa-ellipsis-vertical';
+                installTipText.appendChild(menuIcon);
+                installTipText.appendChild(document.createTextNode(' y selecciona '));
+            }
+
+            var bold2 = document.createElement('b');
+            bold2.textContent = 'A\u00f1adir a pantalla de inicio';
+            installTipText.appendChild(bold2);
+
             installTip.style.display = 'flex';
         }, 4000);
     }

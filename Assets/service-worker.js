@@ -15,7 +15,7 @@ self.addEventListener('install', function (event) {
     // Cache shell URLs in background without blocking activation
     caches.open(CACHE_NAME).then(function (cache) {
         cache.addAll(SHELL_URLS).catch(function () {
-            cache.add('/AddTablon').catch(function () {});
+            cache.add('/AddTablon').catch(function (err) { console.warn('SW cache failed:', err); });
         });
     });
 });
