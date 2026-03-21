@@ -7,13 +7,13 @@
  * so that all paths resolve correctly regardless of the FacturaScripts
  * installation directory (e.g. "/" or "/facturascripts/").
  */
-var CACHE_NAME = 'tablon-pwa-v7';
+var CACHE_NAME = 'tablon-pwa-v8';
 var APP_SHELL = BASE + 'AddTablon';
 var SHELL_URLS = [
     APP_SHELL,
     BASE + 'Plugins/ecommerce/Assets/JS/AddTablon.js',
-    BASE + 'Plugins/ecommerce/Assets/icons/icon-192.png',
-    BASE + 'Plugins/ecommerce/Assets/icons/icon-512.png',
+    BASE + 'AddTablon?action=icon&size=192',
+    BASE + 'AddTablon?action=icon&size=512',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.woff2'
 ];

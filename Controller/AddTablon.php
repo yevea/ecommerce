@@ -74,6 +74,12 @@ class AddTablon extends Controller
             return;
         }
 
+        // Serve PWA icons through the controller to avoid direct file access issues
+        if ($action === 'icon') {
+            $this->serveIcon();
+            return;
+        }
+
         // Handle login (supports both AJAX and regular POST)
         if ($action === 'login') {
             $this->handleLogin();
@@ -130,19 +136,19 @@ class AddTablon extends Controller
             'background_color' => '#f0f2f5',
             'icons' => [
                 [
-                    'src' => $route . 'Plugins/ecommerce/Assets/icons/icon-192.png',
+                    'src' => $route . 'AddTablon?action=icon&size=192',
                     'sizes' => '192x192',
                     'type' => 'image/png',
                     'purpose' => 'any',
                 ],
                 [
-                    'src' => $route . 'Plugins/ecommerce/Assets/icons/icon-512.png',
+                    'src' => $route . 'AddTablon?action=icon&size=512',
                     'sizes' => '512x512',
                     'type' => 'image/png',
                     'purpose' => 'any',
                 ],
                 [
-                    'src' => $route . 'Plugins/ecommerce/Assets/icons/icon-512.png',
+                    'src' => $route . 'AddTablon?action=icon&size=512',
                     'sizes' => '512x512',
                     'type' => 'image/png',
                     'purpose' => 'maskable',
@@ -169,6 +175,28 @@ class AddTablon extends Controller
         // Inject the base path so the SW can build correct URLs
         echo 'var BASE = ' . json_encode($route, JSON_UNESCAPED_SLASHES) . ";\n";
         readfile($swPath);
+        exit;
+    }
+
+    private function serveIcon(): void
+    {
+        $size = $this->request()->query->get('size', '192');
+        $allowed = ['192', '512'];
+        if (!in_array($size, $allowed, true)) {
+            http_response_code(404);
+            exit;
+        }
+
+        $iconPath = FS_FOLDER . '/Plugins/ecommerce/Assets/icons/icon-' . $size . '.png';
+        if (!file_exists($iconPath)) {
+            http_response_code(404);
+            exit;
+        }
+
+        header('Content-Type: image/png');
+        header('Cache-Control: public, max-age=31536000, immutable');
+        header('Content-Length: ' . filesize($iconPath));
+        readfile($iconPath);
         exit;
     }
 
