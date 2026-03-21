@@ -273,6 +273,14 @@ class AddTablon extends Controller
             return;
         }
 
+        // If fsLogkey is missing, the session is already broken — clear without DB lookup
+        if (empty($logkey)) {
+            $cookiePath = Tools::config('route', '/');
+            setcookie('fsNick', '', ['expires' => time() - 3600, 'path' => $cookiePath, 'samesite' => 'Lax']);
+            unset($_COOKIE['fsNick']);
+            return;
+        }
+
         $user = new User();
         if (!$user->loadFromCode($nick) || !$user->enabled || $user->logkey !== $logkey) {
             $cookiePath = Tools::config('route', '/');
