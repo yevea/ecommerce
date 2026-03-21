@@ -1,5 +1,5 @@
 <?php
-namespace FacturaScripts\Plugins\woodstore\Controller;
+namespace FacturaScripts\Plugins\WoodStore\Controller;
 
 use FacturaScripts\Core\Lib\AssetManager;
 use FacturaScripts\Core\Model\Familia;
@@ -7,9 +7,9 @@ use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
-use FacturaScripts\Plugins\woodstore\Lib\LanguageTrait;
-use FacturaScripts\Plugins\woodstore\Lib\SlugTrait;
-use FacturaScripts\Plugins\woodstore\Model\WoodstoreCartItem;
+use FacturaScripts\Plugins\WoodStore\Lib\LanguageTrait;
+use FacturaScripts\Plugins\WoodStore\Lib\SlugTrait;
+use FacturaScripts\Plugins\WoodStore\Model\WoodstoreCartItem;
 
 class StoreFront extends Controller
 {
@@ -60,9 +60,9 @@ class StoreFront extends Controller
         parent::run();
         $this->detectAndSetLanguage();
 
-        $cssPath = FS_FOLDER . '/Plugins/woodstore/Assets/CSS/woodstore.css';
+        $cssPath = FS_FOLDER . '/Plugins/WoodStore/Assets/CSS/woodstore.css';
         if (file_exists($cssPath)) {
-            AssetManager::addCss(FS_ROUTE . '/Plugins/woodstore/Assets/CSS/woodstore.css');
+            AssetManager::addCss(FS_ROUTE . '/Plugins/WoodStore/Assets/CSS/woodstore.css');
         }
 
         $action = $this->request()->request->get('action', $this->request()->query->get('action', ''));

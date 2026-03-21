@@ -11,7 +11,7 @@ var CACHE_NAME = 'tablon-pwa-v8';
 var APP_SHELL = BASE + 'AddTablon';
 var SHELL_URLS = [
     APP_SHELL,
-    BASE + 'Plugins/woodstore/Assets/JS/AddTablon.js',
+    BASE + 'Plugins/WoodStore/Assets/JS/AddTablon.js',
     BASE + 'AddTablon?action=icon&size=192',
     BASE + 'AddTablon?action=icon&size=512',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
