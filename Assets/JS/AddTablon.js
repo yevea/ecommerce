@@ -1,7 +1,8 @@
 /**
  * AddTablon PWA - Client-side logic for the "Añadir Tablón" PWA page.
  * Handles photo preview, price calculation, AJAX form submission,
- * IndexedDB offline queue, and automatic sync when back online.
+ * IndexedDB offline queue, automatic sync when back online,
+ * and deferred login via modal when the user is not yet authenticated.
  */
 (function () {
     'use strict';
@@ -24,11 +25,20 @@
     var pendingBadge = document.getElementById('pendingBadge');
     var btnSync = document.getElementById('btnSync');
 
+    // Login modal DOM references
+    var loginModal = document.getElementById('loginModal');
+    var loginForm = document.getElementById('loginForm');
+    var loginModalError = document.getElementById('loginModalError');
+    var btnLogin = document.getElementById('btnLogin');
+
     // Price table is injected by the Twig template as a global variable
     var prices = window.priceTable || [];
 
     // Current photo as base64 dataURL (kept in memory for offline queue)
     var currentPhotoDataURL = '';
+
+    // Pending entry waiting for login before submission
+    var pendingLoginEntry = null;
 
     // ── IndexedDB helpers ───────────────────────────────────────────────
     var DB_NAME = 'tablonPWA';
@@ -171,11 +181,16 @@
         }
 
         // Online → try to submit
-        submitEntry(entry, function (ok, message) {
+        submitEntry(entry, function (ok, message, resultCode) {
             btnPublish.classList.remove('loading');
             if (ok) {
                 showAlert('success', message);
                 resetForm();
+            } else if (resultCode === 'login-required') {
+                // Not authenticated → show login modal, then retry
+                pendingLoginEntry = entry;
+                showLoginModal();
+                btnPublish.disabled = false;
             } else {
                 // Network error during submit → save to queue
                 if (message === '__network_error__') {
@@ -225,16 +240,16 @@
             if (xhr.status === 200) {
                 try {
                     var resp = JSON.parse(xhr.responseText);
-                    callback(resp.result === 'ok', resp.message || 'OK');
+                    callback(resp.result === 'ok', resp.message || 'OK', resp.result);
                 } catch (ex) {
-                    callback(false, window.TABLON_I18N.serverError);
+                    callback(false, window.TABLON_I18N.serverError, 'error');
                 }
             } else {
-                callback(false, '__network_error__');
+                callback(false, '__network_error__', 'error');
             }
         };
-        xhr.ontimeout = function () { callback(false, '__network_error__'); };
-        xhr.onerror = function () { callback(false, '__network_error__'); };
+        xhr.ontimeout = function () { callback(false, '__network_error__', 'error'); };
+        xhr.onerror = function () { callback(false, '__network_error__', 'error'); };
         xhr.send(formData);
     }
 
@@ -249,6 +264,110 @@
                 resetForm();
                 refreshPendingCount();
             }
+        });
+    }
+
+    // ── Login modal ─────────────────────────────────────────────────────
+    function showLoginModal() {
+        if (!loginModal) return;
+        loginModalError.style.display = 'none';
+        loginModalError.textContent = '';
+        loginModal.classList.add('active');
+        var nickInput = document.getElementById('modalNick');
+        if (nickInput) nickInput.focus();
+    }
+
+    function hideLoginModal() {
+        if (!loginModal) return;
+        loginModal.classList.remove('active');
+        pendingLoginEntry = null;
+    }
+
+    // Close modal when clicking the overlay background
+    if (loginModal) {
+        loginModal.addEventListener('click', function (e) {
+            if (e.target === loginModal) {
+                hideLoginModal();
+            }
+        });
+    }
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            loginModalError.style.display = 'none';
+
+            var nick = document.getElementById('modalNick').value.trim();
+            var password = document.getElementById('modalPassword').value;
+
+            if (!nick || !password) return;
+
+            btnLogin.disabled = true;
+            btnLogin.classList.add('loading');
+
+            var formData = new FormData();
+            formData.append('action', 'login');
+            formData.append('fsNick', nick);
+            formData.append('fsPassword', password);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', window.location.pathname, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.timeout = 15000;
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState !== 4) return;
+                btnLogin.disabled = false;
+                btnLogin.classList.remove('loading');
+
+                if (xhr.status === 200) {
+                    try {
+                        var resp = JSON.parse(xhr.responseText);
+                        if (resp.result === 'ok') {
+                            // Login succeeded — retry the pending submission
+                            hideLoginModal();
+                            loginForm.reset();
+                            if (pendingLoginEntry) {
+                                var entry = pendingLoginEntry;
+                                pendingLoginEntry = null;
+                                btnPublish.disabled = true;
+                                btnPublish.classList.add('loading');
+                                submitEntry(entry, function (ok, message) {
+                                    btnPublish.classList.remove('loading');
+                                    if (ok) {
+                                        showAlert('success', message);
+                                        resetForm();
+                                    } else {
+                                        showAlert('error', message);
+                                        btnPublish.disabled = false;
+                                    }
+                                });
+                            }
+                        } else {
+                            loginModalError.textContent = resp.message || 'Error';
+                            loginModalError.style.display = 'block';
+                        }
+                    } catch (ex) {
+                        loginModalError.textContent = window.TABLON_I18N.serverError;
+                        loginModalError.style.display = 'block';
+                    }
+                } else {
+                    loginModalError.textContent = window.TABLON_I18N.serverError;
+                    loginModalError.style.display = 'block';
+                }
+            };
+            xhr.ontimeout = function () {
+                btnLogin.disabled = false;
+                btnLogin.classList.remove('loading');
+                loginModalError.textContent = window.TABLON_I18N.serverError;
+                loginModalError.style.display = 'block';
+            };
+            xhr.onerror = function () {
+                btnLogin.disabled = false;
+                btnLogin.classList.remove('loading');
+                loginModalError.textContent = window.TABLON_I18N.serverError;
+                loginModalError.style.display = 'block';
+            };
+            xhr.send(formData);
         });
     }
 
