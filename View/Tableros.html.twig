@@ -1,5 +1,24 @@
 {% extends "Master/MenuTemplate.html.twig" %}
 
+{% block icons %}
+    {{ parent() }}
+    {% if fsc.selectedCategoryType == 'tablones' %}
+    <link rel="manifest" href="{{ asset('AddTablon') }}?action=manifest">
+    <meta name="theme-color" content="#2c3e50">
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% if fsc.selectedCategoryType == 'tablones' %}
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('{{ asset("AddTablon") }}?action=sw', {scope: '/'}).catch(function(){});
+        }
+    </script>
+    {% endif %}
+{% endblock %}
+
 {% block navbar %}{% endblock %}
 
 {% block body %}
@@ -201,11 +220,6 @@
     </div>
     <script>
     (function() {
-        var link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = '{{ asset('AddTablon') }}?action=manifest';
-        document.head.appendChild(link);
-
         var deferredPrompt = null;
         window.addEventListener('beforeinstallprompt', function(e) {
             e.preventDefault();
@@ -223,10 +237,6 @@
                     });
                 }
             });
-        }
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('{{ asset('AddTablon') }}?action=sw', {scope: '/'}).catch(function() {});
         }
     })();
     </script>

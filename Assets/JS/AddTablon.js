@@ -45,12 +45,18 @@
 
     // ── PWA install prompt ──────────────────────────────────────────────
     var deferredInstallPrompt = null;
+    var installTip = document.getElementById('installTip');
+    var installTipText = document.getElementById('installTipText');
 
     window.addEventListener('beforeinstallprompt', function (e) {
         e.preventDefault();
         deferredInstallPrompt = e;
         if (installBanner) {
             installBanner.style.display = 'flex';
+        }
+        // Hide manual tip if the native prompt is available
+        if (installTip) {
+            installTip.style.display = 'none';
         }
     });
 
@@ -81,7 +87,50 @@
         if (installBanner) {
             installBanner.style.display = 'none';
         }
+        if (installTip) {
+            installTip.style.display = 'none';
+        }
     });
+
+    // Show manual install instructions if beforeinstallprompt does not fire
+    if (installTip && installTipText) {
+        setTimeout(function () {
+            if (deferredInstallPrompt) return; // Native prompt available, no need
+            if (window.matchMedia('(display-mode: standalone)').matches) return; // Already installed
+            if (navigator.standalone) return; // iOS standalone mode
+
+            // Build install instructions using DOM elements (no innerHTML)
+            while (installTipText.firstChild) {
+                installTipText.removeChild(installTipText.firstChild);
+            }
+
+            var isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
+            var bold1 = document.createElement('b');
+            bold1.textContent = 'Instalar:';
+            installTipText.appendChild(bold1);
+            installTipText.appendChild(document.createTextNode(' '));
+
+            if (isIOS) {
+                installTipText.appendChild(document.createTextNode('Pulsa '));
+                var shareIcon = document.createElement('i');
+                shareIcon.className = 'fa-solid fa-arrow-up-from-bracket';
+                installTipText.appendChild(shareIcon);
+                installTipText.appendChild(document.createTextNode(' Compartir y luego '));
+            } else {
+                installTipText.appendChild(document.createTextNode('Abre el men\u00fa del navegador '));
+                var menuIcon = document.createElement('i');
+                menuIcon.className = 'fa-solid fa-ellipsis-vertical';
+                installTipText.appendChild(menuIcon);
+                installTipText.appendChild(document.createTextNode(' y selecciona '));
+            }
+
+            var bold2 = document.createElement('b');
+            bold2.textContent = 'A\u00f1adir a pantalla de inicio';
+            installTipText.appendChild(bold2);
+
+            installTip.style.display = 'flex';
+        }, 4000);
+    }
 
     // ── IndexedDB helpers ───────────────────────────────────────────────
     var DB_NAME = 'tablonPWA';
