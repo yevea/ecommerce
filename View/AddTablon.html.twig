@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Añadir Tablón">
     <link rel="manifest" href="{{ asset('AddTablon') }}?action=manifest">
+    <link rel="apple-touch-icon" href="{{ asset('Plugins/ecommerce/Assets/icons/icon-192.png') }}">
     <title>{{ trans('add-tablon') }}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -440,7 +441,9 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register(window.location.pathname + '?action=sw', {scope: '/'})
+            var swUrl = '{{ asset("AddTablon") }}' + '?action=sw';
+            var scope = swUrl.substring(0, swUrl.lastIndexOf('/') + 1) || '/';
+            navigator.serviceWorker.register(swUrl, {scope: scope})
                 .catch(function() {});
         }
     </script>
