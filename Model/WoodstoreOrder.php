@@ -1,11 +1,11 @@
 <?php
-namespace FacturaScripts\Plugins\ecommerce\Model;
+namespace FacturaScripts\Plugins\woodstore\Model;
 
 use FacturaScripts\Core\Template\ModelClass;
 use FacturaScripts\Core\Template\ModelTrait;
 use FacturaScripts\Core\Tools;
 
-class EcommerceOrder extends ModelClass
+class WoodstoreOrder extends ModelClass
 {
     use ModelTrait;
 
@@ -75,7 +75,7 @@ class EcommerceOrder extends ModelClass
 
     public static function tableName(): string
     {
-        return 'ecommerce_orders';
+        return 'woodstore_orders';
     }
 
     public function clear(): void

@@ -1,5 +1,5 @@
 <?php
-namespace FacturaScripts\Plugins\ecommerce\Lib;
+namespace FacturaScripts\Plugins\woodstore\Lib;
 
 /**
  * Reusable slug-generation methods for URL-friendly identifiers.

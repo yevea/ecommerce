@@ -2,7 +2,7 @@
     "name": "Añadir Tablón",
     "short_name": "Tablón",
     "id": "/AddTablon",
-    "description": "PWA para añadir tablones al catálogo de ecommerce",
+    "description": "PWA para añadir tablones al catálogo de WoodStore",
     "start_url": "/AddTablon",
     "scope": "/",
     "display": "standalone",

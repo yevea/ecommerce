@@ -1,5 +1,5 @@
 <?php
-namespace FacturaScripts\Plugins\ecommerce\Controller;
+namespace FacturaScripts\Plugins\woodstore\Controller;
 
 use FacturaScripts\Core\Model\Familia;
 use FacturaScripts\Core\Session;
@@ -10,7 +10,7 @@ use FacturaScripts\Dinamic\Model\AttachedFile;
 use FacturaScripts\Dinamic\Model\AttachedFileRelation;
 use FacturaScripts\Dinamic\Model\ProductoImagen;
 use FacturaScripts\Dinamic\Model\User;
-use FacturaScripts\Plugins\ecommerce\Model\TablonPrecio;
+use FacturaScripts\Plugins\woodstore\Model\TablonPrecio;
 
 class AddTablon extends Controller
 {
@@ -40,7 +40,7 @@ class AddTablon extends Controller
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
-        $pageData['menu'] = 'ecommerce';
+        $pageData['menu'] = 'woodstore';
         $pageData['title'] = 'add-tablon';
         $pageData['icon'] = 'fa-solid fa-plus-circle';
         $pageData['showonmenu'] = false;
@@ -127,7 +127,7 @@ class AddTablon extends Controller
             'name' => 'Añadir Tablón',
             'short_name' => 'Tablón',
             'id' => $route . 'AddTablon',
-            'description' => 'PWA para añadir tablones al catálogo de ecommerce',
+            'description' => 'PWA para añadir tablones al catálogo de WoodStore',
             'start_url' => $route . 'AddTablon',
             'scope' => $route,
             'display' => 'standalone',
@@ -163,7 +163,7 @@ class AddTablon extends Controller
 
     private function serveServiceWorker(): void
     {
-        $swPath = FS_FOLDER . '/Plugins/ecommerce/Assets/service-worker.js';
+        $swPath = FS_FOLDER . '/Plugins/woodstore/Assets/service-worker.js';
         if (!file_exists($swPath)) {
             http_response_code(404);
             exit;
@@ -187,7 +187,7 @@ class AddTablon extends Controller
             exit;
         }
 
-        $iconPath = FS_FOLDER . '/Plugins/ecommerce/Assets/icons/icon-' . $size . '.png';
+        $iconPath = FS_FOLDER . '/Plugins/woodstore/Assets/icons/icon-' . $size . '.png';
         if (!file_exists($iconPath)) {
             http_response_code(404);
             exit;

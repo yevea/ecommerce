@@ -1,5 +1,5 @@
 <?php
-namespace FacturaScripts\Plugins\ecommerce\Model;
+namespace FacturaScripts\Plugins\woodstore\Model;
 
 use FacturaScripts\Core\Template\ModelClass;
 use FacturaScripts\Core\Template\ModelTrait;

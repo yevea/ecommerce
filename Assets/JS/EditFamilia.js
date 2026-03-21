@@ -1,5 +1,5 @@
 /**
- * This file is part of ecommerce plugin for FacturaScripts.
+ * This file is part of WoodStore plugin for FacturaScripts.
  * Copyright (C) 2024 FacturaScripts Community
  *
  * Dynamic toggle for the dimension-limits section in EditFamilia.
