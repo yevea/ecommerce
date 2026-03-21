@@ -64,6 +64,12 @@ class AddTablon extends Controller
             return;
         }
 
+        // Serve manifest with correct URLs for the current installation
+        if ($action === 'manifest') {
+            $this->serveManifest();
+            return;
+        }
+
         // Handle login (supports both AJAX and regular POST)
         if ($action === 'login') {
             $this->handleLogin();
@@ -102,6 +108,47 @@ class AddTablon extends Controller
         // Always load price data so the form is usable before login
         $this->loadPriceData();
         $this->view('AddTablon.html.twig');
+    }
+
+    private function serveManifest(): void
+    {
+        $route = Tools::config('route', '/');
+        $manifest = [
+            'name' => 'Añadir Tablón',
+            'short_name' => 'Tablón',
+            'id' => $route . 'AddTablon',
+            'description' => 'PWA para añadir tablones al catálogo de ecommerce',
+            'start_url' => $route . 'AddTablon',
+            'scope' => $route,
+            'display' => 'standalone',
+            'orientation' => 'portrait',
+            'theme_color' => '#2c3e50',
+            'background_color' => '#f0f2f5',
+            'icons' => [
+                [
+                    'src' => $route . 'Plugins/ecommerce/Assets/icons/icon-192.png',
+                    'sizes' => '192x192',
+                    'type' => 'image/png',
+                    'purpose' => 'any',
+                ],
+                [
+                    'src' => $route . 'Plugins/ecommerce/Assets/icons/icon-512.png',
+                    'sizes' => '512x512',
+                    'type' => 'image/png',
+                    'purpose' => 'any',
+                ],
+                [
+                    'src' => $route . 'Plugins/ecommerce/Assets/icons/icon-512.png',
+                    'sizes' => '512x512',
+                    'type' => 'image/png',
+                    'purpose' => 'maskable',
+                ],
+            ],
+        ];
+
+        header('Content-Type: application/manifest+json');
+        echo json_encode($manifest, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
     }
 
     private function serveServiceWorker(): void
