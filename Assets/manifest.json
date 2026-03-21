@@ -11,19 +11,19 @@
     "background_color": "#f0f2f5",
     "icons": [
         {
-            "src": "icons/icon-192.png",
+            "src": "/AddTablon?action=icon&size=192",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icons/icon-512.png",
+            "src": "/AddTablon?action=icon&size=512",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "icons/icon-512.png",
+            "src": "/AddTablon?action=icon&size=512",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
