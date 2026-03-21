@@ -3,7 +3,7 @@
  * Caches the app shell so the page loads fully offline.
  * POST submissions are handled client-side via IndexedDB queue.
  */
-var CACHE_NAME = 'tablon-pwa-v4';
+var CACHE_NAME = 'tablon-pwa-v5';
 var SHELL_URLS = [
     '/AddTablon',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
@@ -11,15 +11,13 @@ var SHELL_URLS = [
 ];
 
 self.addEventListener('install', function (event) {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(function (cache) {
-            return cache.addAll(SHELL_URLS).catch(function () {
-                // If CDN URLs fail (e.g. during build), cache what we can
-                return cache.add('/AddTablon');
-            });
-        })
-    );
     self.skipWaiting();
+    // Cache shell URLs in background without blocking activation
+    caches.open(CACHE_NAME).then(function (cache) {
+        cache.addAll(SHELL_URLS).catch(function () {
+            cache.add('/AddTablon').catch(function () {});
+        });
+    });
 });
 
 self.addEventListener('activate', function (event) {

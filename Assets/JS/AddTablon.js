@@ -45,12 +45,18 @@
 
     // ── PWA install prompt ──────────────────────────────────────────────
     var deferredInstallPrompt = null;
+    var installTip = document.getElementById('installTip');
+    var installTipText = document.getElementById('installTipText');
 
     window.addEventListener('beforeinstallprompt', function (e) {
         e.preventDefault();
         deferredInstallPrompt = e;
         if (installBanner) {
             installBanner.style.display = 'flex';
+        }
+        // Hide manual tip if the native prompt is available
+        if (installTip) {
+            installTip.style.display = 'none';
         }
     });
 
@@ -81,7 +87,27 @@
         if (installBanner) {
             installBanner.style.display = 'none';
         }
+        if (installTip) {
+            installTip.style.display = 'none';
+        }
     });
+
+    // Show manual install instructions if beforeinstallprompt does not fire
+    if (installTip && installTipText) {
+        setTimeout(function () {
+            if (deferredInstallPrompt) return; // Native prompt available, no need
+            if (window.matchMedia('(display-mode: standalone)').matches) return; // Already installed
+            if (navigator.standalone) return; // iOS standalone mode
+
+            var isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
+            if (isIOS) {
+                installTipText.innerHTML = '<b>Instalar:</b> Pulsa <i class="fa-solid fa-arrow-up-from-bracket"></i> Compartir y luego <b>Añadir a pantalla de inicio</b>';
+            } else {
+                installTipText.innerHTML = '<b>Instalar:</b> Abre el menú del navegador <i class="fa-solid fa-ellipsis-vertical"></i> y selecciona <b>Añadir a pantalla de inicio</b>';
+            }
+            installTip.style.display = 'flex';
+        }, 4000);
+    }
 
     // ── IndexedDB helpers ───────────────────────────────────────────────
     var DB_NAME = 'tablonPWA';
