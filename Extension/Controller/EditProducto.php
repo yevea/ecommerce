@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace FacturaScripts\Plugins\woodstore\Extension\Controller;
+namespace FacturaScripts\Plugins\WoodStore\Extension\Controller;
 
 use Closure;
 use FacturaScripts\Core\Model\Familia;

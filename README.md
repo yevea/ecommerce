@@ -54,7 +54,7 @@ The storefront and product detail pages include:
 ## Plugin Structure
 
 ```
-woodstore/
+WoodStore/
 ├── Assets/
 │   └── JS/
 │       └── EditFamilia.js           # Dynamic family-type UI
@@ -115,9 +115,9 @@ woodstore/
 
 ## Installation
 
-1. Copy the `woodstore` folder into your FacturaScripts `Plugins/` directory
+1. Copy the `WoodStore` folder into your FacturaScripts `Plugins/` directory
 2. Go to the FacturaScripts admin panel
-3. Navigate to **Admin > Plugins** and enable the **woodstore** plugin
+3. Navigate to **Admin > Plugins** and enable the **WoodStore** plugin
 4. The plugin will create the necessary database tables automatically
 
 ## Configuration

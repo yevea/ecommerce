@@ -1,5 +1,5 @@
 <?php
-namespace FacturaScripts\Plugins\woodstore\Controller;
+namespace FacturaScripts\Plugins\WoodStore\Controller;
 
 use FacturaScripts\Core\Model\Familia;
 use FacturaScripts\Core\Session;
@@ -10,7 +10,7 @@ use FacturaScripts\Dinamic\Model\AttachedFile;
 use FacturaScripts\Dinamic\Model\AttachedFileRelation;
 use FacturaScripts\Dinamic\Model\ProductoImagen;
 use FacturaScripts\Dinamic\Model\User;
-use FacturaScripts\Plugins\woodstore\Model\TablonPrecio;
+use FacturaScripts\Plugins\WoodStore\Model\TablonPrecio;
 
 class AddTablon extends Controller
 {
@@ -163,7 +163,7 @@ class AddTablon extends Controller
 
     private function serveServiceWorker(): void
     {
-        $swPath = FS_FOLDER . '/Plugins/woodstore/Assets/service-worker.js';
+        $swPath = FS_FOLDER . '/Plugins/WoodStore/Assets/service-worker.js';
         if (!file_exists($swPath)) {
             http_response_code(404);
             exit;
@@ -187,7 +187,7 @@ class AddTablon extends Controller
             exit;
         }
 
-        $iconPath = FS_FOLDER . '/Plugins/woodstore/Assets/icons/icon-' . $size . '.png';
+        $iconPath = FS_FOLDER . '/Plugins/WoodStore/Assets/icons/icon-' . $size . '.png';
         if (!file_exists($iconPath)) {
             http_response_code(404);
             exit;
