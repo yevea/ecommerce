@@ -161,6 +161,8 @@
     "tablon-sync-now": "Sincronizar",
     "tablon-pending": "Tablones pendientes de sincronizar",
     "tablon-app-install": "Añadir Tablones App",
+    "tablon-install-prompt": "Instalar esta app para acceso rápido",
+    "tablon-install-btn": "Instalar",
     "tablon-login-title": "Iniciar sesión para añadir tablones",
     "tablon-logout": "Cerrar sesión",
     "tablon-access-denied": "No tiene permiso para acceder a esta página.",

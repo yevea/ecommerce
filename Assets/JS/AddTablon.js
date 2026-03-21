@@ -1,8 +1,8 @@
 /**
  * AddTablon PWA - Client-side logic for the "Añadir Tablón" PWA page.
- * Handles photo preview, price calculation, AJAX form submission,
- * IndexedDB offline queue, automatic sync when back online,
- * and deferred login via modal when the user is not yet authenticated.
+ * Handles PWA install prompt, photo preview, price calculation,
+ * AJAX form submission, IndexedDB offline queue, automatic sync
+ * when back online, and deferred login via modal.
  */
 (function () {
     'use strict';
@@ -24,6 +24,9 @@
     var offlineBanner = document.getElementById('offlineBanner');
     var pendingBadge = document.getElementById('pendingBadge');
     var btnSync = document.getElementById('btnSync');
+    var installBanner = document.getElementById('installBanner');
+    var btnInstall = document.getElementById('btnInstall');
+    var btnDismissInstall = document.getElementById('btnDismissInstall');
 
     // Login modal DOM references
     var loginModal = document.getElementById('loginModal');
@@ -39,6 +42,46 @@
 
     // Pending entry waiting for login before submission
     var pendingLoginEntry = null;
+
+    // ── PWA install prompt ──────────────────────────────────────────────
+    var deferredInstallPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        if (installBanner) {
+            installBanner.style.display = 'flex';
+        }
+    });
+
+    if (btnInstall) {
+        btnInstall.addEventListener('click', function () {
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            deferredInstallPrompt.userChoice.then(function () {
+                deferredInstallPrompt = null;
+                if (installBanner) {
+                    installBanner.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    if (btnDismissInstall) {
+        btnDismissInstall.addEventListener('click', function () {
+            if (installBanner) {
+                installBanner.style.display = 'none';
+            }
+            deferredInstallPrompt = null;
+        });
+    }
+
+    window.addEventListener('appinstalled', function () {
+        deferredInstallPrompt = null;
+        if (installBanner) {
+            installBanner.style.display = 'none';
+        }
+    });
 
     // ── IndexedDB helpers ───────────────────────────────────────────────
     var DB_NAME = 'tablonPWA';
@@ -310,20 +353,29 @@
             formData.append('fsNick', nick);
             formData.append('fsPassword', password);
 
+            function resetLoginBtn() {
+                btnLogin.disabled = false;
+                btnLogin.classList.remove('loading');
+            }
+
+            function showLoginError(msg) {
+                resetLoginBtn();
+                loginModalError.textContent = msg;
+                loginModalError.style.display = 'block';
+            }
+
             var xhr = new XMLHttpRequest();
             xhr.open('POST', window.location.pathname, true);
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             xhr.timeout = 15000;
             xhr.onreadystatechange = function () {
                 if (xhr.readyState !== 4) return;
-                btnLogin.disabled = false;
-                btnLogin.classList.remove('loading');
 
                 if (xhr.status === 200) {
                     try {
                         var resp = JSON.parse(xhr.responseText);
                         if (resp.result === 'ok') {
-                            // Login succeeded — retry the pending submission
+                            resetLoginBtn();
                             hideLoginModal();
                             loginForm.reset();
                             if (pendingLoginEntry) {
@@ -331,7 +383,7 @@
                                 pendingLoginEntry = null;
                                 btnPublish.disabled = true;
                                 btnPublish.classList.add('loading');
-                                submitEntry(entry, function (ok, message, resultCode) {
+                                submitEntry(entry, function (ok, message) {
                                     btnPublish.classList.remove('loading');
                                     if (ok) {
                                         showAlert('success', message);
@@ -343,30 +395,17 @@
                                 });
                             }
                         } else {
-                            loginModalError.textContent = resp.message || 'Error';
-                            loginModalError.style.display = 'block';
+                            showLoginError(resp.message || 'Error');
                         }
                     } catch (ex) {
-                        loginModalError.textContent = window.TABLON_I18N.serverError;
-                        loginModalError.style.display = 'block';
+                        showLoginError(window.TABLON_I18N.serverError);
                     }
                 } else {
-                    loginModalError.textContent = window.TABLON_I18N.serverError;
-                    loginModalError.style.display = 'block';
+                    showLoginError(window.TABLON_I18N.serverError);
                 }
             };
-            xhr.ontimeout = function () {
-                btnLogin.disabled = false;
-                btnLogin.classList.remove('loading');
-                loginModalError.textContent = window.TABLON_I18N.serverError;
-                loginModalError.style.display = 'block';
-            };
-            xhr.onerror = function () {
-                btnLogin.disabled = false;
-                btnLogin.classList.remove('loading');
-                loginModalError.textContent = window.TABLON_I18N.serverError;
-                loginModalError.style.display = 'block';
-            };
+            xhr.ontimeout = function () { showLoginError(window.TABLON_I18N.serverError); };
+            xhr.onerror = function () { showLoginError(window.TABLON_I18N.serverError); };
             xhr.send(formData);
         });
     }

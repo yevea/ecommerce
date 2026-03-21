@@ -73,6 +73,40 @@
             gap: 4px;
         }
         .btn-logout:hover { background: rgba(255,255,255,0.3); }
+        .install-banner {
+            display: none;
+            background: #2980b9;
+            color: #fff;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            align-items: center;
+            gap: 10px;
+        }
+        .install-banner .install-text { flex: 1; }
+        .install-banner .install-text i { margin-right: 6px; }
+        .btn-install-app {
+            background: #fff;
+            color: #2980b9;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-install-app:hover { background: #ecf0f1; }
+        .btn-dismiss-install {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+        .btn-dismiss-install:hover { color: #fff; }
         .offline-banner {
             display: none;
             background: #f39c12;
@@ -262,6 +296,12 @@
             </a>
             {% endif %}
         </div>
+    </div>
+
+    <div class="install-banner" id="installBanner">
+        <span class="install-text"><i class="fa-solid fa-download"></i> {{ trans('tablon-install-prompt') }}</span>
+        <button class="btn-install-app" id="btnInstall" type="button">{{ trans('tablon-install-btn') }}</button>
+        <button class="btn-dismiss-install" id="btnDismissInstall" type="button" aria-label="Close">&times;</button>
     </div>
 
     <div class="offline-banner" id="offlineBanner">

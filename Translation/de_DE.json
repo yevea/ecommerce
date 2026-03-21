@@ -161,6 +161,8 @@
     "tablon-sync-now": "Synchronisieren",
     "tablon-pending": "Bohlen warten auf Synchronisierung",
     "tablon-app-install": "Bohlen App hinzufügen",
+    "tablon-install-prompt": "Diese App für schnellen Zugriff installieren",
+    "tablon-install-btn": "Installieren",
     "tablon-login-title": "Anmelden, um Bohlen hinzuzufügen",
     "tablon-logout": "Abmelden",
     "tablon-access-denied": "Sie haben keine Berechtigung, auf diese Seite zuzugreifen.",
