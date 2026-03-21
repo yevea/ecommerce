@@ -49,6 +49,10 @@ class AddTablon extends Controller
 
     public function run(): void
     {
+        // Clear stale session cookies before core auth to prevent
+        // "cookie de sesión no válida" warning on PWA page reload
+        $this->clearStaleCookies();
+
         parent::run();
 
         $user = Session::get('user');
@@ -252,6 +256,38 @@ class AddTablon extends Controller
 
         header('Location: ' . $cookiePath . 'AddTablon');
         exit;
+    }
+
+    /**
+     * Validate session cookies before core auth runs.
+     * If cookies are present but the logkey no longer matches (e.g. user logged in
+     * from another device), clear them so the core does not log a
+     * "cookie de sesión no válida" warning on every PWA page reload.
+     */
+    private function clearStaleCookies(): void
+    {
+        $nick = $_COOKIE['fsNick'] ?? '';
+        $logkey = $_COOKIE['fsLogkey'] ?? '';
+
+        if (empty($nick)) {
+            return;
+        }
+
+        // If fsLogkey is missing, the session is already broken — clear without DB lookup
+        if (empty($logkey)) {
+            $cookiePath = Tools::config('route', '/');
+            setcookie('fsNick', '', ['expires' => time() - 3600, 'path' => $cookiePath, 'samesite' => 'Lax']);
+            unset($_COOKIE['fsNick']);
+            return;
+        }
+
+        $user = new User();
+        if (!$user->loadFromCode($nick) || !$user->enabled || $user->logkey !== $logkey) {
+            $cookiePath = Tools::config('route', '/');
+            setcookie('fsNick', '', ['expires' => time() - 3600, 'path' => $cookiePath, 'samesite' => 'Lax']);
+            setcookie('fsLogkey', '', ['expires' => time() - 3600, 'path' => $cookiePath, 'samesite' => 'Lax']);
+            unset($_COOKIE['fsNick'], $_COOKIE['fsLogkey']);
+        }
     }
 
     private function loadPriceData(): void
