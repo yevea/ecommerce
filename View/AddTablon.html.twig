@@ -213,6 +213,37 @@
         .loading .btn-text { display: none; }
 
         .login-icon { font-size: 48px; color: #2c3e50; display: block; text-align: center; margin-bottom: 16px; }
+
+        /* Login modal overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .modal-box .modal-error {
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: none;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -221,11 +252,11 @@
         <i class="fa-solid fa-plus-circle"></i>
         {{ trans('add-tablon') }}
         <div class="header-right">
-            {% if fsc.isAuthenticated %}
             <span class="pending-badge" id="pendingBadge" title="{{ trans('tablon-pending') }}">0</span>
             <button class="btn-sync" id="btnSync" type="button" title="{{ trans('tablon-sync-now') }}">
                 <i class="fa-solid fa-rotate"></i> {{ trans('tablon-sync-now') }}
             </button>
+            {% if fsc.isAuthenticated %}
             <a href="?action=logout" class="btn-logout" title="{{ trans('tablon-logout') }}">
                 <i class="fa-solid fa-right-from-bracket"></i>
             </a>
@@ -233,7 +264,6 @@
         </div>
     </div>
 
-    {% if fsc.isAuthenticated %}
     <div class="offline-banner" id="offlineBanner">
         <i class="fa-solid fa-wifi-slash"></i>
         {{ trans('tablon-offline') }}
@@ -314,6 +344,30 @@
         </form>
     </div>
 
+    {# Login modal — shown when unauthenticated user tries to publish #}
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-box">
+            <div class="login-icon"><i class="fa-solid fa-lock"></i></div>
+            <div class="card-title" style="text-align: center;">{{ trans('tablon-login-title') }}</div>
+            <div class="modal-error" id="loginModalError"></div>
+            <form id="loginForm">
+                <input type="hidden" name="action" value="login">
+                <div class="form-row">
+                    <label for="modalNick">{{ trans('user') }}</label>
+                    <input type="text" id="modalNick" name="fsNick" required autocomplete="username">
+                </div>
+                <div class="form-row">
+                    <label for="modalPassword">{{ trans('password') }}</label>
+                    <input type="password" id="modalPassword" name="fsPassword" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn-login" id="btnLogin" style="margin-top: 8px;">
+                    <span class="btn-text"><i class="fa-solid fa-right-to-bracket"></i> {{ trans('login') }}</span>
+                    <span class="spinner"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script>
         var priceTable = {{ fsc.priceTable | json_encode | raw }};
         var TABLON_I18N = {
@@ -326,30 +380,6 @@
         };
     </script>
     <script src="{{ asset('Plugins/ecommerce/Assets/JS/AddTablon.js') }}"></script>
-    {% else %}
-    <div class="container">
-        {% if fsc.loginError %}
-        <div class="alert alert-error" style="margin-top: 16px;">{{ fsc.loginError }}</div>
-        {% endif %}
-
-        <form method="post" class="card" style="margin-top: 16px;">
-            <div class="login-icon"><i class="fa-solid fa-lock"></i></div>
-            <div class="card-title" style="text-align: center;">{{ trans('tablon-login-title') }}</div>
-            <input type="hidden" name="action" value="login">
-            <div class="form-row">
-                <label for="fsNick">{{ trans('user') }}</label>
-                <input type="text" id="fsNick" name="fsNick" required autocomplete="username">
-            </div>
-            <div class="form-row">
-                <label for="fsPassword">{{ trans('password') }}</label>
-                <input type="password" id="fsPassword" name="fsPassword" required autocomplete="current-password">
-            </div>
-            <button type="submit" class="btn-login" style="margin-top: 8px;">
-                <i class="fa-solid fa-right-to-bracket"></i> {{ trans('login') }}
-            </button>
-        </form>
-    </div>
-    {% endif %}
 
     <script>
         if ('serviceWorker' in navigator) {

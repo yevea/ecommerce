@@ -43,6 +43,7 @@ class AddTablon extends Controller
         $pageData['menu'] = 'ecommerce';
         $pageData['title'] = 'add-tablon';
         $pageData['icon'] = 'fa-solid fa-plus-circle';
+        $pageData['showonmenu'] = false;
         return $pageData;
     }
 
@@ -63,7 +64,7 @@ class AddTablon extends Controller
             return;
         }
 
-        // Handle login
+        // Handle login (supports both AJAX and regular POST)
         if ($action === 'login') {
             $this->handleLogin();
             return;
@@ -78,7 +79,7 @@ class AddTablon extends Controller
         // Actions that require authentication
         if ($action === 'add-tablon') {
             if (!$this->isAuthenticated) {
-                $this->result = 'error';
+                $this->result = 'login-required';
                 $this->resultMessage = Tools::lang()->trans('login-required');
                 $this->jsonResponse();
                 return;
@@ -89,12 +90,6 @@ class AddTablon extends Controller
         }
 
         if ($action === 'get-options') {
-            if (!$this->isAuthenticated) {
-                $this->result = 'error';
-                $this->resultMessage = Tools::lang()->trans('login-required');
-                $this->jsonResponse();
-                return;
-            }
             $this->loadPriceData();
             $this->jsonResponse([
                 'priceTable' => $this->priceTable,
@@ -104,9 +99,8 @@ class AddTablon extends Controller
             return;
         }
 
-        if ($this->isAuthenticated) {
-            $this->loadPriceData();
-        }
+        // Always load price data so the form is usable before login
+        $this->loadPriceData();
         $this->view('AddTablon.html.twig');
     }
 
@@ -127,24 +121,22 @@ class AddTablon extends Controller
     {
         $nick = trim($this->request()->request->get('fsNick', ''));
         $password = $this->request()->request->get('fsPassword', '');
+        $isAjax = $this->request()->headers->get('X-Requested-With') === 'XMLHttpRequest';
 
         if (empty($nick) || empty($password)) {
-            $this->loginError = Tools::lang()->trans('login-error');
-            $this->view('AddTablon.html.twig');
+            $this->handleLoginError(Tools::lang()->trans('login-error'), $isAjax);
             return;
         }
 
         $user = new User();
         if (!$user->loadFromCode($nick) || !$user->enabled || !$user->verifyPassword($password)) {
-            $this->loginError = Tools::lang()->trans('login-error');
-            $this->view('AddTablon.html.twig');
+            $this->handleLoginError(Tools::lang()->trans('login-error'), $isAjax);
             return;
         }
 
         // Check page permission
         if (!$user->admin && !$user->can('AddTablon')) {
-            $this->loginError = Tools::lang()->trans('tablon-access-denied');
-            $this->view('AddTablon.html.twig');
+            $this->handleLoginError(Tools::lang()->trans('tablon-access-denied'), $isAjax);
             return;
         }
 
@@ -173,8 +165,28 @@ class AddTablon extends Controller
             'samesite' => 'Lax',
         ]);
 
+        if ($isAjax) {
+            $this->result = 'ok';
+            $this->resultMessage = '';
+            $this->jsonResponse();
+            return;
+        }
+
         header('Location: ' . $cookiePath . 'AddTablon');
         exit;
+    }
+
+    private function handleLoginError(string $message, bool $isAjax): void
+    {
+        if ($isAjax) {
+            $this->result = 'error';
+            $this->resultMessage = $message;
+            $this->jsonResponse();
+            return;
+        }
+        $this->loginError = $message;
+        $this->loadPriceData();
+        $this->view('AddTablon.html.twig');
     }
 
     private function handleLogout(): void
