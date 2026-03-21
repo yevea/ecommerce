@@ -1,5 +1,5 @@
 <?php
-namespace FacturaScripts\Plugins\ecommerce\Controller;
+namespace FacturaScripts\Plugins\woodstore\Controller;
 
 use FacturaScripts\Core\Lib\AssetManager;
 use FacturaScripts\Core\Model\Familia;
@@ -7,9 +7,9 @@ use FacturaScripts\Core\Model\Producto;
 use FacturaScripts\Core\Template\Controller;
 use FacturaScripts\Core\Tools;
 use FacturaScripts\Core\Where;
-use FacturaScripts\Plugins\ecommerce\Lib\LanguageTrait;
-use FacturaScripts\Plugins\ecommerce\Lib\SlugTrait;
-use FacturaScripts\Plugins\ecommerce\Model\EcommerceCartItem;
+use FacturaScripts\Plugins\woodstore\Lib\LanguageTrait;
+use FacturaScripts\Plugins\woodstore\Lib\SlugTrait;
+use FacturaScripts\Plugins\woodstore\Model\WoodstoreCartItem;
 
 class StoreFront extends Controller
 {
@@ -48,7 +48,7 @@ class StoreFront extends Controller
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
-        $pageData['menu'] = 'ecommerce';
+        $pageData['menu'] = 'woodstore';
         $pageData['title'] = 'storefront';
         $pageData['icon'] = 'fa-solid fa-store';
         $pageData['showonmenu'] = false;
@@ -60,9 +60,9 @@ class StoreFront extends Controller
         parent::run();
         $this->detectAndSetLanguage();
 
-        $cssPath = FS_FOLDER . '/Plugins/ecommerce/Assets/CSS/ecommerce.css';
+        $cssPath = FS_FOLDER . '/Plugins/woodstore/Assets/CSS/woodstore.css';
         if (file_exists($cssPath)) {
-            AssetManager::addCss(FS_ROUTE . '/Plugins/ecommerce/Assets/CSS/ecommerce.css');
+            AssetManager::addCss(FS_ROUTE . '/Plugins/woodstore/Assets/CSS/woodstore.css');
         }
 
         $action = $this->request()->request->get('action', $this->request()->query->get('action', ''));
@@ -144,7 +144,7 @@ class StoreFront extends Controller
 
         $sessionId = $this->getSessionId();
 
-        $cartItem = new EcommerceCartItem();
+        $cartItem = new WoodstoreCartItem();
         $where = [
             Where::eq('session_id', $sessionId),
             Where::eq('product_referencia', $productReferencia),
@@ -189,7 +189,7 @@ class StoreFront extends Controller
             return;
         }
 
-        $secretKey = Tools::settings('ecommerce', 'stripe_secret_key', '');
+        $secretKey = Tools::settings('woodstore', 'stripe_secret_key', '');
         if (empty($secretKey)) {
             Tools::log()->error('stripe-not-configured');
             return;
@@ -454,7 +454,7 @@ class StoreFront extends Controller
 
     protected function loadCartItemCount(): void
     {
-        $cartItem = new EcommerceCartItem();
+        $cartItem = new WoodstoreCartItem();
         $where = [Where::eq('session_id', $this->getSessionId())];
         $items = $cartItem->all($where);
         $this->cartItemCount = 0;

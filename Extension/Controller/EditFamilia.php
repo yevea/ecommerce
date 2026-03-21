@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of ecommerce plugin for FacturaScripts.
+ * This file is part of WoodStore plugin for FacturaScripts.
  * Copyright (C) 2024 FacturaScripts Community
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace FacturaScripts\Plugins\ecommerce\Extension\Controller;
+namespace FacturaScripts\Plugins\woodstore\Extension\Controller;
 
 use Closure;
 use FacturaScripts\Core\Lib\AssetManager;
@@ -40,9 +40,9 @@ class EditFamilia
             }
 
             // Register the JS asset for dynamic toggle of the dimensions section
-            $pluginPath = FS_FOLDER . '/Plugins/ecommerce/Assets/JS/EditFamilia.js';
+            $pluginPath = FS_FOLDER . '/Plugins/woodstore/Assets/JS/EditFamilia.js';
             if (file_exists($pluginPath)) {
-                AssetManager::addJs(FS_ROUTE . '/Plugins/ecommerce/Assets/JS/EditFamilia.js');
+                AssetManager::addJs(FS_ROUTE . '/Plugins/woodstore/Assets/JS/EditFamilia.js');
             }
 
             // Server-side: hide dimension columns when tipofamilia is not "tableros"

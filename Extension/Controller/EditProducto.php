@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of ecommerce plugin for FacturaScripts.
+ * This file is part of WoodStore plugin for FacturaScripts.
  * Copyright (C) 2024 FacturaScripts Community
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace FacturaScripts\Plugins\ecommerce\Extension\Controller;
+namespace FacturaScripts\Plugins\woodstore\Extension\Controller;
 
 use Closure;
 use FacturaScripts\Core\Model\Familia;

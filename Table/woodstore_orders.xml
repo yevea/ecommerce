@@ -79,11 +79,11 @@
         <type>timestamp</type>
     </column>
     <constraint>
-        <name>pk_ecommerce_orders</name>
+        <name>pk_woodstore_orders</name>
         <type>PRIMARY KEY (id)</type>
     </constraint>
     <constraint>
-        <name>uniq_ecommerce_orders_code</name>
+        <name>uniq_woodstore_orders_code</name>
         <type>UNIQUE (code)</type>
     </constraint>
 </table>

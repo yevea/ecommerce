@@ -1,5 +1,5 @@
 <?php
-namespace FacturaScripts\Plugins\ecommerce\Controller;
+namespace FacturaScripts\Plugins\woodstore\Controller;
 
 use FacturaScripts\Core\Lib\ExtendedController\ListController;
 

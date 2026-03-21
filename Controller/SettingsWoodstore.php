@@ -1,16 +1,16 @@
 <?php
-namespace FacturaScripts\Plugins\ecommerce\Controller;
+namespace FacturaScripts\Plugins\woodstore\Controller;
 
 use FacturaScripts\Core\Controller\EditSettings;
 use FacturaScripts\Core\Model\Settings;
 
-class SettingsEcommerce extends EditSettings
+class SettingsWoodstore extends EditSettings
 {
     public function getPageData(): array
     {
         $data = parent::getPageData();
         $data['menu'] = 'admin';
-        $data['title'] = 'settings-ecommerce';
+        $data['title'] = 'settings-woodstore';
         $data['icon'] = 'fa-solid fa-store';
         return $data;
     }
@@ -18,11 +18,11 @@ class SettingsEcommerce extends EditSettings
     protected function execPreviousAction($action)
     {
         if ($action === 'insert'
-            && $this->active === 'SettingsEcommerce'
+            && $this->active === 'SettingsWoodstore'
             && isset($this->views[$this->active])
             && $this->views[$this->active]->model instanceof Settings
             && empty($this->views[$this->active]->model->name)) {
-            $this->views[$this->active]->model->name = 'ecommerce';
+            $this->views[$this->active]->model->name = 'woodstore';
         }
 
         return parent::execPreviousAction($action);
@@ -32,10 +32,10 @@ class SettingsEcommerce extends EditSettings
     {
         parent::loadData($viewName, $view);
 
-        if ($viewName === 'SettingsEcommerce'
+        if ($viewName === 'SettingsWoodstore'
             && $view->model instanceof Settings
             && empty($view->model->name)) {
-            $view->model->name = 'ecommerce';
+            $view->model->name = 'woodstore';
         }
     }
 }

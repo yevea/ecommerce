@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of ecommerce plugin for FacturaScripts.
+ * This file is part of WoodStore plugin for FacturaScripts.
  * Copyright (C) 2024 FacturaScripts Community
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-namespace FacturaScripts\Plugins\ecommerce;
+namespace FacturaScripts\Plugins\woodstore;
 
 use FacturaScripts\Core\Template\InitClass;
 use FacturaScripts\Core\Where;
