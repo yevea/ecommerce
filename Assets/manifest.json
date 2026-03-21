@@ -1,6 +1,7 @@
 {
     "name": "Añadir Tablón",
     "short_name": "Tablón",
+    "id": "/AddTablon",
     "description": "PWA para añadir tablones al catálogo de ecommerce",
     "start_url": "/AddTablon",
     "scope": "/",
@@ -10,16 +11,22 @@
     "background_color": "#f0f2f5",
     "icons": [
         {
-            "src": "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 192 192'%3e%3crect width='192' height='192' rx='24' fill='%232c3e50'/%3e%3ctext x='96' y='120' text-anchor='middle' font-size='96' fill='white' font-family='Arial'%3e%2b%3c/text%3e%3c/svg%3e",
+            "src": "icons/icon-192.png",
             "sizes": "192x192",
-            "type": "image/svg+xml",
+            "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'%3e%3crect width='512' height='512' rx='64' fill='%232c3e50'/%3e%3ctext x='256' y='320' text-anchor='middle' font-size='256' fill='white' font-family='Arial'%3e%2b%3c/text%3e%3c/svg%3e",
+            "src": "icons/icon-512.png",
             "sizes": "512x512",
-            "type": "image/svg+xml",
+            "type": "image/png",
             "purpose": "any"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
     ]
 }

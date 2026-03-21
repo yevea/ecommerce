@@ -161,6 +161,8 @@
     "tablon-sync-now": "Synchroniser",
     "tablon-pending": "Planches en attente de synchronisation",
     "tablon-app-install": "Ajouter Planches App",
+    "tablon-install-prompt": "Installer cette app pour un accès rapide",
+    "tablon-install-btn": "Installer",
     "tablon-login-title": "Connectez-vous pour ajouter des planches",
     "tablon-logout": "Déconnexion",
     "tablon-access-denied": "Vous n'avez pas la permission d'accéder à cette page.",

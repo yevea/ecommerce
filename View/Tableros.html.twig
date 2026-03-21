@@ -195,10 +195,41 @@
 
     {% if fsc.selectedCategoryType == 'tablones' %}
     <div class="text-center my-4 d-block d-md-none">
-        <a href="{{ asset('AddTablon') }}" class="btn btn-lg btn-primary shadow">
+        <a href="{{ asset('AddTablon') }}" class="btn btn-lg btn-primary shadow" id="btnTablonInstall">
             <i class="fa-solid fa-mobile-screen-button"></i> {{ trans('tablon-app-install') }}
         </a>
     </div>
+    <script>
+    (function() {
+        var link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = '{{ asset('Plugins/ecommerce/Assets/manifest.json') }}';
+        document.head.appendChild(link);
+
+        var deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        var btn = document.getElementById('btnTablonInstall');
+        if (btn) {
+            btn.addEventListener('click', function(e) {
+                if (deferredPrompt) {
+                    e.preventDefault();
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(function() {
+                        deferredPrompt = null;
+                    });
+                }
+            });
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('{{ asset('AddTablon') }}?action=sw', {scope: '/'}).catch(function() {});
+        }
+    })();
+    </script>
     {% endif %}
     {% endblock %}
 

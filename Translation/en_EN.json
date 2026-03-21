@@ -161,6 +161,8 @@
     "tablon-sync-now": "Sync",
     "tablon-pending": "Slabs pending sync",
     "tablon-app-install": "Add Slabs App",
+    "tablon-install-prompt": "Install this app for quick access",
+    "tablon-install-btn": "Install",
     "tablon-login-title": "Log in to add slabs",
     "tablon-logout": "Log out",
     "tablon-access-denied": "You do not have permission to access this page.",
