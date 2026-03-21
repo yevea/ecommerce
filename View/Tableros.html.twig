@@ -203,7 +203,7 @@
     (function() {
         var link = document.createElement('link');
         link.rel = 'manifest';
-        link.href = '{{ asset('Plugins/ecommerce/Assets/manifest.json') }}';
+        link.href = '{{ asset('AddTablon') }}?action=manifest';
         document.head.appendChild(link);
 
         var deferredPrompt = null;
