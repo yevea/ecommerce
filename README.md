@@ -45,6 +45,7 @@ The storefront and product detail pages include:
 - **Storefront** — Public-facing product catalogue with category filtering and Schema.org structured data
 - **Shopping Cart** — Session-based cart with add, update quantity, and remove functionality
 - **Custom Dimensions** — Tableros (boards/countertops) support customer-specified length × width with price per m²
+- **Add Slab PWA** — Mobile-first Progressive Web App for field operators to photograph, measure and publish wood slabs — works offline with automatic sync (see [PWA_MANUAL.md](PWA_MANUAL.md))
 - **Order Processing** — Checkout flow that converts cart items into orders with full customer details
 - **Native FS Integration** — Automatically creates FacturaScripts `Cliente` and `PedidoCliente` records
 - **Stripe Payments** — Integrated Stripe checkout for card payments
@@ -56,17 +57,25 @@ The storefront and product detail pages include:
 ```
 ecommerce/
 ├── Assets/
-│   └── JS/
-│       └── EditFamilia.js           # Dynamic family-type UI
+│   ├── CSS/
+│   │   └── ecommerce.css              # General ecommerce styles
+│   ├── JS/
+│   │   ├── AddTablon.js               # PWA client-side logic
+│   │   └── EditFamilia.js             # Dynamic family-type UI
+│   ├── manifest.json                  # PWA manifest
+│   └── service-worker.js             # Service worker for offline support
 ├── Controller/
-│   ├── EditEcommerceOrder.php       # Edit order (admin)
-│   ├── ListEcommerceOrder.php       # List orders (admin)
-│   ├── Presupuesto.php              # Quote/checkout (frontend)
-│   ├── ProductoDetalle.php          # Product detail (frontend)
-│   ├── Tableros.php                 # Product catalogue (frontend)
-│   ├── SettingsEcommerce.php        # Stripe settings (admin)
-│   ├── ShoppingCartView.php         # Shopping cart redirect
-│   └── StoreFront.php               # Storefront catalogue (frontend)
+│   ├── AddTablon.php                  # Add Slab PWA (backend)
+│   ├── EditEcommerceOrder.php         # Edit order (admin)
+│   ├── EditTablonPrecio.php           # Edit slab prices (admin)
+│   ├── ListEcommerceOrder.php         # List orders (admin)
+│   ├── ListTablonPrecio.php           # List slab prices (admin)
+│   ├── Presupuesto.php                # Quote/checkout (frontend)
+│   ├── ProductoDetalle.php            # Product detail (frontend)
+│   ├── Tableros.php                   # Product catalogue (frontend)
+│   ├── SettingsEcommerce.php          # Stripe settings (admin)
+│   ├── ShoppingCartView.php           # Shopping cart redirect
+│   └── StoreFront.php                 # Storefront catalogue (frontend)
 ├── Extension/
 │   ├── Controller/
 │   │   ├── EditFamilia.php          # Family type + dimension limits
@@ -84,7 +93,8 @@ ecommerce/
 ├── Model/
 │   ├── EcommerceCartItem.php        # Cart item model
 │   ├── EcommerceOrder.php           # Order model
-│   └── EcommerceOrderLine.php       # Order line model
+│   ├── EcommerceOrderLine.php       # Order line model
+│   └── TablonPrecio.php             # Slab price lookup model
 ├── Table/
 │   ├── ecommerce_cart_items.xml     # Cart items table
 │   ├── ecommerce_order_lines.xml    # Order lines table
@@ -96,6 +106,7 @@ ecommerce/
 │   ├── es_ES.json                   # Spanish translations
 │   └── fr_FR.json                   # French translations
 ├── View/
+│   ├── AddTablon.html.twig          # Add Slab PWA template
 │   ├── Presupuesto.html.twig        # Quote/checkout template
 │   ├── ProductoDetalle.html.twig    # Product detail template (with Schema.org)
 │   ├── Tableros.html.twig            # Product catalogue template (with Schema.org)
@@ -110,6 +121,8 @@ ecommerce/
 ├── composer.json                    # PHP dependencies
 ├── facturascripts.ini               # Plugin metadata
 ├── LICENSE
+├── MULTILINGUAL.md
+├── PWA_MANUAL.md                    # Mobile PWA installation & usage guide
 └── README.md
 ```
 
@@ -184,3 +197,9 @@ When a customer completes a payment via Stripe, the plugin automatically:
 - Access the quote/cart at `/Presupuesto`
 - Complete checkout by entering customer details (name, NIF/CIF, email, phone, address, city, postal code, province, country) and clicking **Realizar Pedido**
 - Stripe payment is processed; on success, a native FacturaScripts client and sales order are created automatically
+
+### Add Slab PWA (Mobile)
+- Field operators can install the **Add Slab** app on their phone home screen to photograph and publish wood slabs
+- Access the app at `/AddTablon` or via the **"Add Slabs App"** button in the Wood Planks catalogue
+- Works offline — slabs are queued locally and synced automatically when back online
+- See [PWA_MANUAL.md](PWA_MANUAL.md) for full installation and usage instructions
