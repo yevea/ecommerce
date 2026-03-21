@@ -124,43 +124,19 @@ class AddTablon extends Controller
         $isAjax = $this->request()->headers->get('X-Requested-With') === 'XMLHttpRequest';
 
         if (empty($nick) || empty($password)) {
-            if ($isAjax) {
-                $this->result = 'error';
-                $this->resultMessage = Tools::lang()->trans('login-error');
-                $this->jsonResponse();
-                return;
-            }
-            $this->loginError = Tools::lang()->trans('login-error');
-            $this->loadPriceData();
-            $this->view('AddTablon.html.twig');
+            $this->handleLoginError(Tools::lang()->trans('login-error'), $isAjax);
             return;
         }
 
         $user = new User();
         if (!$user->loadFromCode($nick) || !$user->enabled || !$user->verifyPassword($password)) {
-            if ($isAjax) {
-                $this->result = 'error';
-                $this->resultMessage = Tools::lang()->trans('login-error');
-                $this->jsonResponse();
-                return;
-            }
-            $this->loginError = Tools::lang()->trans('login-error');
-            $this->loadPriceData();
-            $this->view('AddTablon.html.twig');
+            $this->handleLoginError(Tools::lang()->trans('login-error'), $isAjax);
             return;
         }
 
         // Check page permission
         if (!$user->admin && !$user->can('AddTablon')) {
-            if ($isAjax) {
-                $this->result = 'error';
-                $this->resultMessage = Tools::lang()->trans('tablon-access-denied');
-                $this->jsonResponse();
-                return;
-            }
-            $this->loginError = Tools::lang()->trans('tablon-access-denied');
-            $this->loadPriceData();
-            $this->view('AddTablon.html.twig');
+            $this->handleLoginError(Tools::lang()->trans('tablon-access-denied'), $isAjax);
             return;
         }
 
@@ -198,6 +174,19 @@ class AddTablon extends Controller
 
         header('Location: ' . $cookiePath . 'AddTablon');
         exit;
+    }
+
+    private function handleLoginError(string $message, bool $isAjax): void
+    {
+        if ($isAjax) {
+            $this->result = 'error';
+            $this->resultMessage = $message;
+            $this->jsonResponse();
+            return;
+        }
+        $this->loginError = $message;
+        $this->loadPriceData();
+        $this->view('AddTablon.html.twig');
     }
 
     private function handleLogout(): void

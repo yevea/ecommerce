@@ -331,7 +331,7 @@
                                 pendingLoginEntry = null;
                                 btnPublish.disabled = true;
                                 btnPublish.classList.add('loading');
-                                submitEntry(entry, function (ok, message) {
+                                submitEntry(entry, function (ok, message, resultCode) {
                                     btnPublish.classList.remove('loading');
                                     if (ok) {
                                         showAlert('success', message);
