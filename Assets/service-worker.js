@@ -1,23 +1,31 @@
 /**
  * Service Worker for the "Añadir Tablón" PWA.
- * Caches the app shell so the page loads fully offline.
+ * Caches the complete app shell so the page loads fully offline.
  * POST submissions are handled client-side via IndexedDB queue.
+ *
+ * The variable BASE is injected by the PHP controller (AddTablon?action=sw)
+ * so that all paths resolve correctly regardless of the FacturaScripts
+ * installation directory (e.g. "/" or "/facturascripts/").
  */
-var CACHE_NAME = 'tablon-pwa-v6';
+var CACHE_NAME = 'tablon-pwa-v7';
+var APP_SHELL = BASE + 'AddTablon';
 var SHELL_URLS = [
-    '/AddTablon',
+    APP_SHELL,
+    BASE + 'Plugins/ecommerce/Assets/JS/AddTablon.js',
+    BASE + 'Plugins/ecommerce/Assets/icons/icon-192.png',
+    BASE + 'Plugins/ecommerce/Assets/icons/icon-512.png',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.woff2'
 ];
 
 self.addEventListener('install', function (event) {
-    self.skipWaiting();
-    // Cache shell URLs in background without blocking activation
-    caches.open(CACHE_NAME).then(function (cache) {
-        cache.addAll(SHELL_URLS).catch(function () {
-            cache.add('/AddTablon').catch(function (err) { console.warn('SW cache failed:', err); });
-        });
-    });
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(function (cache) {
+            return cache.addAll(SHELL_URLS);
+        }).then(function () {
+            return self.skipWaiting();
+        })
+    );
 });
 
 self.addEventListener('activate', function (event) {
@@ -27,9 +35,10 @@ self.addEventListener('activate', function (event) {
                 names.filter(function (n) { return n !== CACHE_NAME; })
                     .map(function (n) { return caches.delete(n); })
             );
+        }).then(function () {
+            return self.clients.claim();
         })
     );
-    self.clients.claim();
 });
 
 self.addEventListener('fetch', function (event) {
@@ -38,17 +47,41 @@ self.addEventListener('fetch', function (event) {
         return;
     }
 
-    event.respondWith(
-        fetch(event.request).then(function (response) {
-            if (response.ok) {
-                var clone = response.clone();
-                caches.open(CACHE_NAME).then(function (cache) {
-                    cache.put(event.request, clone);
+    // Navigation requests (HTML pages): network-first, fall back to cached app shell
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).then(function (response) {
+                if (response.ok) {
+                    var clone = response.clone();
+                    caches.open(CACHE_NAME).then(function (cache) {
+                        cache.put(event.request, clone);
+                    });
+                }
+                return response;
+            }).catch(function () {
+                return caches.match(event.request).then(function (cached) {
+                    return cached || caches.match(APP_SHELL);
                 });
+            })
+        );
+        return;
+    }
+
+    // Static assets (JS, CSS, fonts, images): cache-first, fall back to network
+    event.respondWith(
+        caches.match(event.request).then(function (cached) {
+            if (cached) {
+                return cached;
             }
-            return response;
-        }).catch(function () {
-            return caches.match(event.request);
+            return fetch(event.request).then(function (response) {
+                if (response.ok) {
+                    var clone = response.clone();
+                    caches.open(CACHE_NAME).then(function (cache) {
+                        cache.put(event.request, clone);
+                    });
+                }
+                return response;
+            });
         })
     );
 });

@@ -162,8 +162,12 @@ class AddTablon extends Controller
             http_response_code(404);
             exit;
         }
+
+        $route = Tools::config('route', '/');
         header('Content-Type: application/javascript');
         header('Service-Worker-Allowed: /');
+        // Inject the base path so the SW can build correct URLs
+        echo 'var BASE = ' . json_encode($route, JSON_UNESCAPED_SLASHES) . ";\n";
         readfile($swPath);
         exit;
     }
