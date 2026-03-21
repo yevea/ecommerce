@@ -1,5 +1,5 @@
 /*
- * ecommerce storefront grey theme
+ * WoodStore storefront grey theme
  * Palette (light → dark):
  *   #f8f9fa  #e9ecef  #dee2e6  #ced4da
  *   #adb5bd  #6c757d  #495057  #343a40  #212529
@@ -8,7 +8,7 @@
  */
 
 /* ── Fixed Header ──────────────────────────────────────────── */
-#ecommerce-header {
+#woodstore-header {
     position: fixed;
     top: 0;
     left: 0;
@@ -20,14 +20,14 @@
     display: flex;
     align-items: center;
 }
-#ecommerce-header .ecommerce-header-inner {
+#woodstore-header .woodstore-header-inner {
     width: 100%;
     padding: 0 1rem;
 }
-#ecommerce-header a {
+#woodstore-header a {
     text-decoration: none;
 }
-#ecommerce-header a:hover {
+#woodstore-header a:hover {
     color: #adb5bd;
 }
 

@@ -1,20 +1,20 @@
 <?php
-namespace FacturaScripts\Plugins\ecommerce\Controller;
+namespace FacturaScripts\Plugins\woodstore\Controller;
 
 use FacturaScripts\Core\Lib\ExtendedController\EditController;
 use FacturaScripts\Core\Where;
 
-class EditEcommerceOrder extends EditController
+class EditWoodstoreOrder extends EditController
 {
     public function getModelClassName(): string
     {
-        return 'EcommerceOrder';
+        return 'WoodstoreOrder';
     }
 
     public function getPageData(): array
     {
         $pageData = parent::getPageData();
-        $pageData['menu'] = 'ecommerce';
+        $pageData['menu'] = 'woodstore';
         $pageData['title'] = 'order';
         $pageData['icon'] = 'fa-solid fa-shopping-bag';
         return $pageData;
@@ -22,15 +22,15 @@ class EditEcommerceOrder extends EditController
 
     protected function createViews()
     {
-        $this->addEditView('EditEcommerceOrder', 'EcommerceOrder', 'order', 'fa-solid fa-shopping-bag');
-        $this->addEditListView('EditEcommerceOrderLine', 'EcommerceOrderLine', 'order-lines', 'fa-solid fa-list');
+        $this->addEditView('EditWoodstoreOrder', 'WoodstoreOrder', 'order', 'fa-solid fa-shopping-bag');
+        $this->addEditListView('EditWoodstoreOrderLine', 'WoodstoreOrderLine', 'order-lines', 'fa-solid fa-list');
     }
 
     protected function loadData($viewName, $view)
     {
         switch ($viewName) {
-            case 'EditEcommerceOrderLine':
-                $order_id = $this->getViewModelValue('EditEcommerceOrder', 'id');
+            case 'EditWoodstoreOrderLine':
+                $order_id = $this->getViewModelValue('EditWoodstoreOrder', 'id');
                 $where = [Where::eq('order_id', $order_id)];
                 $view->loadData('', $where);
                 break;

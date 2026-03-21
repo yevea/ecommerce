@@ -1,5 +1,5 @@
 {
-    "ecommerce": "E-Commerce",
+    "woodstore": "WoodStore",
     "storefront": "Storefront",
     "all": "All",
     "shopping-cart": "Shopping Cart",
@@ -80,7 +80,7 @@
     "codpedido": "Native FS Order",
     "stripe-secret-key": "Stripe Secret Key (sk_...)",
     "stripe-public-key": "Stripe Public Key (pk_...)",
-    "settings-ecommerce": "E-Commerce Settings",
+    "settings-woodstore": "WoodStore Settings",
     "publica": "Public (visible on storefront)",
     "family-type": "Family Type",
     "mercancia": "Merchandise",
