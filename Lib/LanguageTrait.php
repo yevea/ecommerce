@@ -1,5 +1,5 @@
 <?php
-namespace FacturaScripts\Plugins\woodstore\Lib;
+namespace FacturaScripts\Plugins\WoodStore\Lib;
 
 use FacturaScripts\Core\Tools;
 

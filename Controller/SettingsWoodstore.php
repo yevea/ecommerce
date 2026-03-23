@@ -1,5 +1,5 @@
 <?php
-namespace FacturaScripts\Plugins\woodstore\Controller;
+namespace FacturaScripts\Plugins\WoodStore\Controller;
 
 use FacturaScripts\Core\Controller\EditSettings;
 use FacturaScripts\Core\Model\Settings;
