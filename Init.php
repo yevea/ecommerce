@@ -65,6 +65,10 @@ class Init extends InitClass
      */
     private function migrateSettings(DataBase $db): void
     {
+        if (false === $db->tableExists('fs_settings')) {
+            return;
+        }
+
         $old = $db->select("SELECT * FROM fs_settings WHERE name = 'ecommerce'");
         if (empty($old)) {
             return;
