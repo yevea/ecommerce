@@ -47,6 +47,8 @@
 
 /* ── Language switcher ──────────────────────────────────────── */
 .lang-switcher-btn {
+    background: none;
+    border: none;
     font-size: 0.8rem;
     padding: 0.15rem 0.5rem;
     letter-spacing: 0.05em;
