@@ -49,14 +49,13 @@
 .lang-switcher-btn {
     background: none;
     border: none;
-    color: #fff;
+    color: #dee2e6;
     font-size: 0.8rem;
     padding: 0.15rem 0.5rem;
     letter-spacing: 0.05em;
 }
 .lang-switcher-btn:focus {
-    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-        color: #e9ecef;
+    color: #fff;
 }
 .lang-switcher-btn a {
     color: #e9ecef;
