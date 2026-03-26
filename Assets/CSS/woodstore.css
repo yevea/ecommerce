@@ -415,8 +415,14 @@ a:hover {
     color: #6c757d;
 }
 
-/* ── Fixed-bottom cart button ───────────────────────────────── */
-.fixed-bottom .btn {
+/* ── Sticky cart button (stays above footer) ───────────────── */
+.sticky-cart-btn {
+    position: sticky;
+    bottom: 0;
+    z-index: 1030;
+    padding-bottom: 1rem;
+}
+.sticky-cart-btn .btn {
     border-radius: 0.5rem;
 }
 
