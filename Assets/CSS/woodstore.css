@@ -362,6 +362,59 @@ a:hover {
     box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1) !important;
 }
 
+/* ── Footer ─────────────────────────────────────────────────── */
+#woodstore-footer {
+    background-color: #212529;
+    color: #dee2e6;
+    padding: 2.5rem 0 1.5rem;
+    margin-top: 3rem;
+}
+#woodstore-footer a {
+    color: #dee2e6;
+    text-decoration: none;
+}
+#woodstore-footer a:hover {
+    color: #fff;
+}
+.footer-heading {
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+}
+.footer-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.footer-list li {
+    padding: 0.3rem 0;
+    font-size: 0.9rem;
+}
+.footer-list li i {
+    width: 1.25rem;
+    text-align: center;
+    margin-right: 0.4rem;
+    color: #adb5bd;
+}
+.footer-address {
+    font-style: normal;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+.footer-address i {
+    color: #adb5bd;
+    margin-right: 0.4rem;
+}
+.footer-divider {
+    border-color: #495057;
+    margin: 1.5rem 0 1rem;
+}
+.footer-copy {
+    color: #6c757d;
+}
+
 /* ── Fixed-bottom cart button ───────────────────────────────── */
 .fixed-bottom .btn {
     border-radius: 0.5rem;
