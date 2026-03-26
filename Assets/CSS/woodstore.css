@@ -103,6 +103,11 @@ body {
     padding-top: 50px;
 }
 
+/* Hide the three <br> spacers injected by the core MenuTemplate after block body */
+body > br {
+    display: none;
+}
+
 /* ── Links ──────────────────────────────────────────────────── */
 a {
     color: #495057;
