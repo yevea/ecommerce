@@ -171,6 +171,13 @@ When a customer completes a payment via Stripe, the plugin automatically:
 
 > This integration requires the FacturaScripts **Ventas** (Facturación) plugin to be installed. The plugin gracefully skips the native order creation if the required models are not available.
 
+## Documentation
+
+- [VoIP-CRM Integration Analysis](Docs/VoIP-CRM-Integration-Analysis.md) — Detailed analysis of options for integrating VoIP call management with FacturaScripts CRM, including virtual number setup, Starlink considerations, provider comparison, and a phased implementation plan.
+- [Architecture Decision: VoIP Plugin](Docs/Architecture-Decision-VoIP-Plugin.md) — Recommendation to build VoIP/CRM call management as a **separate FacturaScripts plugin** rather than integrating into this ecommerce plugin, with detailed reasoning and plugin structure.
+- [Solution A vs. C Deep Dive](Docs/Solution-A-vs-C-Deep-Dive.md) — Explains why Solution A and C are practically identical when using Zadarma (free PBX includes webhooks + API). Covers why WhatsApp calls are not possible but SIP softphone on mobile via WiFi is better. Includes revised cost estimates (~€3.60/month).
+- [CRM Plugin Kickoff Guide](Docs/CRM-Plugin-Kickoff-Guide.md) — Step-by-step instructions for creating the new `yevea/crm` repository, including the complete first issue/prompt for Copilot that transfers all accumulated VoIP/CRM knowledge into the new project.
+
 ## Usage
 
 ### Admin Panel
